@@ -3,8 +3,6 @@ package com.banklab.codeapi.service;
 import com.banklab.codeapi.domain.TransactionHistoryVO;
 import com.banklab.codeapi.dto.TransactionRequestDto;
 import com.banklab.codeapi.mapper.codeapiMapper;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +23,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Log4j2
-public class TransactionService {
+public class CodeapiService {
 
     private final codeapiMapper codeapiMapper;
     private final RestTemplate restTemplate;

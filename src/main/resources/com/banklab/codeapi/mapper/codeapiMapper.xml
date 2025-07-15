@@ -29,4 +29,14 @@
         </foreach>
     </insert>
     <select id="getTransactionList" resultType="com.banklab.codeapi.domain.TransactionHistoryVO"></select>
+
+
+    <select id="getTransactionSummary" resultType="java.util.Map">
+        SELECT
+            SUM(CASE WHEN res_account_out > 0 THEN res_account_out ELSE 0 END) AS totalExpense,
+            SUM(CASE WHEN res_account_in > 0 THEN res_account_in ELSE 0 END) AS totalIncome
+        FROM transaction_history
+        WHERE DATE_FORMAT(transaction_date, '%Y-%m') = #{targetMonth}
+    </select>
+
 </mapper>

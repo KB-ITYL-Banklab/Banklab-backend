@@ -5,7 +5,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
-public class TransactionController {
+public class CodefController {
 
     @GetMapping("/transaction")
     public String showTransactionForm(Model model) {
