@@ -32,6 +32,10 @@ dependencies {
   implementation "org.springframework:spring-webmvc:${springVersion}"
   implementation 'javax.inject:javax.inject:1'
 
+  // RestTemplate
+  implementation 'org.springframework:spring-web:5.3.30' // Spring 5 기준
+  implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.3' // JSON 파싱용
+
 
   // 보안
   implementation("org.springframework.security:spring-security-web:${springSecurityVersion}")
