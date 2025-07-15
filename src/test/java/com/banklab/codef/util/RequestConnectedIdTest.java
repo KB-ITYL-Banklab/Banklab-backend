@@ -19,7 +19,7 @@ class RequestConnectedIdTest {
         String password = "dkdlwmdnjs1@";
 
         String connected_id = RequestConnectedId.createConnectedId(id, password);
-        log.info("Connected Id: " + connected_id);
+        log.info("Connected ID: " + connected_id);
 
         // 1OXShkrgQ8JaO1K2rgiiOa
     }

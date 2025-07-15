@@ -22,8 +22,8 @@ class RequestTokenTest {
     void getToken() throws Exception {
         String accessToken = RequestToken.getAccessToken(clientId, clientSecret);
 
-        assertNotNull(accessToken, "Access Token이 null이면 안 됩니다.");
-        assertFalse(accessToken.isEmpty(), "Access Token이 비어있으면 안 됩니다.");
+        assertNotNull(accessToken, "Access Token이 null이면 안 됨.");
+        assertFalse(accessToken.isEmpty(), "Access Token이 비어있으면 안 됨.");
 
         log.info("발급된 Access Token: " + accessToken);
     }
