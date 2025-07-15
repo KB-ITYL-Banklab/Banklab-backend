@@ -38,6 +38,7 @@ public class TransactionService {
 
     public void fetchAndSaveTransactions(TransactionRequestDto request) {
         String jsonResponse = callTransactionListA1pi(request);
+        System.out.println("");
          try {
             jsonResponse= URLDecoder.decode(jsonResponse, "UTF-8");
          } catch (UnsupportedEncodingException e) {

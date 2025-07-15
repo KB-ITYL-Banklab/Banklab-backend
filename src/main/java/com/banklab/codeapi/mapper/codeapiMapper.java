@@ -5,7 +5,6 @@ import org.mapstruct.Mapper;
 
 import java.util.List;
 
-@Mapper
 public interface codeapiMapper {
 
     // 거래 내역 불러오기
