@@ -6,6 +6,8 @@ import com.banklab.config.ServletConfig;
 import com.banklab.config.WebConfig;
 import com.banklab.transaction.dto.DailyExpenseDTO;
 import com.banklab.transaction.dto.MonthlySummaryDTO;
+import com.banklab.transaction.dto.SummaryDTO;
+import com.banklab.transaction.dto.WeeklyExpenseDTO;
 import com.banklab.transaction.mapper.TransactionMapper;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.DisplayName;
@@ -20,8 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
@@ -32,9 +33,6 @@ class TransactionServiceTest {
 
     @Autowired
     private TransactionService transactionService;
-
-    @Autowired
-    private TransactionMapper  transactionMapper;
 
     String ExistentAccount = "110568497184";
     String nonExistentAccount = "0000000000";
@@ -96,5 +94,59 @@ class TransactionServiceTest {
         List<DailyExpenseDTO> dailyExpense = transactionService.getDailyExpense(year, month, nonExistentAccount);
 
         assertEquals(dailyExpense.size(), 0);
+    }
+
+
+    @Test
+    @DisplayName("주차별 지출 정보 조회 테스트 - DB 데이터 존재")
+    void getWeeklyExpense_whenDataInDB() {
+        // given
+        int year = 2025;
+        int month = 6;
+
+        //when
+        List<DailyExpenseDTO> dailyExpense = transactionService.getDailyExpense(year, month, ExistentAccount);
+        List<WeeklyExpenseDTO> weeklyExpense= transactionService.getWeeklyExpense(dailyExpense, year, month);
+
+        for (WeeklyExpenseDTO week : weeklyExpense) {
+            log.info("week: "+week.getWeekNumber()+" "+week.getStartDate()+" "+week.getEndDate()+" "+week.getTotalExpense());
+        }
+        assertNotNull(weeklyExpense);
+    }
+
+    @Test
+    @DisplayName("주차별 지출 정보 조회 테스트 - DB 데이터 미존재")
+    void getWeeklyExpense_whenNoDataInDB() {
+        // given
+        int year = 2025;
+        int month = 7;
+
+        //when
+        List<DailyExpenseDTO> dailyExpense = transactionService.getDailyExpense(year, month, nonExistentAccount);
+        List<WeeklyExpenseDTO> weeklyExpense= transactionService.getWeeklyExpense(dailyExpense, year, month);
+
+
+        assertEquals(weeklyExpense.size(), 0);
+    }
+
+    @Test
+    @DisplayName("월, 주간, 일별 통계 조회 - DB 데이터 존재")
+    void getSummary_whenDataInDB() {
+        int year = 2025;
+        int month = 6;
+
+        SummaryDTO summary = transactionService.getSummary(year, month, ExistentAccount);
+        assertNotNull(summary);
+    }
+
+    @Test
+    @DisplayName("월, 주간, 일별 통계 조회 - DB 데이터 미존재")
+    void getSummary_whenNoDataInDB() {
+        int year = 2021;
+        int month = 6;
+
+        SummaryDTO summary = transactionService.getSummary(year, month, nonExistentAccount);
+        assertEquals(summary.getMonthlySummary().getTotalIncome(), 0);
+        assertEquals(summary.getMonthlySummary().getTotalIncome(), 0);
     }
 }
