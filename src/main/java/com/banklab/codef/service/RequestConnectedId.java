@@ -43,7 +43,7 @@ public class RequestConnectedId {
 
         bodyMap.put("accountList", list);
 
-        String result = ApiRequest.reqeust(urlPath, bodyMap);
+        String result = ApiRequest.request(urlPath, bodyMap);
         //System.out.println(result);
 
         JsonNode root = mapper.readTree(result);

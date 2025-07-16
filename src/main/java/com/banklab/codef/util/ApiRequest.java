@@ -24,23 +24,22 @@ public class ApiRequest {
      * @throws IOException
      * @throws InterruptedException
      */
-    public static String reqeust(String urlPath, Map<String, Object> bodyMap) throws IOException, InterruptedException {
+    public static String request(String urlPath, Map<String, Object> bodyMap) throws IOException, InterruptedException {
 
         // 리소스서버 접근을 위한 액세스토큰 설정 (기존에 발급 받은 토큰이 있다면 유효기간 만료까지 재사용)
         String accessToken = CommonConstant.ACCESS_TOKEN;
 
-        // 비어있으면 새로 발급
+        // 토큰이 없으면 액세스 토큰 새로 발급
         if (accessToken == null || accessToken.isEmpty()) {
             accessToken = RequestToken.getAccessToken(CommonConstant.CLIENT_ID, CommonConstant.SECERET_KEY);
             CommonConstant.ACCESS_TOKEN = accessToken;
         }
 
-        // Json 만들기
+        // Json 변환
         String bodyJson = mapper.writeValueAsString(bodyMap);
 
         // 요청 전송
-        Object responseObj = HttpRequest.post(urlPath, accessToken, bodyJson);
-        JsonNode json = (JsonNode)  responseObj;
+        JsonNode json = HttpRequest.post(urlPath, accessToken, bodyJson);
         String result = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json);
 
         // 유효성 검사
