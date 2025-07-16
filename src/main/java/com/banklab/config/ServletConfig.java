@@ -13,6 +13,7 @@ import org.springframework.web.servlet.view.JstlView;
 @ComponentScan(basePackages = {
         "com.banklab.exception",
         "com.banklab.codeapi.controller",
+        "com.banklab.transaction.controller",
 })
 public class ServletConfig implements WebMvcConfigurer {
 

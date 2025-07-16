@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.transaction.mapper.TransactionMapper">
+
+    <select id="getMonthlySummary" resultType="com.banklab.transaction.dto.MonthlySummaryDTO">
+        SELECT
+            #{year} AS year,
+            #{month} AS month,
+            IFNULL(SUM(CASE WHEN resAccountIn > 0 THEN resAccountIn ELSE 0 END), 0) AS totalIncome,
+            IFNULL(SUM(CASE WHEN resAccountOut > 0 THEN resAccountOut ELSE 0 END), 0) AS totalExpense
+        FROM transaction_history
+        WHERE YEAR(transaction_date) = #{year}
+          AND MONTH(transaction_date) = #{month}
+        AND resAccount = #{resAccount}
+    </select>
+
+    <select id="getDailyExpense" resultType="com.banklab.transaction.dto.DailyExpenseDTO">
+        SELECT
+            transaction_date as date,
+            IFNULL(SUM(CASE WHEN resAccountOut > 0 THEN resAccountOut ELSE 0 END), 0) AS totalExpense
+        FROM transaction_history
+        WHERE YEAR(transaction_date) = #{year}
+          AND MONTH(transaction_date) = #{month}
+        AND resAccount = #{resAccount}
+        GROUP BY transaction_date
+        ORDER BY transaction_date
+
+    </select>
+</mapper>
