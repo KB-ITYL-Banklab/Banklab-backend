@@ -42,4 +42,30 @@ class AccountServiceImplTest {
         }
     }
 
+    @Test
+    void updateBalanceTest() throws Exception {
+        String userId = "test_id";
+        String connectedId = "1OXShkrgQ8JaO1K2rgiiOa";
+        String organization = "0004";
+
+        accountService.refreshAccountBalance(userId, organization, connectedId);
+
+        List<AccountDTO> accountDTOList = accountService.getUserAccounts(userId);
+
+        for(AccountDTO accountDTO : accountDTOList) {
+            log.info("보유 계좌: {}", accountDTO.getResAccountName());
+            log.info("계좌번호: {}", accountDTO.getResAccountDisplay());
+            log.info("잔액: {}",accountDTO.getResAccountBalance());
+        }
+    }
+
+    @Test
+    void deleteAccountTest() throws Exception {
+        String userId = "test_id";
+        String connectedId = "1OXShkrgQ8JaO1K2rgiiOa";
+
+        accountService.deleteAccount(userId, connectedId);
+
+    }
+
 }

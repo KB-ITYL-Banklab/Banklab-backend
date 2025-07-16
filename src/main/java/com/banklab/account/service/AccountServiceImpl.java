@@ -55,4 +55,30 @@ public class AccountServiceImpl implements AccountService {
         }
         return accountDTOList;
     }
+
+    @Override
+    public void refreshAccountBalance(String userId, String bankCode, String connectedId) throws Exception {
+
+        List<AccountVO> latestAccounts = AccountResponse.requestAccounts(userId, bankCode, connectedId);
+
+        if (latestAccounts.isEmpty()) {
+            log.warn("API에서 계좌 정보를 가져오지 못했습니다.");
+            return;
+        }
+
+        for (AccountVO accountVO : latestAccounts) {
+            String resAccount = accountVO.getResAccount();
+            String newBalance = accountVO.getResAccountBalance();
+
+            accountMapper.updateAccountBalance(userId, resAccount, newBalance);
+
+        }
+    }
+
+    @Override
+    public void deleteAccount(String userId, String connectedId) {
+
+        accountMapper.deleteAccount(userId, connectedId);
+
+    }
 }

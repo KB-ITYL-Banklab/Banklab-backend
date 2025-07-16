@@ -12,14 +12,41 @@ import java.util.List;
  */
 public interface AccountService {
 
-    // 계좌 저장
+    /**
+     * CODEF API에서 불러온 계좌를 저장
+     *
+     * @param accountVOList : 보유 계좌 목록
+     * @return 계좌 수 카운팅
+     */
     public int saveAccounts(List<AccountVO> accountVOList);
 
-    // 계좌 조회
-    List<AccountDTO> getUserAccounts(String userId);
+
+    /**
+     * DB에 저장된 계좌를 조회
+     *
+     * @param userId : 유저 아이디
+     * @return 유저의 계좌 목록
+     */
+    public List<AccountDTO> getUserAccounts(String userId);
+
+    /**
+     * API 재호출해서 잔액을 새로고침
+     *
+     * @param userId : 유저아이디
+     * @param bankCode : 기관코드(은행)
+     * @param connectedId : 커넥티드 아이디
+     * @throws Exception the exception
+     */
+    public void refreshAccountBalance(String userId, String bankCode, String connectedId) throws Exception;
 
 
-
+    /**
+     * DB에 저장된 계좌를 삭제
+     *
+     * @param userId : 유저아이디
+     * @param connectedId : 커넥티드 아이디
+     */
+    public void deleteAccount(String userId, String connectedId);
 
 
 
