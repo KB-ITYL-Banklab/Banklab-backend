@@ -8,6 +8,7 @@ import com.banklab.transaction.mapper.TransactionMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.security.InvalidParameterException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -20,6 +21,13 @@ public class TransactionService {
 
     private final TransactionMapper transactionMapper;
 
+    /**
+     * 
+     * @param year 년도
+     * @param month 월
+     * @param account   계좌 번호
+     * @return 월, 주간, 일간 내역 리스트
+     */
     public SummaryDTO getSummary(int year, int month, String account) {
         MonthlySummaryDTO monthlySummary = getMonthlySummary(year, month, account);
         List<DailyExpenseDTO> dailyExpense = getDailyExpense(year, month, account);
