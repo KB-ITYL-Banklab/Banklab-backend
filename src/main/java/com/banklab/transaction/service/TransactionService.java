@@ -6,6 +6,7 @@ import com.banklab.transaction.mapper.TransactionMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -15,14 +16,15 @@ public class TransactionService {
     private final TransactionMapper transactionMapper;
 
     public MonthlySummaryDTO getMonthlySummary(int year, int month, String account) {
-        return transactionMapper.getMonthlySummary(year, month, account);
+        MonthlySummaryDTO monthlySummary = transactionMapper.getMonthlySummary(year, month, account);
+        if (monthlySummary == null) {
+            return new MonthlySummaryDTO();
+        }
+        return monthlySummary;
     }
 
     public List<DailyExpenseDTO> getDailyExpense(int year, int month, String account) {
         List<DailyExpenseDTO> list = transactionMapper.getDailyExpense(year, month, account).stream().toList();
-        for(DailyExpenseDTO dailyExpenseDTO : list) {
-            System.out.println(dailyExpenseDTO.toString());
-        }
         return list;
     }
 

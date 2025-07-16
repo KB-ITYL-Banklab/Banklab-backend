@@ -18,15 +18,33 @@
     </select>
 
     <select id="getDailyExpense" resultType="com.banklab.transaction.dto.DailyExpenseDTO">
+ <![CDATA[
+  WITH RECURSIVE dates AS (
+            SELECT DATE(CONCAT(#{year}, '-', #{month}, '-01')) AS date
+            UNION ALL
+            SELECT DATE_ADD(date, INTERVAL 1 DAY)
+            FROM dates
+            WHERE date < LAST_DAY(DATE(CONCAT(#{year}, '-', #{month}, '-01')))
+            )
+
         SELECT
-            transaction_date as date,
-            IFNULL(SUM(CASE WHEN resAccountOut > 0 THEN resAccountOut ELSE 0 END), 0) AS totalExpense
-        FROM transaction_history
-        WHERE YEAR(transaction_date) = #{year}
-          AND MONTH(transaction_date) = #{month}
-        AND resAccount = #{resAccount}
-        GROUP BY transaction_date
-        ORDER BY transaction_date
+            d.date,
+            IFNULL(SUM(CASE WHEN th.resAccountOut > 0 THEN th.resAccountOut ELSE 0 END), 0) AS totalExpense
+        FROM
+            dates d
+                LEFT JOIN
+            transaction_history th
+            ON th.transaction_date = d.date
+                AND th.resAccount = #{resAccount}
+        GROUP BY
+            d.date
+        ORDER BY
+            d.date
+        ]]>
+
+
+
+
 
     </select>
 </mapper>

@@ -1,31 +1,40 @@
 package com.banklab.transaction.controller;
 
+import com.banklab.transaction.dto.DailyExpenseDTO;
+import com.banklab.transaction.dto.MonthlySummaryDTO;
 import com.banklab.transaction.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
+import java.util.List;
 
 @RestController
-@RequestMapping("/api/transaction")
+@RequestMapping("/api/analysis")
 @RequiredArgsConstructor
-public class TransactionController {
+public class TransactionApiController {
 
     private final TransactionService transactionService;
 
-    @GetMapping("/monthly-transaction")
-    public ResponseEntity<Map<String, Long>> getSummary(
-            @RequestParam(required = false) String year,
-            @RequestParam(required = false) String month){
+    @GetMapping("/monthly-summary")
+    public ResponseEntity<MonthlySummaryDTO> getMonthlySummary(
+            @RequestParam("year") int year,
+            @RequestParam("month") int month,
+            @RequestParam("account") String account
+            ) {
+        return  ResponseEntity.ok(transactionService.getMonthlySummary(year, month, account));
+    }
 
-        Map<String, Long> monthlySummary = transactionService.getTransactionSummaryForMonth(year, month);
-        return ResponseEntity.ok(monthlySummary);
-
+    @GetMapping("/daily-summary")
+    public ResponseEntity<List<DailyExpenseDTO>> getDailySummary(
+            @RequestParam("year") int year,
+            @RequestParam("month") int month,
+            @RequestParam("account") String account
+    ) {
+        return  ResponseEntity.ok(transactionService.getDailyExpense(year, month, account));
     }
 
 
