@@ -32,6 +32,8 @@ dependencies {
   implementation "org.springframework:spring-webmvc:${springVersion}"
   implementation 'javax.inject:javax.inject:1'
 
+  //
+  implementation 'com.google.code.gson:gson:2.10.1'
 
   // 보안
   implementation("org.springframework.security:spring-security-web:${springSecurityVersion}")
@@ -100,6 +102,12 @@ dependencies {
 
   // build.gradle
   implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+  // HTTP 클라이언트 (네이버 API 연동용)
+  implementation 'org.apache.httpcomponents:httpclient:4.5.14'
+  
+  // 스케줄링
+  implementation("org.springframework:spring-context-support:${springVersion}")
 
   // 테스트
   testImplementation "org.springframework:spring-test:${springVersion}"
