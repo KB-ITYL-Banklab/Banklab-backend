@@ -15,6 +15,7 @@ import org.springframework.web.servlet.view.JstlView;
         "com.banklab.codeapi.controller",
         "com.banklab.transaction.controller",
         "com.banklab.category.controller",
+        "com.banklab.perplexity.controller",
 })
 public class ServletConfig implements WebMvcConfigurer {
 

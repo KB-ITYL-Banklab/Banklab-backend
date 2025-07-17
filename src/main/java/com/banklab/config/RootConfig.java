@@ -26,7 +26,9 @@ import javax.sql.DataSource;
 @ComponentScan(basePackages = {
         "com.banklab.codeapi.service",
         "com.banklab.transaction.service",
-        "com.banklab.category.service"})
+        "com.banklab.category.service",
+        "com.banklab.perplexity.service",
+})
 @EnableTransactionManagement
 public class RootConfig {
     @Value("${jdbc.driver}")
