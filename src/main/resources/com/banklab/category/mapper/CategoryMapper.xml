@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.category.mapper.CategoryMapper">
+
+    <insert id="createCategory">
+        insert into category (name)
+        values (#{name})
+
+        <selectKey resultType="Long" keyProperty="id" keyColumn="id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+    </insert>
+
+    <update id="updateCategory">
+        update category
+        set name = #{name}
+        where id = #{id}
+    </update>
+
+    <select id="getCategoryByName" resultType="com.banklab.category.domain.CategoryVO">
+        select id from category
+        where name = #{name}
+    </select>
+
+    <select id="getCategoryById" resultType="com.banklab.category.domain.CategoryVO">
+        select * from category
+        where id = #{id}
+    </select>
+</mapper>

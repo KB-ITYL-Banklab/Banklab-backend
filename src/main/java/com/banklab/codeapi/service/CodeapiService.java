@@ -1,5 +1,7 @@
 package com.banklab.codeapi.service;
 
+import com.banklab.category.dto.CategoryDTO;
+import com.banklab.category.service.CategoryService;
 import com.banklab.codeapi.domain.TransactionHistoryVO;
 import com.banklab.codeapi.dto.TransactionRequestDto;
 import com.banklab.codeapi.mapper.codeapiMapper;
@@ -19,6 +21,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +29,7 @@ import java.util.List;
 public class CodeapiService {
 
     private final codeapiMapper codeapiMapper;
+    private final CategoryService categoryService;
     private final RestTemplate restTemplate;
 
     private static final String API_HOST = "https://development.codef.io";
@@ -36,14 +40,13 @@ public class CodeapiService {
 
     public void fetchAndSaveTransactions(TransactionRequestDto request) {
         String jsonResponse = callTransactionListA1pi(request);
-        System.out.println("");
          try {
             jsonResponse= URLDecoder.decode(jsonResponse, "UTF-8");
          } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
         List<TransactionHistoryVO> transactionList = parseTransactionList(jsonResponse);
-        saveTransactionsToDb(transactionList);
+//        saveTransactionsToDb(transactionList);
     }
 
     /**
@@ -77,11 +80,27 @@ public class CodeapiService {
             JsonNode dataNode = root.path("data");
             JsonNode list= dataNode.path("resTrHistoryList");
 
+            // VO 변환 및 기본 필드 설정
             for(JsonNode item: list){
                 TransactionHistoryVO vo = mapper.treeToValue(item, TransactionHistoryVO.class);
                 vo.setResAccount(dataNode.path("resAccount").asText());
                 transactions.add(vo);
             }
+
+            // 상호명 리스트
+            List<String> descriptions = transactions.stream()
+                    .map(TransactionHistoryVO::getDescription)
+                    .toList();
+    
+            // Perplexity API 로 batch 분류
+            List<String> categories = new ArrayList<>();
+
+            for(int i = 0; i < categories.size(); i++){
+                String category = categories.get(i);
+                Long id = getCategory(category);
+                transactions.get(i).setCategory_id(id);
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -89,10 +108,20 @@ public class CodeapiService {
         return transactions;
     }
 
+    /**
+     * 
+     * @param description 카테고리 이름
+     * @return  카테고리 아이디
+     */
+    private Long getCategory(String description){
+        CategoryDTO category = categoryService.createCategory(description);
+        return category.getId();
+    }
+
 
     /**
      *
-     * @param transactions
+     * @param transactions 거래 내역 리스트
      */
     private void saveTransactionsToDb(List<TransactionHistoryVO> transactions) {
         if (!transactions.isEmpty()) {

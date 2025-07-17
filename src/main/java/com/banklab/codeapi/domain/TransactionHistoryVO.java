@@ -1,6 +1,5 @@
 package com.banklab.codeapi.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -32,4 +31,7 @@ public class TransactionHistoryVO {
     @JsonProperty("resAccountDesc3")
     private String description;
     private Date createDate;
+
+    private Long category_id;
+
 }

@@ -18,7 +18,6 @@ public class CodeApiController {
 
     @PostMapping("/transaction-list")
     public ResponseEntity<String> fetchTransactionList(@RequestBody TransactionRequestDto request) {
-        System.out.println("Fetching transaction list");
         codeapiService.fetchAndSaveTransactions(request);
         return ResponseEntity.ok("거래내역 저장 완료");
     }
