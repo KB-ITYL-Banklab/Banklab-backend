@@ -2,9 +2,6 @@ package com.banklab.member.service;
 
 import com.banklab.config.RootConfig;
 import com.banklab.member.dto.MemberDTO;
-import com.banklab.member.mapper.MemberMapper;
-import com.banklab.security.account.domain.MemberVO;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,7 +10,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 

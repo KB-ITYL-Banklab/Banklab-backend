@@ -1,5 +1,6 @@
 package com.banklab.member.dto;
 
+import com.banklab.security.account.domain.AuthVO;
 import com.banklab.security.account.domain.MemberVO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,7 +31,7 @@ public class MemberDTO {
                 .regDate(m.getRegDate())
                 .updateDate(m.getUpdateDate())
                 .authList(m.getAuthList().stream()
-                        .map(a -> a.getAuth())
+                        .map(AuthVO::getAuth)
                         .toList())
                 .build();
     }

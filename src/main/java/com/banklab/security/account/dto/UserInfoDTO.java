@@ -1,5 +1,6 @@
 package com.banklab.security.account.dto;
 
+import com.banklab.security.account.domain.AuthVO;
 import com.banklab.security.account.domain.MemberVO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,7 +25,7 @@ public class UserInfoDTO {
         return new UserInfoDTO(
                 member.getUsername(),
                 member.getAuthList().stream()
-                        .map(a -> a.getAuth())
+                        .map(AuthVO::getAuth)
                         .toList()
         );
     }
