@@ -122,5 +122,15 @@ public class JwtProcessor {
         }
     }
 
+    public long getRemainingExpiration(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(getKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        return claims.getExpiration().getTime() - System.currentTimeMillis();
+    }
+
 }
 

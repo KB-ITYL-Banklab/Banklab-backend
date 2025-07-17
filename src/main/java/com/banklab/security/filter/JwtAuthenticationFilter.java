@@ -42,6 +42,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (bearerToken != null && bearerToken.startsWith(BEARER_PREFIX)) {
             String token = bearerToken.substring(BEARER_PREFIX.length());
 
+            // ✅ 로그아웃(차단)된 토큰인지 Redis에서 검사
+            if (redisService.isBlacklisted(token)) {
+                log.warn("요청에 포함된 토큰은 로그아웃된 토큰입니다. 요청 차단.");
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json;charset=UTF-8");
+                response.getWriter().write("{\"error\": \"로그아웃된 토큰입니다.\"}");
+                return;
+            }
+
             // 토큰에서 사용자 정보 추출 및 Authentication 객체 구성 후 SecurityContext에 저장
             Authentication authentication = getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(authentication);
