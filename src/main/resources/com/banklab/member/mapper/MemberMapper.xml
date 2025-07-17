@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.member.mapper.MemberMapper">
+    <resultMap id="authMap" type="AuthVO">
+        <result property="memberId" column="member_id" />
+        <result property="auth" column="auth" />
+    </resultMap>
+    <resultMap id="memberMap" type="MemberVO">
+        <id property="username" column="username" />
+        <result property="username" column="username" />
+        <result property="password" column="password" />
+        <result property="email" column="email" />
+        <result property="regDate" column="reg_date" />
+        <result property="updateDate" column="update_date" />
+        <collection property="authList" resultMap="authMap" />
+    </resultMap>
+    <select id="get" resultMap="memberMap">
+        SELECT m.username, password, email, reg_date, update_date, auth
+        FROM
+            member m
+                LEFT OUTER JOIN member_auth a
+                                ON m.member_id = a.member_id
+        where m.username = #{username}
+    </select>
+</mapper>
