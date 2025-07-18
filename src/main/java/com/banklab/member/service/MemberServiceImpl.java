@@ -44,4 +44,10 @@ public class MemberServiceImpl implements MemberService {
         // 저장된 회원정보 반환
         return get(member.getUsername());
     }
+
+    @Override
+    public boolean checkDuplicate(String username) {
+        MemberVO member = mapper.findByUsername(username);
+        return member != null;
+    }
 }

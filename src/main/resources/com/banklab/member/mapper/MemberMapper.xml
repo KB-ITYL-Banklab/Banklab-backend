@@ -43,4 +43,8 @@
         INSERT INTO member_auth(member_id, auth)
         VALUES(#{memberId}, #{auth})
     </insert>
+    <!--  ID 중복 체크용 조회  -->
+    <select id="findByUsername" resultType="MemberVO">
+        SELECT * FROM member WHERE username = #{username}
+    </select>
 </mapper>

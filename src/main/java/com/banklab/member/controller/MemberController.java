@@ -20,4 +20,10 @@ public class MemberController {
     public ResponseEntity<MemberDTO> join(@RequestBody MemberJoinDTO member) {
         return ResponseEntity.ok(service.join(member));
     }
+
+    // ID 중복 체크 API
+    @GetMapping("/checkusername/{username}")
+    public ResponseEntity<Boolean> checkUsername(@PathVariable String username) {
+        return ResponseEntity.ok().body(service.checkDuplicate(username));
+    }
 }
