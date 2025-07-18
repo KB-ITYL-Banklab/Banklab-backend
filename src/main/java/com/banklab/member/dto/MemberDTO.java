@@ -1,5 +1,6 @@
 package com.banklab.member.dto;
 
+import com.banklab.member.domain.Gender;
 import com.banklab.security.account.domain.AuthVO;
 import com.banklab.security.account.domain.MemberVO;
 import lombok.AllArgsConstructor;
@@ -7,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -19,6 +21,8 @@ public class MemberDTO {
     private String email;
     private String phone;
     private String name;
+    private Gender gender;
+    private LocalDate birth;
     private Date regDate;              // 등록일
     private Date updateDate;           // 수정일
     private List<String> authList;     // 권한 목록 (join 처리 필요)
@@ -28,6 +32,10 @@ public class MemberDTO {
         return MemberDTO.builder()
                 .username(m.getUsername())
                 .email(m.getEmail())
+                .phone(m.getPhone())
+                .name(m.getName())
+                .gender(m.getGender())
+                .birth(m.getBirth())
                 .regDate(m.getRegDate())
                 .updateDate(m.getUpdateDate())
                 .authList(m.getAuthList().stream()

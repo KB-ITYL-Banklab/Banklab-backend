@@ -11,4 +11,9 @@
     <typeAliases>
         <package name="com.banklab.security.account.domain"/>
     </typeAliases>
+
+    <typeHandlers>
+        <typeHandler handler="com.banklab.member.handler.GenderTypeHandler"
+                     javaType="com.banklab.member.domain.Gender"/>
+    </typeHandlers>
 </configuration>

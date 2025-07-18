@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -111,6 +112,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         // 기본 설정으로 시작 - 모든 요청에 인증 필요
         http.authorizeRequests() //  요청 권한 설정
+                .antMatchers(HttpMethod.POST, "/api/member").permitAll()                    // 회원가입
                 .anyRequest().authenticated(); // 모든 요청에 인증 필요
 
     }
