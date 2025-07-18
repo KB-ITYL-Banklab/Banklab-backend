@@ -15,6 +15,12 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * DB CRUD 테스트 코드입니다.
+ * @Method 계좌_조회_테스트 : API를 호출해서 DB에 저장
+ * @Method 잔액_새로고침_테스트 : API를 재호출해서 잔액만 업데이트
+ * @Method 계좌_삭제_테스트 : DB에 저장되어있는 계좌를 삭제 - 커넥티드 삭제 X
+ */
 @ExtendWith(SpringExtension.class)
 @Log4j2
 @ContextConfiguration(classes = RootConfig.class)
@@ -24,7 +30,7 @@ class AccountServiceImplTest {
     private AccountService accountService;
 
     @Test
-    void 계좌조회_테스트() throws Exception {
+    void 계좌_조회_테스트() throws Exception {
         String userId = "test_id";
         String connectedId = "";
         String organization = "0004";
@@ -43,7 +49,7 @@ class AccountServiceImplTest {
     }
 
     @Test
-    void updateBalanceTest() throws Exception {
+    void 잔액_새로고침_테스트() throws Exception {
         String userId = "user00";
         String connectedId = "";
         String organization = "0004";
@@ -60,7 +66,7 @@ class AccountServiceImplTest {
     }
 
     @Test
-    void deleteAccountTest() throws Exception {
+    void 계좌_삭제_테스트() throws Exception {
         String userId = "testuser001";
         String connectedId = "4ONbo5CU4nF8LzsXYg3nNH";
 

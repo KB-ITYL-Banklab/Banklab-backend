@@ -10,13 +10,18 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import static com.banklab.account.service.AccountResponse.requestAccounts;
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * 계좌 연동을 하기 위해 CODEF 보유계좌 호출 테스트
+ *
+ * @Method 계좌_연동_테스트 : Codef API를 호출해서 계좌를 불러옵니다.
+ */
 @ExtendWith(SpringExtension.class)
 @Log4j2
 @ContextConfiguration(classes = RootConfig.class)
 class AccountResponseTest {
 
     @Test
-    void accountResponseTest() throws Exception {
+    void 계좌_연동_테스트() throws Exception {
         String connectedId = "bk82vz-x4vAaUb0zP55pXR";
 
         requestAccounts("test_id","0004", connectedId);
