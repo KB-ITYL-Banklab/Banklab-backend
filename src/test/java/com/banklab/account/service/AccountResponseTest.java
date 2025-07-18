@@ -17,7 +17,7 @@ class AccountResponseTest {
 
     @Test
     void accountResponseTest() throws Exception {
-        String connectedId = "1OXShkrgQ8JaO1K2rgiiOa";
+        String connectedId = "bk82vz-x4vAaUb0zP55pXR";
 
         requestAccounts("test_id","0004", connectedId);
     }

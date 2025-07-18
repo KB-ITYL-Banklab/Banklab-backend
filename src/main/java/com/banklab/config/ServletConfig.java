@@ -13,6 +13,7 @@ import org.springframework.web.servlet.view.JstlView;
 @ComponentScan(basePackages = {
         "org.banklab.exception",
         "org.banklab.controller",
+        "com.banklab.account.controller"
 })
 public class ServletConfig implements WebMvcConfigurer {
 
@@ -33,7 +34,7 @@ public class ServletConfig implements WebMvcConfigurer {
         InternalResourceViewResolver bean = new InternalResourceViewResolver();
 
         bean.setViewClass(JstlView.class);
-        bean.setPrefix("/WEB-INF/");
+        bean.setPrefix("/WEB-INF/views/");
         bean.setSuffix(".jsp");
 
         registry.viewResolver(bean);

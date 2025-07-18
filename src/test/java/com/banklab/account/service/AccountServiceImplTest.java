@@ -24,9 +24,9 @@ class AccountServiceImplTest {
     private AccountService accountService;
 
     @Test
-    void totalTest() throws Exception {
+    void 계좌조회_테스트() throws Exception {
         String userId = "test_id";
-        String connectedId = "1OXShkrgQ8JaO1K2rgiiOa";
+        String connectedId = "";
         String organization = "0004";
 
         List<AccountVO> list = AccountResponse.requestAccounts(userId, organization, connectedId);
@@ -44,8 +44,8 @@ class AccountServiceImplTest {
 
     @Test
     void updateBalanceTest() throws Exception {
-        String userId = "test_id";
-        String connectedId = "1OXShkrgQ8JaO1K2rgiiOa";
+        String userId = "user00";
+        String connectedId = "";
         String organization = "0004";
 
         accountService.refreshAccountBalance(userId, organization, connectedId);
@@ -61,8 +61,8 @@ class AccountServiceImplTest {
 
     @Test
     void deleteAccountTest() throws Exception {
-        String userId = "test_id";
-        String connectedId = "1OXShkrgQ8JaO1K2rgiiOa";
+        String userId = "testuser001";
+        String connectedId = "4ONbo5CU4nF8LzsXYg3nNH";
 
         accountService.deleteAccount(userId, connectedId);
 

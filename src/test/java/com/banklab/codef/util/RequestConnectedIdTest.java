@@ -18,9 +18,18 @@ class RequestConnectedIdTest {
         String id = "kluyr1231";
         String password = "dkdlwmdnjs1@";
 
-        String connected_id = RequestConnectedId.createConnectedId(id, password);
+        String connected_id = RequestConnectedId.createConnectedId(id, password, "0004");
         log.info("Connected ID: " + connected_id);
 
-        // 1OXShkrgQ8JaO1K2rgiiOa
+        //
+    }
+
+    @Test
+    void delete() throws Exception {
+        String connected_id = "4ONbo5CU4nF8LzsXYg3nNH";
+        String bankCode = "0004";
+
+        RequestConnectedId.deleteConnectedId(connected_id, bankCode);
+
     }
 }
