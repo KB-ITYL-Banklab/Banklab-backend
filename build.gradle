@@ -15,6 +15,7 @@ ext {
   springVersion = '5.3.37'
   lombokVersion = '1.18.30'
   springSecurityVersion = '5.8.13'
+  springBatchVersion = '4.3.9'
 }
 
 sourceCompatibility = '1.17'
@@ -30,6 +31,7 @@ dependencies {
   implementation("org.springframework:spring-context:${springVersion}")
           { exclude group: 'commons-logging', module: 'commons-logging' }
   implementation "org.springframework:spring-webmvc:${springVersion}"
+  implementation "org.springframework:spring-core:${springVersion}"
   implementation 'javax.inject:javax.inject:1'
 
 
@@ -96,7 +98,10 @@ dependencies {
 
   implementation 'org.mybatis:mybatis:3.4.6'
   implementation 'org.mybatis:mybatis-spring:1.3.2'
-
+//  implementation 'org.mybatis:mybatis:3.5.15'
+//  implementation 'org.mybatis:mybatis-spring:2.0.7'
+  //batch
+  implementation "org.springframework.batch:spring-batch-core:${springBatchVersion}"
 
   // build.gradle
   implementation 'com.fasterxml.jackson.core:jackson-databind'
@@ -105,12 +110,18 @@ dependencies {
   testImplementation "org.springframework:spring-test:${springVersion}"
   testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
   testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
-
+  testImplementation "org.springframework.batch:spring-batch-test:${springBatchVersion}"
   testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+
 }
 
 
 test {
   useJUnitPlatform()
+}
+
+task runBatch(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'com.banklab.product.BatchRunner'
 }
