@@ -1,6 +1,7 @@
 package com.banklab.config;
 
 import com.banklab.product.batch.config.BatchConfig;
+import com.banklab.product.batch.config.SchedulerConfig;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -21,7 +22,7 @@ import javax.sql.DataSource;
 @ComponentScan(basePackages = {
         "com.banklab.product"})
 @EnableTransactionManagement
-@Import({BatchConfig.class})
+@Import({BatchConfig.class, SchedulerConfig.class})
 public class RootConfig {
     @Value("${jdbc.driver}")
     String driver;
