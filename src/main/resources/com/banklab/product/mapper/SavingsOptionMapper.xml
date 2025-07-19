@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.product.mapper.SavingsOptionMapper">
+    
+    <resultMap id="SavingsOptionResultMap" type="com.banklab.product.domain.SavingsOption">
+        <id property="id" column="id"/>
+        <result property="dclsMonth" column="dcls_month"/>
+        <result property="finCoNo" column="fin_co_no"/>
+        <result property="finPrdtCd" column="fin_prdt_cd"/>
+        <result property="intrRateType" column="intr_rate_type"/>
+        <result property="intrRateTypeNm" column="intr_rate_type_nm"/>
+        <result property="rsrvType" column="rsrv_type"/>
+        <result property="rsrvTypeNm" column="rsrv_type_nm"/>
+        <result property="saveTrm" column="save_trm"/>
+        <result property="intrRate" column="intr_rate"/>
+        <result property="intrRate2" column="intr_rate2"/>
+    </resultMap>
+
+    <insert id="insertSavingsOption" parameterType="com.banklab.product.domain.SavingsOption">
+        INSERT INTO savings_option (
+            dcls_month, fin_co_no, fin_prdt_cd,
+            intr_rate_type, intr_rate_type_nm, rsrv_type, rsrv_type_nm,
+            save_trm, intr_rate, intr_rate2
+        ) VALUES (
+            #{dclsMonth}, #{finCoNo}, #{finPrdtCd},
+            #{intrRateType}, #{intrRateTypeNm}, #{rsrvType}, #{rsrvTypeNm},
+            #{saveTrm}, #{intrRate}, #{intrRate2}
+        )
+    </insert>
+
+    <select id="findAllSavingsOptions" resultMap="SavingsOptionResultMap">
+        SELECT 
+            id, dcls_month, fin_co_no, fin_prdt_cd,
+            intr_rate_type, intr_rate_type_nm, rsrv_type, rsrv_type_nm,
+            save_trm, intr_rate, intr_rate2
+        FROM savings_option
+        ORDER BY fin_co_no, fin_prdt_cd, save_trm
+    </select>
+
+    <delete id="deleteAllSavingsOptions">
+        DELETE FROM savings_option
+    </delete>
+
+</mapper>
