@@ -28,10 +28,18 @@ public class TransactionApiController {
 
     @GetMapping("/summary")
     public ResponseEntity<SummaryDTO> getSummary(
-            @RequestParam("start") @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
-            @RequestParam("end") @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
+            @RequestParam(value = "start", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+            @RequestParam(value = "end", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
             @RequestParam("account") String account
     ) {
+        // 기본값 설정: 오늘이 포함된 달의 시작일과 종료일
+        LocalDate now = LocalDate.now();
+        if (startDate == null) {
+            startDate = java.sql.Date.valueOf(now.withDayOfMonth(1));
+        }
+        if (endDate == null) {
+            endDate = java.sql.Date.valueOf(now.withDayOfMonth(now.lengthOfMonth()));
+        }
 
         return ResponseEntity.ok(transactionService.getSummary(startDate, endDate, account));
     }
@@ -56,8 +64,18 @@ public class TransactionApiController {
 
     @GetMapping("/category")
     public List<CategoryExpenseDTO> getCategoryExpenses(
-            @RequestParam("start") @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
-            @RequestParam("end") @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
+            @RequestParam(value = "start", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+            @RequestParam(value = "end", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
+
+        // 기본값 설정: 오늘이 포함된 달의 시작일과 종료일
+        LocalDate now = LocalDate.now();
+        if (startDate == null) {
+            startDate = java.sql.Date.valueOf(now.withDayOfMonth(1));
+        }
+        if (endDate == null) {
+            endDate = java.sql.Date.valueOf(now.withDayOfMonth(now.lengthOfMonth()));
+        }
+
         return transactionService.getCategoryExpense(startDate, endDate);
     }
 

@@ -148,6 +148,9 @@ public class TransactionService {
     }
 
     private LocalDate toLocalDate(Date date) {
+        if (date instanceof java.sql.Date) {
+            return ((java.sql.Date) date).toLocalDate();
+        }
         return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     }
 
