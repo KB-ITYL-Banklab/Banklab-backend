@@ -13,14 +13,16 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.*;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.web.client.RestTemplate;
 
 import javax.sql.DataSource;
 
 @Configuration
 @PropertySource({"classpath:/application.properties"})
-@MapperScan(basePackages = "com.banklab.product.mapper")
+@MapperScan(basePackages = {"com.banklab.product.mapper", "com.banklab.risk.mapper"})
 @ComponentScan(basePackages = {
-        "com.banklab.product"})
+        "com.banklab.product",
+        "com.banklab.risk"})
 @EnableTransactionManagement
 @Import({BatchConfig.class, SchedulerConfig.class})
 public class RootConfig {
@@ -59,6 +61,11 @@ public class RootConfig {
     @Bean
     public DataSourceTransactionManager transactionManager() {
         return new DataSourceTransactionManager(dataSource());
+    }
+    
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
     }
 
 }

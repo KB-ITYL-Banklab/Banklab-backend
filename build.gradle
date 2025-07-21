@@ -106,6 +106,9 @@ dependencies {
   // build.gradle
   implementation 'com.fasterxml.jackson.core:jackson-databind'
 
+  // HTTP Client for AI API calls
+  implementation 'org.springframework:spring-web:5.3.37'
+
   // 테스트
   testImplementation "org.springframework:spring-test:${springVersion}"
   testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
@@ -119,9 +122,4 @@ dependencies {
 
 test {
   useJUnitPlatform()
-}
-
-task runBatch(type: JavaExec) {
-    classpath = sourceSets.main.runtimeClasspath
-    main = 'com.banklab.product.BatchRunner'
 }
