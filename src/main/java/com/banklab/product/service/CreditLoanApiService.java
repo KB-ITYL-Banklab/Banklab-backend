@@ -16,7 +16,7 @@ public class CreditLoanApiService {
     private final RestTemplate restTemplate = new RestTemplate();
 
     private final String API_URL = "https://finlife.fss.or.kr/finlifeapi/creditLoanProductsSearch.json";
-    @Value("${finlife.api.key}")
+    @Value("${finlife.api-key}")
     private String API_KEY;
 
     public CreditLoanProductAndOptionListDto fetchProductsFromApi() {

@@ -23,7 +23,7 @@ public class BatchClaudeAiAnalysisService {
     private final String apiUrl = "https://api.anthropic.com/v1/messages";
     private final ObjectMapper objectMapper = new ObjectMapper();
     
-    public BatchClaudeAiAnalysisService(@Value("${ai.claude.api-key:your-claude-api-key}") String apiKey) {
+    public BatchClaudeAiAnalysisService(@Value("${ai.claude.api-key}") String apiKey) {
         this.apiKey = apiKey;
         this.restTemplate = new RestTemplate();
     }
