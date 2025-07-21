@@ -108,7 +108,7 @@ public class CodeapiService {
 
         return transactions;
     }
-    
+
     private void saveTransactionsToDb(List<TransactionHistoryVO> transactions) {
         if (!transactions.isEmpty()) {
             codeapiMapper.insertTransactions(transactions);

@@ -1,7 +1,10 @@
 package com.banklab.category.mapper;
 
 import com.banklab.category.domain.CategoryVO;
+import com.banklab.category.dto.CategoryExpenseDTO;
+import org.apache.ibatis.annotations.Param;
 
+import java.util.Date;
 import java.util.List;
 
 public interface CategoryMapper {

@@ -1,5 +1,6 @@
 package com.banklab.transaction.service;
 
+import com.banklab.category.dto.CategoryExpenseDTO;
 import com.banklab.transaction.dto.DailyExpenseDTO;
 import com.banklab.transaction.dto.MonthlySummaryDTO;
 import com.banklab.transaction.dto.SummaryDTO;
@@ -140,7 +141,9 @@ public class TransactionService {
                 .build();
     }
 
-
+    public List<CategoryExpenseDTO> getCategoryExpense(Date startDate, Date endDate) {
+        return transactionMapper.getExpensesByCategory(startDate, endDate);
+    }
 
 
 }

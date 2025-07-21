@@ -1,10 +1,12 @@
 package com.banklab.transaction.controller;
 
+import com.banklab.category.dto.CategoryExpenseDTO;
 import com.banklab.transaction.dto.DailyExpenseDTO;
 import com.banklab.transaction.dto.MonthlySummaryDTO;
 import com.banklab.transaction.dto.SummaryDTO;
 import com.banklab.transaction.service.TransactionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Month;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -54,7 +57,12 @@ public class TransactionApiController {
         return  ResponseEntity.ok(transactionService.getDailyExpense(year, month, account));
     }
 
-
+    @GetMapping("/category")
+    public List<CategoryExpenseDTO> getCategoryExpenses(
+            @RequestParam("start") @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+            @RequestParam("end") @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
+        return transactionService.getCategoryExpense(startDate, endDate);
+    }
 
 
 }

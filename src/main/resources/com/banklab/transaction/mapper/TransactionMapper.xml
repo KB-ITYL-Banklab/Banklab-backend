@@ -41,10 +41,18 @@
         ORDER BY
             d.date
         ]]>
+    </select>
 
-
-
-
-
+    <select id="getExpensesByCategory" resultType="com.banklab.category.dto.CategoryExpenseDTO">
+        SELECT
+            c.id AS categoryId,
+            c.name AS categoryName,
+            SUM(t.resAccountout) AS totalExpense
+        FROM transaction_history t
+                 JOIN category c ON t.category_id = c.id
+        WHERE t.resAccountOut > 0 -- 지출만
+          AND t.transaction_date BETWEEN #{startDate} AND #{endDate}
+        GROUP BY c.id, c.name
+        ORDER BY totalExpense DESC
     </select>
 </mapper>
