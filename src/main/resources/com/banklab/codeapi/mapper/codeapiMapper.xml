@@ -13,7 +13,8 @@
         resAccountOut,
         resAccountIn,
         resAfterTranBalance,
-        description
+        description,
+        category_id
         )
         VALUES
         <foreach collection="list" item="item" separator=",">
@@ -24,7 +25,8 @@
             #{item.resAccountOut},
             #{item.resAccountIn},
             #{item.resAfterTranBalance},
-            #{item.description}
+            #{item.description},
+            #{item.category_id}
             )
         </foreach>
     </insert>

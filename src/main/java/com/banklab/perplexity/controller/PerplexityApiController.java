@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/perplexity")
 @RequiredArgsConstructor
@@ -17,7 +19,7 @@ public class PerplexityApiController {
     private final PerplexityService perplexityService;
 
     @PostMapping("/chat")
-    public PerplexityResponseDto chat(@RequestBody PerplexityRequestDto requestDto) {
-        return perplexityService.getCompletion(requestDto);
+    public List<String> chat(@RequestBody List<String> requestDto) {
+        return perplexityService.getCompletions(requestDto);
     }
 }

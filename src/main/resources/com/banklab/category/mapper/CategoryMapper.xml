@@ -29,4 +29,8 @@
         select * from category
         where id = #{id}
     </select>
+
+    <select id="findAll" resultType="com.banklab.category.domain.CategoryVO">
+        select * from category
+    </select>
 </mapper>

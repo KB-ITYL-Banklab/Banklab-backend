@@ -1,5 +1,7 @@
 package com.banklab.config;
 
+import com.banklab.category.dto.CategoryDTO;
+import com.banklab.category.service.CategoryService;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -16,6 +18,8 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Configuration
 @PropertySource({"classpath:/application.properties"})
@@ -69,6 +73,12 @@ public class RootConfig {
         DataSourceTransactionManager manager = new DataSourceTransactionManager(dataSource());
 
         return manager;
+    }
+
+    @Bean(name = "categoryMap")
+    public Map<String, Long> categoryMap(CategoryService categoryService) {
+        return categoryService.findAll().stream()
+                .collect(Collectors.toMap(CategoryDTO::getName, CategoryDTO::getId));
     }
 
 }

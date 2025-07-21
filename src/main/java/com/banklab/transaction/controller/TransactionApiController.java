@@ -3,7 +3,6 @@ package com.banklab.transaction.controller;
 import com.banklab.transaction.dto.DailyExpenseDTO;
 import com.banklab.transaction.dto.MonthlySummaryDTO;
 import com.banklab.transaction.dto.SummaryDTO;
-import com.banklab.transaction.dto.WeeklyExpenseDTO;
 import com.banklab.transaction.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

@@ -6,14 +6,22 @@ import com.banklab.category.mapper.CategoryMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class CategoryService {
 
     private final CategoryMapper categoryMapper;
+
+    public List<CategoryDTO> findAll() {
+        return categoryMapper.findAll().stream()
+                .map(CategoryDTO::of)
+                .collect(Collectors.toList());
+    }
 
     /**
      * 
