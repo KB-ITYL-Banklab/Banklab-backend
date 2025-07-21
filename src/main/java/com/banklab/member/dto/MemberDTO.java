@@ -22,7 +22,7 @@ public class MemberDTO {
     private String phone;
     private String name;
     private Gender gender;
-    private LocalDate birth;
+    private String birth;
     private Date regDate;              // 등록일
     private Date updateDate;           // 수정일
     private List<String> authList;     // 권한 목록 (join 처리 필요)
@@ -35,7 +35,7 @@ public class MemberDTO {
                 .phone(m.getPhone())
                 .name(m.getName())
                 .gender(m.getGender())
-                .birth(m.getBirth())
+                .birth(String.valueOf(m.getBirth()))
                 .regDate(m.getRegDate())
                 .updateDate(m.getUpdateDate())
                 .authList(m.getAuthList().stream()
