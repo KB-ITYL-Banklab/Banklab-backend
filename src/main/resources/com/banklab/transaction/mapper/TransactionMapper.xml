@@ -7,28 +7,28 @@
 
     <select id="getMonthlySummary" resultType="com.banklab.transaction.dto.MonthlySummaryDTO">
         SELECT
-            #{year} AS year,
-            #{month} AS month,
+            #{startDate} AS startDate,
+            #{endDate} AS endDate,
             IFNULL(SUM(CASE WHEN resAccountIn > 0 THEN resAccountIn ELSE 0 END), 0) AS totalIncome,
             IFNULL(SUM(CASE WHEN resAccountOut > 0 THEN resAccountOut ELSE 0 END), 0) AS totalExpense
         FROM transaction_history
-        WHERE YEAR(transaction_date) = #{year}
-          AND MONTH(transaction_date) = #{month}
-        AND resAccount = #{resAccount}
+        WHERE transaction_date BETWEEN #{startDate} AND #{endDate}
+          AND resAccount = #{resAccount}
     </select>
 
     <select id="getDailyExpense" resultType="com.banklab.transaction.dto.DailyExpenseDTO">
- <![CDATA[
-  WITH RECURSIVE dates AS (
-            SELECT DATE(CONCAT(#{year}, '-', #{month}, '-01')) AS date
+        <![CDATA[
+        WITH RECURSIVE dates AS (
+            SELECT #{startDate} AS date
             UNION ALL
             SELECT DATE_ADD(date, INTERVAL 1 DAY)
             FROM dates
-            WHERE date < LAST_DAY(DATE(CONCAT(#{year}, '-', #{month}, '-01')))
-            )
+            WHERE date < #{endDate}
+        )
 
         SELECT
             d.date,
+            DATE_FORMAT(d.date, '%Y-%m') AS yearMonth,  -- ← 월 정보 추가
             IFNULL(SUM(CASE WHEN th.resAccountOut > 0 THEN th.resAccountOut ELSE 0 END), 0) AS totalExpense
         FROM
             dates d

@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface TransactionMapper {
 
-    MonthlySummaryDTO getMonthlySummary(@Param("year") int year, @Param("month") int month, @Param("resAccount") String resAccount);
-    List<DailyExpenseDTO> getDailyExpense(@Param("year") int year, @Param("month") int month, @Param("resAccount") String resAccount);
+    MonthlySummaryDTO getMonthlySummary(@Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("resAccount") String resAccount);
+    List<DailyExpenseDTO> getDailyExpense(@Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("resAccount") String resAccount);
     List<CategoryExpenseDTO> getExpensesByCategory(@Param("startDate") Date startDate, @Param("endDate") Date endDate);
 }

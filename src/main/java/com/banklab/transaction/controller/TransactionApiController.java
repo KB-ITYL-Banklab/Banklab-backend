@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.Month;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 
@@ -24,37 +26,32 @@ public class TransactionApiController {
 
     private final TransactionService transactionService;
 
-
     @GetMapping("/summary")
     public ResponseEntity<SummaryDTO> getSummary(
-            @RequestParam("year") int year,
-            @RequestParam("month") int month,
+            @RequestParam("start") @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+            @RequestParam("end") @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
             @RequestParam("account") String account
-    ){
+    ) {
 
-        return ResponseEntity.ok(transactionService.getSummary(year, month, account));
+        return ResponseEntity.ok(transactionService.getSummary(startDate, endDate, account));
     }
 
     @GetMapping("/monthly-summary")
     public ResponseEntity<MonthlySummaryDTO> getMonthlySummary(
-            @RequestParam("year") int year,
-            @RequestParam("month") int month,
+            @RequestParam("start") @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+            @RequestParam("end") @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
             @RequestParam("account") String account
-            ) {
-
-
-        return  ResponseEntity.ok(transactionService.getMonthlySummary(year, month, account));
+    ) {
+        return ResponseEntity.ok(transactionService.getMonthlySummary(startDate,endDate, account));
     }
 
     @GetMapping("/daily-summary")
     public ResponseEntity<List<DailyExpenseDTO>> getDailySummary(
-            @RequestParam("year") int year,
-            @RequestParam("month") int month,
+            @RequestParam("start") @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+            @RequestParam("end") @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
             @RequestParam("account") String account
     ) {
-
-
-        return  ResponseEntity.ok(transactionService.getDailyExpense(year, month, account));
+        return ResponseEntity.ok(transactionService.getDailyExpense(startDate,endDate, account));
     }
 
     @GetMapping("/category")
