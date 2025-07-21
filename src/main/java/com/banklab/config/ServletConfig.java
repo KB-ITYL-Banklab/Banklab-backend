@@ -9,7 +9,7 @@ import org.springframework.web.servlet.view.JstlView;
 @EnableWebMvc
 @ComponentScan(basePackages = {
         "com.banklab.exception",
-        "com.banklab.financeInfo.controller",
+        "com.banklab.financeContents.controller",
 })
 public class ServletConfig implements WebMvcConfigurer {
 

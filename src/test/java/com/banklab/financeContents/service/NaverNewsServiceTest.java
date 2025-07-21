@@ -1,7 +1,7 @@
-package com.banklab.financeInfo.service;
+package com.banklab.financeContents.service;
 
 import com.banklab.config.RootConfig;
-import com.banklab.financeInfo.dto.NewsItemDto;
+import com.banklab.financeContents.dto.NewsItemDto;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
