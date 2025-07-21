@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -96,11 +95,10 @@ public class CodeapiService {
             // Perplexity API로 전체 상호명 리스트 전달하여 카테고리 분류
             List<String> categoryNames = perplexityService.getCompletions(descriptions);
 
-
             // 카테고리 ID 조회 및 설정
             for (int i = 0; i < transactions.size(); i++) {
-                String categoryName = categoryNames.get(i);
-                Long categoryId = categoryMap.get(categoryName); // Map에서 ID 조회
+                String categoryName = categoryNames.get(i).trim();
+                Long categoryId = categoryMap.getOrDefault(categoryName, 8L); // Map에서 ID 조회
                 transactions.get(i).setCategory_id(categoryId);
             }
 
@@ -110,7 +108,7 @@ public class CodeapiService {
 
         return transactions;
     }
-
+    
     private void saveTransactionsToDb(List<TransactionHistoryVO> transactions) {
         if (!transactions.isEmpty()) {
             codeapiMapper.insertTransactions(transactions);
