@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.product.mapper.CreditLoanOptionMapper">
+    
+    <resultMap id="CreditLoanOptionResultMap" type="com.banklab.product.domain.CreditLoanOption">
+        <id property="id" column="id"/>
+        <result property="dclsMonth" column="dcls_month"/>
+        <result property="finCoNo" column="fin_co_no"/>
+        <result property="finPrdtCd" column="fin_prdt_cd"/>
+        <result property="crdtPrdtType" column="crdt_prdt_type"/>
+        <result property="crdtLendRateType" column="crdt_lend_rate_type"/>
+        <result property="crdtLendRateTypeNm" column="crdt_lend_rate_type_nm"/>
+        <result property="crdtGrad1" column="crdt_grad_1"/>
+        <result property="crdtGrad4" column="crdt_grad_4"/>
+        <result property="crdtGrad5" column="crdt_grad_5"/>
+        <result property="crdtGrad6" column="crdt_grad_6"/>
+        <result property="crdtGrad10" column="crdt_grad_10"/>
+        <result property="crdtGrad11" column="crdt_grad_11"/>
+        <result property="crdtGrad12" column="crdt_grad_12"/>
+        <result property="crdtGrad13" column="crdt_grad_13"/>
+        <result property="crdtGradAvg" column="crdt_grad_avg"/>
+    </resultMap>
+
+    <insert id="insertCreditLoanOption" parameterType="com.banklab.product.domain.CreditLoanOption">
+        INSERT INTO credit_loan_option (
+            dcls_month, fin_co_no, fin_prdt_cd, crdt_prdt_type,
+            crdt_lend_rate_type, crdt_lend_rate_type_nm,
+            crdt_grad_1, crdt_grad_4, crdt_grad_5, crdt_grad_6,
+            crdt_grad_10, crdt_grad_11, crdt_grad_12, crdt_grad_13,
+            crdt_grad_avg
+        ) VALUES (
+            #{dclsMonth}, #{finCoNo}, #{finPrdtCd}, #{crdtPrdtType},
+            #{crdtLendRateType}, #{crdtLendRateTypeNm},
+            #{crdtGrad1}, #{crdtGrad4}, #{crdtGrad5}, #{crdtGrad6},
+            #{crdtGrad10}, #{crdtGrad11}, #{crdtGrad12}, #{crdtGrad13},
+            #{crdtGradAvg}
+        )
+    </insert>
+
+    <select id="findAllCreditLoanOptions" resultMap="CreditLoanOptionResultMap">
+        SELECT 
+            id, dcls_month, fin_co_no, fin_prdt_cd, crdt_prdt_type,
+            crdt_lend_rate_type, crdt_lend_rate_type_nm,
+            crdt_grad_1, crdt_grad_4, crdt_grad_5, crdt_grad_6,
+            crdt_grad_10, crdt_grad_11, crdt_grad_12, crdt_grad_13,
+            crdt_grad_avg
+        FROM credit_loan_option
+        ORDER BY fin_co_no, fin_prdt_cd, crdt_lend_rate_type
+    </select>
+
+    <delete id="deleteAllCreditLoanOptions">
+        DELETE FROM credit_loan_option
+    </delete>
+
+</mapper>

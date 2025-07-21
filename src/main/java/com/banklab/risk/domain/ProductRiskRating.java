@@ -1,0 +1,28 @@
+package com.banklab.risk.domain;
+
+import com.banklab.product.domain.ProductType;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ProductRiskRating {
+    private Long id;
+    private ProductType productType; // DEPOSIT, SAVINGS, LOAN
+    private Long productId;
+    private RiskLevel riskLevel; // LOW, MEDIUM, HIGH
+    private String riskReason;
+    private LocalDateTime evaluatedAt;
+    
+    // 조회용 추가 필드들 (실제 DB 컬럼이 아님)
+    private String productName;
+    private String companyName;
+    private LocalDateTime analyzedAt; // evaluatedAt의 별칭
+}
+

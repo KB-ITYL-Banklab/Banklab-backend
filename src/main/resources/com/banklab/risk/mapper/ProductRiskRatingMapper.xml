@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.risk.mapper.ProductRiskRatingMapper">
+
+    <!-- ResultMap 정의 -->
+    <resultMap id="productRiskRatingMap" type="com.banklab.risk.domain.ProductRiskRating">
+        <id property="id" column="id"/>
+        <result property="productType" column="product_type" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result property="productId" column="product_id"/>
+        <result property="riskLevel" column="risk_level" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result property="riskReason" column="risk_reason"/>
+        <result property="evaluatedAt" column="evaluated_at"/>
+        <result property="productName" column="product_name"/>
+        <result property="companyName" column="company_name"/>
+        <result property="analyzedAt" column="evaluated_at"/>
+    </resultMap>
+
+    <!-- 위험도 평가 저장 -->
+    <insert id="insertRiskRating" parameterType="com.banklab.risk.domain.ProductRiskRating"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO product_risk_rating (
+            product_type, 
+            product_id, 
+            risk_level, 
+            risk_reason, 
+            evaluated_at
+        ) VALUES (
+            #{productType}, 
+            #{productId}, 
+            #{riskLevel}, 
+            #{riskReason}, 
+            NOW()
+        )
+    </insert>
+
+    <!-- 위험도 평가 업데이트 -->
+    <update id="updateRiskRating" parameterType="com.banklab.risk.domain.ProductRiskRating">
+        UPDATE product_risk_rating 
+        SET 
+            risk_level = #{riskLevel},
+            risk_reason = #{riskReason},
+            evaluated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 특정 상품 위험도 조회 -->
+    <select id="selectByProductTypeAndId" resultMap="productRiskRatingMap">
+        SELECT * FROM product_risk_rating 
+        WHERE product_type = #{productType} AND product_id = #{productId}
+        ORDER BY evaluated_at DESC
+        LIMIT 1
+    </select>
+
+    <!-- 위험도별 상품 목록 조회 -->
+    <select id="selectByRiskLevel" resultMap="productRiskRatingMap">
+        SELECT * FROM product_risk_rating 
+        WHERE risk_level = #{riskLevel}
+        ORDER BY evaluated_at DESC
+    </select>
+
+    <!-- 기간별 위험도 평가 조회 -->
+    <select id="selectByEvaluatedAtBetween" resultMap="productRiskRatingMap">
+        SELECT * FROM product_risk_rating 
+        WHERE evaluated_at BETWEEN #{from} AND #{to}
+        ORDER BY evaluated_at DESC
+    </select>
+
+    <!-- 모든 위험도 평가 조회 -->
+    <select id="selectAll" resultMap="productRiskRatingMap">
+        SELECT * FROM product_risk_rating 
+        ORDER BY evaluated_at DESC
+    </select>
+
+    <!-- ID로 위험도 평가 조회 -->
+    <select id="selectById" resultMap="productRiskRatingMap">
+        SELECT * FROM product_risk_rating 
+        WHERE id = #{id}
+    </select>
+
+    <!-- 위험도 평가 삭제 -->
+    <delete id="deleteById">
+        DELETE FROM product_risk_rating 
+        WHERE id = #{id}
+    </delete>
+
+    <!-- 모든 위험도 평가 조회 (별칭) -->
+    <select id="findAll" resultMap="productRiskRatingMap">
+        SELECT 
+            prr.*,
+            CASE 
+                WHEN prr.product_type = 'DEPOSIT' THEN dp.fin_prdt_nm
+                WHEN prr.product_type = 'SAVINGS' THEN sp.fin_prdt_nm
+                WHEN prr.product_type = 'LOAN' THEN clp.fin_prdt_nm
+            END as product_name,
+            CASE 
+                WHEN prr.product_type = 'DEPOSIT' THEN dp.kor_co_nm
+                WHEN prr.product_type = 'SAVINGS' THEN sp.kor_co_nm
+                WHEN prr.product_type = 'LOAN' THEN clp.kor_co_nm
+            END as company_name
+        FROM product_risk_rating prr
+        LEFT JOIN deposit_product dp ON prr.product_type = 'DEPOSIT' AND prr.product_id = dp.id
+        LEFT JOIN savings_product sp ON prr.product_type = 'SAVINGS' AND prr.product_id = sp.id
+        LEFT JOIN credit_loan_product clp ON prr.product_type = 'LOAN' AND prr.product_id = clp.id
+        ORDER BY prr.evaluated_at DESC
+    </select>
+
+    <!-- 모든 위험도 평가 삭제 -->
+    <delete id="deleteAll">
+        DELETE FROM product_risk_rating
+    </delete>
+
+</mapper>
