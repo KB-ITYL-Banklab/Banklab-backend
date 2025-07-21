@@ -2,14 +2,22 @@ package com.banklab.product.dto.creditloan;
 
 import com.banklab.product.domain.CreditLoanProduct;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class CreditLoanProductDto {
+    
+    private Long id; // 데이터베이스 ID
     
     @JsonProperty("dcls_month")
     private String dclsMonth; // 공시 월
@@ -46,6 +54,10 @@ public class CreditLoanProductDto {
     
     @JsonProperty("fin_co_subm_day")
     private String finCoSubmDay; // 금융회사 제출일
+    
+    // 추가 필드들 (위험도 분석용)
+    private String spclCnd; // 우대조건 (실제 API에는 없지만 분석용)
+    private String etcNote; // 기타유의사항 (실제 API에는 없지만 분석용)
 
     public static CreditLoanProduct toCreditLoanProduct(CreditLoanProductDto dto) {
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");

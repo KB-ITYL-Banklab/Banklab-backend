@@ -2,7 +2,10 @@ package com.banklab.product.dto.savings;
 
 import com.banklab.product.domain.SavingsProduct;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -10,7 +13,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class SavingsProductDto {
+    
+    private Long id; // 데이터베이스 ID
     
     @JsonProperty("dcls_month")
     private String dclsMonth; // 공시 월
