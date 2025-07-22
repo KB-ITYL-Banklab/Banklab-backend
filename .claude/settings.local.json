@@ -3,7 +3,9 @@
     "allow": [
       "Bash(./gradlew test:*)",
       "Bash(./gradlew:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "WebFetch(domain:apis.data.go.kr)",
+      "WebFetch(domain:www.data.go.kr)"
     ],
     "deny": []
   }

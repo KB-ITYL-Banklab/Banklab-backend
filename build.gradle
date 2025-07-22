@@ -117,8 +117,16 @@ dependencies {
   testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
 
+  // Hamcrest for MockMvc tests   // 테스트코드 관련
+  testImplementation 'org.hamcrest:hamcrest:2.2'
+  testImplementation 'org.hamcrest:hamcrest-library:2.2'
+
 }
 
 
 test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
 }
