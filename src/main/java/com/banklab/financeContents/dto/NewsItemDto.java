@@ -22,8 +22,4 @@ public class NewsItemDto {
     
     // 뉴스 발행 날짜
     private String pubDate;
-
-    // Lombok @Data 어노테이션으로 Getter & Setter 자동 생성
-
-
 }
