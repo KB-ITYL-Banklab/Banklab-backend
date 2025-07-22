@@ -30,6 +30,8 @@ public class RequestConnectedId {
      * @throws Exception the exception
      */
     public static String createConnectedId(String id, String password, String bankCode) throws Exception {
+        log.info("🏦 커넥티드 아이디 발급 요청 시작 - 은행코드: {}, ID: {}", bankCode, id);
+
         String urlPath = CommonConstant.TEST_DOMAIN + CommonConstant.CREATE_ACCOUNT;
 
         HashMap<String, Object> bodyMap = new HashMap<String, Object>();
@@ -54,9 +56,12 @@ public class RequestConnectedId {
         JsonNode connectedIdNode = root.path("data").path("connectedId");
 
         if (connectedIdNode != null && !connectedIdNode.isNull()) {
-            return connectedIdNode.asText();  // connectedId 반환
+            String connectedId = connectedIdNode.asText();
+            log.info("커넥티드 아이디 발급 완료: {}", connectedId);
+            return connectedId;  // connectedId 반환
         }
         else {
+            log.error("connectedId를 응답에서 찾을 수 없습니다.");
             throw new RuntimeException("connectedId를 응답에서 찾을 수 없습니다.");
         }
     }
@@ -90,13 +95,22 @@ public class RequestConnectedId {
 
         JsonNode root = mapper.readTree(result);
 
-        JsonNode resultNode = root.path("data");
+        JsonNode resultNode = root.path("result");
         if (resultNode != null && !resultNode.isNull()) {
             String resultCode = resultNode.path("code").asText();
-            log.info("connectedId '{}'의 삭제가 성공적으로 진행되었습니다!", connectedId);
-            return "CF-00000".equals(resultCode);
+            log.info("응답 코드 : {}", resultCode);
+
+            boolean isSuccess = "CF-00000".equals(resultCode);
+            if (isSuccess) {
+                log.info("connectedId '{}'의 삭제가 성공적으로 진행되었습니다!", connectedId);
+            } else {
+                log.warn("connectedId '{}'의 삭제가 실패했습니다. 응답 코드: {}", connectedId, resultCode);
+            }
+            return isSuccess;
         }
 
         return false;
     }
+
 }
+

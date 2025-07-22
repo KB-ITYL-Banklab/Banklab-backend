@@ -2,7 +2,9 @@ package com.banklab.account.service;
 
 import com.banklab.account.domain.AccountVO;
 import com.banklab.account.dto.AccountDTO;
+import com.banklab.config.RedisConfig;
 import com.banklab.config.RootConfig;
+import com.banklab.security.config.SecurityConfig;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,15 +25,16 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @ExtendWith(SpringExtension.class)
 @Log4j2
-@ContextConfiguration(classes = RootConfig.class)
+@ContextConfiguration(classes = {RootConfig.class, SecurityConfig.class, RedisConfig.class})
 class AccountServiceImplTest {
 
     @Autowired
     private AccountService accountService;
 
+
     @Test
     void 계좌_조회_테스트() throws Exception {
-        String userId = "사용자 아이디";
+        Long userId = 1L;
         String connectedId = "발급된 커넥티드 아이디";
         String organization = "기관코드";
 
@@ -50,7 +53,7 @@ class AccountServiceImplTest {
 
     @Test
     void 잔액_새로고침_테스트() throws Exception {
-        String userId = "사용자 아이디";
+        Long userId = 1L; // member_id : BIGINT
         String connectedId = "발급된 커넥티드 아이디";
         String organization = "기관코드";
 
@@ -67,8 +70,8 @@ class AccountServiceImplTest {
 
     @Test
     void 계좌_삭제_테스트() throws Exception {
-        String userId = "사용자 아이디";
-        String connectedId = "발급된 커넥티드 아이디";
+        Long userId = 1L;
+        String connectedId = "81NVpRPDQoy8jVmbx6HmP7";
 
         accountService.deleteAccount(userId, connectedId);
 

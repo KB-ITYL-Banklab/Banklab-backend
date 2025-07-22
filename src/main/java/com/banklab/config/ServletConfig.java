@@ -13,7 +13,7 @@ import org.springframework.web.servlet.view.JstlView;
 @ComponentScan(basePackages = {
         "org.banklab.exception",
         "org.banklab.controller",
-        "com.banklab.account.controller"
+        "com.banklab.account.controller",
          "com.banklab.security.controller",
         "com.banklab.member.controller"
 
