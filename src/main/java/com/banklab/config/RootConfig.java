@@ -19,10 +19,8 @@ import javax.sql.DataSource;
 
 @Configuration
 @PropertySource({"classpath:/application.properties"})
-@MapperScan("com.banklab.member.mapper")
-@ComponentScan(basePackages = {
-        "com.banklab.member.service"
-})
+@MapperScan(basePackages = "com.banklab.account.mapper")
+@ComponentScan(basePackages = {"com.banklab.account.service", "com.banklab.account.mapper"})
 @EnableTransactionManagement
 public class RootConfig {
     @Value("${jdbc.driver}") String driver;

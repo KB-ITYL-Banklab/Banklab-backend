@@ -11,9 +11,12 @@ import org.springframework.web.servlet.view.JstlView;
 
 @EnableWebMvc
 @ComponentScan(basePackages = {
-        "com.banklab.exception",
-        "com.banklab.security.controller",
+        "org.banklab.exception",
+        "org.banklab.controller",
+        "com.banklab.account.controller"
+         "com.banklab.security.controller",
         "com.banklab.member.controller"
+
 })
 public class ServletConfig implements WebMvcConfigurer {
 
@@ -41,3 +44,4 @@ public class ServletConfig implements WebMvcConfigurer {
     }
 
 }
+
