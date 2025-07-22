@@ -26,12 +26,14 @@ import java.util.stream.Collectors;
 @MapperScan(basePackages = {
         "com.banklab.codeapi.mapper",
         "com.banklab.transaction.mapper",
-        "com.banklab.category.mapper"})
+        "com.banklab.category.mapper",
+        "com.banklab.account.mapper"})
 @ComponentScan(basePackages = {
         "com.banklab.codeapi.service",
         "com.banklab.transaction.service",
         "com.banklab.category.service",
         "com.banklab.perplexity.service",
+        "com.banklab.account.service",
 })
 @EnableTransactionManagement
 public class RootConfig {
@@ -55,8 +57,7 @@ public class RootConfig {
         config.setUsername(username);
         config.setPassword(password);
 
-        HikariDataSource dataSource = new HikariDataSource(config);
-        return dataSource;
+        return new HikariDataSource(config);
     }
 
     @Bean
