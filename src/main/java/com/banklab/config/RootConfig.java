@@ -28,6 +28,7 @@ public class RootConfig {
     @Value("${jdbc.username}") String username;
     @Value(("${jdbc.password}")) String password;
 
+
     @Bean
     public DataSource dataSource() {
         HikariConfig config = new HikariConfig();

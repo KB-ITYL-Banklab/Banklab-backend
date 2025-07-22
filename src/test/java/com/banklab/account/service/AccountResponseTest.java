@@ -22,7 +22,7 @@ class AccountResponseTest {
 
     @Test
     void 계좌_연동_테스트() throws Exception {
-        String connectedId = "bk82vz-x4vAaUb0zP55pXR";
+        String connectedId = "발급된 커넥티드 아이디";
 
         requestAccounts("test_id","0004", connectedId);
     }

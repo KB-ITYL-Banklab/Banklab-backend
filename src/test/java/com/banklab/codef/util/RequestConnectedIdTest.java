@@ -21,13 +21,12 @@ class RequestConnectedIdTest {
 
     @Test
     void 커넥티드_아이디_생성() throws Exception {
-        String id = "client_id"; // 발급받은 클라이언트 아이디
-        String password = "client_secret"; // 발급받은 클라이언트 시크릿
+        String id = "bank_id"; // 은행 아이디
+        String password = "bank_password"; // 은행 비밀번호
 
         String connected_id = RequestConnectedId.createConnectedId(id, password, "0004");
         log.info("Connected ID: " + connected_id);
 
-        //
     }
 
     @Test

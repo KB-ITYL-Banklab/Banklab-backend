@@ -1,9 +1,14 @@
 package com.banklab.codef.util;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 /**
  *	Codef 공식 상수 클래스
  *  @Param : API 요청 URL
  */
+@Component
 public class CommonConstant {
     public static final String API_DOMAIN 	= "https://api.codef.io";										// API서버 도메인
     public static final String TEST_DOMAIN 	= "https://development.codef.io";								// API서버 데모 도메인
@@ -70,15 +75,17 @@ public class CommonConstant {
 
 
     /**	CODEF로부터 발급받은 클라이언트 아이디	*/
-    public static final String CLIENT_ID = "6675c900-d0bf-4fd1-ba20-28387b613835";
+    public static String CLIENT_ID ="client_id";
 
     /**	CODEF로부터 발급받은 시크릿 키	*/
-    public static final String SECERET_KEY = "5ca86438-4597-4878-b6bb-781f4100ce2f";
+    public static String SECERET_KEY ="seceret_key";
 
     /**	CODEF로부터 발급받은 퍼블릭 키	*/
-    public static final String PUBLIC_KEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAjyupOLcYQ2/0OjWyYjyPq9v1/X0bx9tUdGe6s7sMGCEW7u+J6jdiK/sgJRRNdcPYLrAkRY1HQPvZmmdc25oizX1zLFnq2RDUW0VH4ec41VYG5NOYAQfJiY8sJtouas/JNh0uXfQGp2i7WW6NtLAQgaeymEEU+YdTeXpeIQuKcLPjnwLPaejwFM4Tb7hlzzhin74tjf2xJQKqfieS5+q+l1Zyze1JNE+BlzhMOZ1T1b6K1umChc04bt0+nflgpvT2GF2HXaYCJ8x7OQmtN54EdFPOywEfjtxiKCxT82wfPpdb8/KmjM4xIMFvywHlen/gUglaGVzN7L2jTMXsI6ey6wIDAQAB";
+    public static String PUBLIC_KEY ="public_key";
 
     /**	OAUTH2.0 토큰 샘플	*/
-    public static String ACCESS_TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXJ2aWNlX3R5cGUiOiIxIiwic2NvcGUiOlsicmVhZCJdLCJzZXJ2aWNlX25vIjoiMDAwMDA1NzU4MDAyIiwiZXhwIjoxNzUzMTcxMDYxLCJhdXRob3JpdGllcyI6WyJJTlNVUkFOQ0UiLCJQVUJMSUMiLCJCQU5LIiwiRVRDIiwiU1RPQ0siLCJDQVJEIl0sImp0aSI6IjY2ZmUxNTMzLTg4NzgtNGUyZS1hYWIwLTZlODZjYTNiODJjMiIsImNsaWVudF9pZCI6IjY2NzVjOTAwLWQwYmYtNGZkMS1iYTIwLTI4Mzg3YjYxMzgzNSJ9.YUFVOEhrYa31NQqkYDrddExwm4djX2KR4hRXkKGfyT3LWzJsfRqI-Ub95H_2yPwP8eL9D-TWZgmdA3nnusMIfUFRP5lkvYx-eEPhqIHaS0POKrW4e7bzdRFQlBaXjt9b-TfUv7X4VcyWs98qYo7fBdpN1rMwSJazgZgAQ0af8EUj2A5GSAwQzxUB3KbikU9GHkkvbSnsbxsnSwP4BSrpcu_OmU2Ux4O0wivafC2MsezA0uCkaSQXcZ8VtiMhh4rPJQIo-7JPAPEzPkbheRifFw6AS6nIRPehHq4QWH0Y6EUMx19zE9R81myL-IGyeOY35Xpb1Hxs05dQ2flEw02OJg";
+    public static String ACCESS_TOKEN ="access_token";
+
+
 
 }

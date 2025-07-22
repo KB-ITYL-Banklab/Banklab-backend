@@ -21,8 +21,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class RequestTokenTest {
 
     // 수정 요망
-    private String clientId = "6675c900-d0bf-4fd1-ba20-28387b613835";
-    private String clientSecret = "5ca86438-4597-4878-b6bb-781f4100ce2f";
+    private String clientId = "";
+    private String clientSecret = "";
 
     @Test
     void getToken() throws Exception {

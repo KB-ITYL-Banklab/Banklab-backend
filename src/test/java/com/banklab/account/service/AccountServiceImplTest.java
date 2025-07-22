@@ -31,9 +31,9 @@ class AccountServiceImplTest {
 
     @Test
     void 계좌_조회_테스트() throws Exception {
-        String userId = "test_id";
-        String connectedId = "";
-        String organization = "0004";
+        String userId = "사용자 아이디";
+        String connectedId = "발급된 커넥티드 아이디";
+        String organization = "기관코드";
 
         List<AccountVO> list = AccountResponse.requestAccounts(userId, organization, connectedId);
 
@@ -50,9 +50,9 @@ class AccountServiceImplTest {
 
     @Test
     void 잔액_새로고침_테스트() throws Exception {
-        String userId = "user00";
-        String connectedId = "";
-        String organization = "0004";
+        String userId = "사용자 아이디";
+        String connectedId = "발급된 커넥티드 아이디";
+        String organization = "기관코드";
 
         accountService.refreshAccountBalance(userId, organization, connectedId);
 
@@ -67,8 +67,8 @@ class AccountServiceImplTest {
 
     @Test
     void 계좌_삭제_테스트() throws Exception {
-        String userId = "testuser001";
-        String connectedId = "4ONbo5CU4nF8LzsXYg3nNH";
+        String userId = "사용자 아이디";
+        String connectedId = "발급된 커넥티드 아이디";
 
         accountService.deleteAccount(userId, connectedId);
 
