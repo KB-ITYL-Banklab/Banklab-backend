@@ -17,7 +17,7 @@ public class AccountResponse {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    public static List<AccountVO> requestAccounts(String userId, String bankCode, String connectedId) throws Exception {
+    public static List<AccountVO> requestAccounts(Long memberId, String bankCode, String connectedId) throws Exception {
         String urlPath = CommonConstant.TEST_DOMAIN + CommonConstant.KR_BK_1_P_001;
 
         HashMap<String, Object> bodyMap = new HashMap<String, Object>();
@@ -56,7 +56,7 @@ public class AccountResponse {
             log.info("---");
 
             // DTO → VO 변환 (비즈니스 정보 추가)
-            AccountVO vo = accountDTO.toVO(userId, connectedId, bankCode);
+            AccountVO vo = accountDTO.toVO(memberId, connectedId, bankCode);
             accountVOList.add(vo);
         }
 

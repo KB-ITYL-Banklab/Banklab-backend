@@ -1,37 +1,52 @@
 package com.banklab.transaction.controller;
 
 import com.banklab.category.dto.CategoryExpenseDTO;
-import com.banklab.transaction.dto.DailyExpenseDTO;
-import com.banklab.transaction.dto.MonthlySummaryDTO;
-import com.banklab.transaction.dto.SummaryDTO;
-import com.banklab.transaction.service.TransactionService;
+import com.banklab.transaction.dto.request.TransactionRequestDto;
+import com.banklab.transaction.dto.response.DailyExpenseDTO;
+import com.banklab.transaction.dto.response.MonthlySummaryDTO;
+import com.banklab.transaction.dto.response.SummaryDTO;
+import com.banklab.transaction.service.TransactionServiceImpl;
+import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.time.YearMonth;
-import java.time.ZoneId;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/analysis")
 @RequiredArgsConstructor
+@Log4j2
 public class TransactionApiController {
 
-    private final TransactionService transactionService;
+    private final TransactionServiceImpl transactionService;
+
+    @PostMapping("/transaction-list")
+    @ApiOperation(value = "거래 내역 조회", notes = "사용자와 연동된 계좌 거래 내역 조회")
+    public ResponseEntity<Map<String, Object>> getTransactionList(
+            @RequestParam Long memberId,
+            @RequestBody TransactionRequestDto request) {
+        Map<String, Object> response = new HashMap<>();
+
+        int savedRows = transactionService.getTransactions(memberId, request);
+
+        response.put("저장된 전체 거래 내역", savedRows);
+        return ResponseEntity.ok(response);
+    }
+
 
     @GetMapping("/summary")
     public ResponseEntity<SummaryDTO> getSummary(
+            @RequestParam Long memberId,
             @RequestParam(value = "start", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
-            @RequestParam(value = "end", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
-            @RequestParam("account") String account
-    ) {
+            @RequestParam(value = "end", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate)
+     {
         // 기본값 설정: 오늘이 포함된 달의 시작일과 종료일
         LocalDate now = LocalDate.now();
         if (startDate == null) {
@@ -41,7 +56,7 @@ public class TransactionApiController {
             endDate = java.sql.Date.valueOf(now.withDayOfMonth(now.lengthOfMonth()));
         }
 
-        return ResponseEntity.ok(transactionService.getSummary(startDate, endDate, account));
+        return ResponseEntity.ok(transactionService.getSummary(memberId, startDate, endDate));
     }
 
     @GetMapping("/monthly-summary")
@@ -65,7 +80,9 @@ public class TransactionApiController {
     @GetMapping("/category")
     public List<CategoryExpenseDTO> getCategoryExpenses(
             @RequestParam(value = "start", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
-            @RequestParam(value = "end", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
+            @RequestParam(value = "end", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
+            @RequestParam("account") String account
+            ) {
 
         // 기본값 설정: 오늘이 포함된 달의 시작일과 종료일
         LocalDate now = LocalDate.now();
@@ -76,7 +93,7 @@ public class TransactionApiController {
             endDate = java.sql.Date.valueOf(now.withDayOfMonth(now.lengthOfMonth()));
         }
 
-        return transactionService.getCategoryExpense(startDate, endDate);
+        return transactionService.getCategoryExpense(startDate, endDate,account);
     }
 
 

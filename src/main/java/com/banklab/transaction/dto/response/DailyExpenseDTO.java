@@ -1,12 +1,9 @@
-package com.banklab.transaction.dto;
+package com.banklab.transaction.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.Date;
 
 @Getter

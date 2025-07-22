@@ -5,7 +5,57 @@
 
 <mapper namespace="com.banklab.transaction.mapper.TransactionMapper">
 
-    <select id="getMonthlySummary" resultType="com.banklab.transaction.dto.MonthlySummaryDTO">
+    <insert id="saveTransaction" parameterType="com.banklab.transaction.domain.TransactionHistoryVO">
+        INSERT INTO transaction_history (
+            resAccount,
+            transaction_date,
+            transaction_time,
+            resAccountOut,
+            resAccountIn,
+            resAfterTranBalance,
+            description,
+            category_id
+        )
+        VALUES(
+               #{resAccount},
+               STR_TO_DATE(#{transactionDate}, '%Y%m%d'),
+               TIME_FORMAT(#{transactionTime}, '%H%i%s'),
+               #{resAccountOut},
+               #{resAccountIn},
+               #{resAfterTranBalance},
+               #{description},
+               #{category_id}
+              )
+    </insert>
+
+
+    <insert id="saveTransactionList"  parameterType="java.util.List">
+        INSERT INTO transaction_history (
+        resAccount,
+        transaction_date,
+        transaction_time,
+        resAccountOut,
+        resAccountIn,
+        resAfterTranBalance,
+        description,
+        category_id
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.resAccount},
+            STR_TO_DATE(#{item.transactionDate}, '%Y%m%d'),
+            TIME_FORMAT(#{item.transactionTime}, '%H%i%s'),
+            #{item.resAccountOut},
+            #{item.resAccountIn},
+            #{item.resAfterTranBalance},
+            #{item.description},
+            #{item.category_id}
+            )
+        </foreach>
+    </insert>
+
+    <select id="getMonthlySummary" resultType="com.banklab.transaction.dto.response.MonthlySummaryDTO">
         SELECT
             #{startDate} AS startDate,
             #{endDate} AS endDate,
@@ -16,7 +66,7 @@
           AND resAccount = #{resAccount}
     </select>
 
-    <select id="getDailyExpense" resultType="com.banklab.transaction.dto.DailyExpenseDTO">
+    <select id="getDailyExpense" resultType="com.banklab.transaction.dto.response.DailyExpenseDTO">
         <![CDATA[
         WITH RECURSIVE dates AS (
             SELECT #{startDate} AS date
@@ -50,8 +100,10 @@
             SUM(t.resAccountout) AS totalExpense
         FROM transaction_history t
                  JOIN category c ON t.category_id = c.id
-        WHERE t.resAccountOut > 0 -- 지출만
+        WHERE t.resAccount=#{resAccount}
+          AND t.resAccountOut > 0 -- 지출만
           AND t.transaction_date BETWEEN #{startDate} AND #{endDate}
+
         GROUP BY c.id, c.name
         ORDER BY totalExpense DESC
     </select>

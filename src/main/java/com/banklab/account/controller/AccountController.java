@@ -36,7 +36,7 @@ public class AccountController {
     @PostMapping("/link")
     @ApiOperation(value = "은행 계좌 연동", notes = "은행 로그인 정보로 계좌를 연동하고 DB에 저장.")
     public ResponseEntity<Map<String, Object>> linkAccount(
-            @RequestParam String userId,
+            @RequestParam Long memberId,
             @RequestParam String bankCode,
             @RequestParam String bankId,
             @RequestParam String bankPassword
@@ -45,14 +45,14 @@ public class AccountController {
         Map<String, Object> response = new HashMap<>();
         
         try {
-            log.info("계좌 연동 시작 - userId: {}, bankCode: {}", userId, bankCode);
+            log.info("계좌 연동 시작 - memberId: {}, bankCode: {}", memberId, bankCode);
             
             // 1. 커넥티드 아이디 발급
             String userConnectedId = RequestConnectedId.createConnectedId(bankId, bankPassword, bankCode);
             log.info("커넥티드 아이디 발급 완료: {}", userConnectedId);
             
             // 2. 커넥티드 아이디로 계좌 정보 조회
-            List<AccountVO> accountList = AccountResponse.requestAccounts(userId, bankCode, userConnectedId);
+            List<AccountVO> accountList = AccountResponse.requestAccounts(memberId, bankCode, userConnectedId);
             log.info("계좌 정보 조회 완료 - 계좌 수: {}", accountList.size());
             
             // 3. 계좌 정보를 DB에 저장
@@ -60,7 +60,7 @@ public class AccountController {
             log.info("계좌 정보 저장 완료 - 저장된 계좌 수: {}", savedCount);
             
             // 4. 저장된 계좌 정보 조회하여 반환
-            List<AccountDTO> accountDTOList = accountService.getUserAccounts(userId);
+            List<AccountDTO> accountDTOList = accountService.getUserAccounts(memberId);
             
             response.put("success", true);
             response.put("message", "계좌 연동이 완료되었습니다.");
@@ -86,12 +86,12 @@ public class AccountController {
      */
     @GetMapping("/list")
     @ApiOperation(value = "계좌 목록 조회", notes = "사용자의 연동된 계좌 목록을 조회.")
-    public ResponseEntity<Map<String, Object>> getUserAccounts(@RequestParam String userId) {
+    public ResponseEntity<Map<String, Object>> getUserAccounts(@RequestParam Long memberId) {
         
         Map<String, Object> response = new HashMap<>();
         
         try {
-            List<AccountDTO> accountList = accountService.getUserAccounts(userId);
+            List<AccountDTO> accountList = accountService.getUserAccounts(memberId);
             
             response.put("success", true);
             response.put("message", "계좌 목록 조회 완료");
@@ -116,7 +116,7 @@ public class AccountController {
     @PutMapping("/refresh")
     @ApiOperation(value = "계좌 잔액 새로고침", notes = "커넥티드 아이디로 계좌 잔액을 새로고침.")
     public ResponseEntity<Map<String, Object>> refreshAccountBalance(
-            @RequestParam String userId,
+            @RequestParam Long memberId,
             @RequestParam String bankCode,
             @RequestParam String connectedId
     ) {
@@ -124,10 +124,10 @@ public class AccountController {
         Map<String, Object> response = new HashMap<>();
         
         try {
-            accountService.refreshAccountBalance(userId, bankCode, connectedId);
+            accountService.refreshAccountBalance(memberId, bankCode, connectedId);
             
             // 갱신된 계좌 정보 조회
-            List<AccountDTO> accountList = accountService.getUserAccounts(userId);
+            List<AccountDTO> accountList = accountService.getUserAccounts(memberId);
             
             response.put("success", true);
             response.put("message", "계좌 잔액 새로고침 완료");
@@ -151,7 +151,7 @@ public class AccountController {
     @DeleteMapping("/unlink")
     @ApiOperation(value = "계좌 연동 해제", notes = "커넥티드 아이디를 삭제하고 계좌 연동을 해제.")
     public ResponseEntity<Map<String, Object>> unlinkAccount(
-            @RequestParam String userId,
+            @RequestParam Long memberId,
             @RequestParam String bankCode,
             @RequestParam String connectedId
     ) {
@@ -164,7 +164,7 @@ public class AccountController {
             
             if (deleted) {
                 // 2. DB에서 계좌 정보 삭제
-                accountService.deleteAccount(userId, connectedId);
+                accountService.deleteAccount(memberId, connectedId);
                 
                 response.put("success", true);
                 response.put("message", "계좌 연동 해제가 완료되었습니다.");

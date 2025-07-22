@@ -10,30 +10,31 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.*;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.web.client.RestTemplate;
 
 import javax.sql.DataSource;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Configuration
-@PropertySource({"classpath:/application.properties"})
+@PropertySources({
+        @PropertySource("classpath:/application.properties"),
+        @PropertySource("classpath:application-secret.properties")})
 @MapperScan(basePackages = {
-        "com.banklab.codeapi.mapper",
+        "com.banklab.member.mapper",
+        "com.banklab.account.mapper",
         "com.banklab.transaction.mapper",
-        "com.banklab.category.mapper",
-        "com.banklab.account.mapper"})
+        "com.banklab.category.mapper"})
 @ComponentScan(basePackages = {
-        "com.banklab.codeapi.service",
+        "com.banklab.member.service",
+        "com.banklab.account.service",
+        "com.banklab.codef.service",
         "com.banklab.transaction.service",
         "com.banklab.category.service",
         "com.banklab.perplexity.service",
-        "com.banklab.account.service",
 })
 @EnableTransactionManagement
 public class RootConfig {
@@ -67,6 +68,7 @@ public class RootConfig {
         sqlSessionFactory.setDataSource(dataSource());
 
         return sqlSessionFactory.getObject();
+
     }
 
     @Bean
@@ -80,6 +82,11 @@ public class RootConfig {
     public Map<String, Long> categoryMap(CategoryService categoryService) {
         return categoryService.findAll().stream()
                 .collect(Collectors.toMap(CategoryDTO::getName, CategoryDTO::getId));
+    }
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
     }
 
 }

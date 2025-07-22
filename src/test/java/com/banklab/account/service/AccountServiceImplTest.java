@@ -31,15 +31,15 @@ class AccountServiceImplTest {
 
     @Test
     void 계좌_조회_테스트() throws Exception {
-        String userId = "사용자 아이디";
+        Long memberId = 1L;
         String connectedId = "발급된 커넥티드 아이디";
         String organization = "기관코드";
 
-        List<AccountVO> list = AccountResponse.requestAccounts(userId, organization, connectedId);
+        List<AccountVO> list = AccountResponse.requestAccounts(memberId, organization, connectedId);
 
         accountService.saveAccounts(list);
 
-        List<AccountDTO> accountDTOList = accountService.getUserAccounts(userId);
+        List<AccountDTO> accountDTOList = accountService.getUserAccounts(memberId);
 
         for(AccountDTO accountDTO : accountDTOList) {
             log.info("보유 계좌: {}", accountDTO.getResAccountName());
@@ -50,13 +50,13 @@ class AccountServiceImplTest {
 
     @Test
     void 잔액_새로고침_테스트() throws Exception {
-        String userId = "사용자 아이디";
+        Long memberId = 1L;
         String connectedId = "발급된 커넥티드 아이디";
         String organization = "기관코드";
 
-        accountService.refreshAccountBalance(userId, organization, connectedId);
+        accountService.refreshAccountBalance(memberId, organization, connectedId);
 
-        List<AccountDTO> accountDTOList = accountService.getUserAccounts(userId);
+        List<AccountDTO> accountDTOList = accountService.getUserAccounts(memberId);
 
         for(AccountDTO accountDTO : accountDTOList) {
             log.info("보유 계좌: {}", accountDTO.getResAccountName());
@@ -67,10 +67,10 @@ class AccountServiceImplTest {
 
     @Test
     void 계좌_삭제_테스트() throws Exception {
-        String userId = "사용자 아이디";
+        Long memberId = 1L;
         String connectedId = "발급된 커넥티드 아이디";
 
-        accountService.deleteAccount(userId, connectedId);
+        accountService.deleteAccount(memberId, connectedId);
 
     }
 

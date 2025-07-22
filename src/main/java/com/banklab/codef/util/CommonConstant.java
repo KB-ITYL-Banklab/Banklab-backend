@@ -2,6 +2,8 @@ package com.banklab.codef.util;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
 import org.springframework.stereotype.Component;
 
 /**
@@ -9,6 +11,7 @@ import org.springframework.stereotype.Component;
  *  @Param : API 요청 URL
  */
 @Component
+@PropertySource("classpath:application-secret.properties")
 public class CommonConstant {
     public static final String API_DOMAIN 	= "https://api.codef.io";										// API서버 도메인
     public static final String TEST_DOMAIN 	= "https://development.codef.io";								// API서버 데모 도메인
@@ -75,16 +78,20 @@ public class CommonConstant {
 
 
     /**	CODEF로부터 발급받은 클라이언트 아이디	*/
-    public static String CLIENT_ID ="client_id";
+    @Value("${codef.client.id}")
+    public static String CLIENT_ID="46c0a2da-ded2-4466-9440-dbf21e6699a3";
 
     /**	CODEF로부터 발급받은 시크릿 키	*/
-    public static String SECERET_KEY ="seceret_key";
+    @Value("${codef.client.secret}")
+    public static String SECERET_KEY="cd812294-063b-4429-822f-cc562f551d06";
 
     /**	CODEF로부터 발급받은 퍼블릭 키	*/
-    public static String PUBLIC_KEY ="public_key";
+    @Value("${codef.public.key}")
+    public static String PUBLIC_KEY="MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5rr2LVqPWyNCSWFN4r6NQ4f7TLWE1ibn+NAXye6W2xRXdwYNHNXuAVIUZzDIlNaPnKQtV/tqFEgCak6wx1rldcx7ohQxoOSuNlQvCbEaNqu6Iqkz7frpcYZZ3GetJ9A7HUBfqBsuUBWzlbr2XVyiPTRw46StTAb/wauoGMk3AVjlR5XUrnIGvGP6AepKzgTn2F8fEsP011hlW6gzWW7TSWGNIO/YTGSqFA9jgSX0IMO8O2pEyRV7p+PM+66q0dKq4gwGak7YaAzxHqnfIBy4eQ7QQBYCW5gkFT3H5QYdZP0zMKHXAKLl2q2ghoh29tpw5J9rEJy8z8c34y2TJry0pQIDAQAB";
 
     /**	OAUTH2.0 토큰 샘플	*/
-    public static String ACCESS_TOKEN ="access_token";
+    @Value("${codef.access.token}")
+    public static String ACCESS_TOKEN="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXJ2aWNlX3R5cGUiOiIxIiwic2NvcGUiOlsicmVhZCJdLCJzZXJ2aWNlX25vIjoiMDAwMDA1NzY1MDAyIiwiZXhwIjoxNzUzNjY2NTAxLCJhdXRob3JpdGllcyI6WyJJTlNVUkFOQ0UiLCJQVUJMSUMiLCJCQU5LIiwiRVRDIiwiU1RPQ0siLCJDQVJEIl0sImp0aSI6IjBkMDdhY2EzLTNkNWEtNDRmZS1hMDI1LWEzM2U2ZGM4ZDA4ZCIsImNsaWVudF9pZCI6IjQ2YzBhMmRhLWRlZDItNDQ2Ni05NDQwLWRiZjIxZTY2OTlhMyJ9.f3uPAw6PHxBcXiRznrzOrd3A_vSzxL40TTUVCuL5vAScwJ8NAeNAj_4l1gxTfIJ4gHWL15vCQaObNE96QyWXL0O3QSPLFs_rvqd9fLOz5A6zYs6eyjD5wCeOYmtoAAClHVGkfnGxfOhnsnGVW436rnolcSdwR1EdE7ujSSQ0a__4zgvfwbWUtSJekArHX0OValZOC9Cjtk-cJGfc_qdBbGh0Sou2h2iwMQ2sRDS4B5rCXxivuOWfzQWZUeQ9biwSR20IQ-PI4Zm_p8-PG6AQf0-sc-6PxxCtLdnttK109yWG_XshdcfhZFc8xLwxRHyOvcBibZOcM6cnq8YhQuqw2A";
 
 
 

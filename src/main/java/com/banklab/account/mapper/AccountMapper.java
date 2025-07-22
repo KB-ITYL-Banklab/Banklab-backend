@@ -22,28 +22,28 @@ public interface AccountMapper {
     int insertAccount(AccountVO accountVO);
 
     /**
-     * Select : userId에 해당하는 계좌를 조회
+     * Select : memberId에 해당하는 계좌를 조회
      *
-     * @param userId 서비스 유저 아이디
+     * @param memberId 서비스 유저 아이디
      * @return 계좌 리스트를 반환
      */
-    List<AccountVO> selectAccountsByUserId(@Param("userId") String userId);
+    List<AccountVO> selectAccountsByUserId(@Param("memberId") Long memberId);
 
     /**
      * Update : 새로고침 후 잔액 업데이트
      *
-     * @param userId : 서비스 유저 아이디
+     * @param memberId : 서비스 유저 아이디
      * @param resAccount : 계좌번호
      * @param newBalance : 업데이트 할 잔액
      */
-    void updateAccountBalance(@Param("userId") String userId, @Param("resAccount") String resAccount, @Param("newBalance") String newBalance);
+    void updateAccountBalance(@Param("memberId") Long memberId, @Param("resAccount") String resAccount, @Param("newBalance") String newBalance);
 
     /**
      * Delete : 계좌 삭제
      *
-     * @param userId : 서비스 유저 아이디
+     * @param memberId : 서비스 유저 아이디
      * @param connectedId : 커넥티드 아이디
      */
-    void deleteAccount(@Param("userId") String userId, @Param("connectedId") String connectedId);
+    void deleteAccount(@Param("memberId") Long memberId, @Param("connectedId") String connectedId);
 
 }

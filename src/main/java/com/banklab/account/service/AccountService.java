@@ -24,29 +24,29 @@ public interface AccountService {
     /**
      * DB에 저장된 계좌를 조회
      *
-     * @param userId : 유저 아이디
+     * @param memberId : 유저 아이디
      * @return 유저의 계좌 목록
      */
-    public List<AccountDTO> getUserAccounts(String userId);
+    public List<AccountDTO> getUserAccounts(Long memberId);
 
     /**
      * API 재호출해서 잔액을 새로고침
      *
-     * @param userId : 유저아이디
+     * @param memberId : 유저아이디
      * @param bankCode : 기관코드(은행)
      * @param connectedId : 커넥티드 아이디
      * @throws Exception the exception
      */
-    public void refreshAccountBalance(String userId, String bankCode, String connectedId) throws Exception;
+    public void refreshAccountBalance(Long memberId, String bankCode, String connectedId) throws Exception;
 
 
     /**
      * DB에 저장된 계좌를 삭제
      *
-     * @param userId : 유저아이디
+     * @param memberId : 유저아이디
      * @param connectedId : 커넥티드 아이디
      */
-    public void deleteAccount(String userId, String connectedId);
+    public void deleteAccount(Long memberId, String connectedId);
 
 
 

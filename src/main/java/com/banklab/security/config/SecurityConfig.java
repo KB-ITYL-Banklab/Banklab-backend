@@ -115,7 +115,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // 회원 관련 공개 API (인증 불필요)
                 .antMatchers(HttpMethod.POST, "/api/member").permitAll()                    // 회원가입
                 .antMatchers(HttpMethod.GET, "/api/member/checkusername/**").permitAll()    // ID 중복 체크
-                .anyRequest().authenticated(); // 모든 요청에 인증 필요
+                .anyRequest().permitAll(); // 모든 요청에 인증 필요
 
     }
 

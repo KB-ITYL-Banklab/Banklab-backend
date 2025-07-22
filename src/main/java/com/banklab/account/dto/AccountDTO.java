@@ -10,9 +10,9 @@ public class AccountDTO {
     public String resAccountDisplay;
     public String resAccountBalance;
 
-    public AccountVO toVO(String userId, String connectedId, String organization) {
+    public AccountVO toVO(Long memberId, String connectedId, String organization) {
         return AccountVO.builder()
-                .userId(userId)
+                .memberId(memberId)
                 .connectedId(connectedId)
                 .organization(organization)
                 .resAccount(resAccount)

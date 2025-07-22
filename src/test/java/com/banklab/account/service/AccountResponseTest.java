@@ -24,6 +24,6 @@ class AccountResponseTest {
     void 계좌_연동_테스트() throws Exception {
         String connectedId = "발급된 커넥티드 아이디";
 
-        requestAccounts("test_id","0004", connectedId);
+        requestAccounts(1L,"0004", connectedId);
     }
 }
