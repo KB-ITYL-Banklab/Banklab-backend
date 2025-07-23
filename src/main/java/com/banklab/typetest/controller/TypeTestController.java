@@ -26,5 +26,9 @@ public class TypeTestController {
     public ResponseEntity<TypeTestResultDTO> submitAnswers(@RequestBody Map<String, Object> payload) {
         return ResponseEntity.ok(typeTestService.submitAnswers(payload));
     }
+    @GetMapping("/result/{userId}")
+    public ResponseEntity<TypeTestResultDTO> getTestResult(@PathVariable Long userId) {
+        return ResponseEntity.ok(typeTestService.getTestResultByUserId(userId));
+    }
 
 }

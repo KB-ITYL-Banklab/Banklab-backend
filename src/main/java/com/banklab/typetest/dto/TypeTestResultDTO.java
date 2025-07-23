@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -15,6 +17,7 @@ public class TypeTestResultDTO {
     private String investmentTypeName;
     private String investmentTypeDesc;
     private String message;
+    private List<RecommendedProductDTO> recommendedProducts;
 
     public static TypeTestResultDTO success(Long userId, Long investmentTypeId, String investmentTypeName, String investmentTypeDesc, String message) {
         return TypeTestResultDTO.builder()

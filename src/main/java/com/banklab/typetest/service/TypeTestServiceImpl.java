@@ -6,6 +6,7 @@ import com.banklab.typetest.domain.Question;
 import com.banklab.typetest.domain.QuestionChoiceScore;
 import com.banklab.typetest.domain.UserInvestmentType;
 import com.banklab.typetest.dto.AnswerDTO;
+import com.banklab.typetest.dto.RecommendedProductDTO;
 import com.banklab.typetest.dto.TypeTestResultDTO;
 import com.banklab.typetest.mapper.InvestmentTypeMapper;
 import com.banklab.typetest.mapper.QuestionChoiceScoreMapper;
@@ -31,6 +32,7 @@ public class TypeTestServiceImpl implements TypeTestService {
     private final QuestionChoiceScoreMapper questionChoiceScoreMapper;
     private final InvestmentTypeMapper investmentTypeMapper;
     private final UserInvestmentTypeMapper userInvestmentTypeMapper;
+    private final ProductRecommendationService productRecommendationService;
 
     @Override
     public List<Question> getAllQuestions() {
@@ -54,8 +56,11 @@ public class TypeTestServiceImpl implements TypeTestService {
             InvestmentType investmentType = getInvestmentType(bestTypeId);
             saveUserInvestmentType(userId, bestTypeId);
 
-            //성공 결과 반환
-            return createSuccessResult(userId, investmentType);
+            // 추천상품 조회 추가
+            List<RecommendedProductDTO> recommendedProducts = getRecommendedProducts(bestTypeId);
+
+            //성공 결과 반환 (추천상품 포함)
+            return createSuccessResult(userId, investmentType, recommendedProducts);
 
         } catch (IllegalArgumentException e) {
             log.warn("투자성향 테스트 실행 중 잘못된 파라미터: {}", e.getMessage());
@@ -63,6 +68,30 @@ public class TypeTestServiceImpl implements TypeTestService {
         } catch (Exception e) {
             log.error("투자성향 테스트 실행 중 예상치 못한 오류 발생", e);
             return createFailResult(TypeTestMessageUtil.SERVER_ERROR_MSG + e.getMessage());
+        }
+    }
+
+    @Override
+    public TypeTestResultDTO getTestResultByUserId(Long userId) {
+        try {
+            // 사용자의 투자성향 조회
+            UserInvestmentType userInvestmentType = userInvestmentTypeMapper.findByUserId(userId);
+            if (userInvestmentType == null) {
+                return createFailResult("해당 사용자의 투자성향 테스트 결과를 찾을 수 없습니다.");
+            }
+
+            // 투자성향 정보 조회
+            InvestmentType investmentType = getInvestmentType(userInvestmentType.getInvestmentTypeId());
+
+            // 추천상품 조회
+            List<RecommendedProductDTO> recommendedProducts = getRecommendedProducts(userInvestmentType.getInvestmentTypeId());
+
+            // 결과 반환
+            return createSuccessResult(userId, investmentType, recommendedProducts);
+
+        } catch (Exception e) {
+            log.error("사용자 테스트 결과 조회 중 오류 발생: userId={}", userId, e);
+            return createFailResult("테스트 결과 조회 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
 
@@ -122,7 +151,7 @@ public class TypeTestServiceImpl implements TypeTestService {
         // 답변에 해당하는 점수를 투자 성향 점수에 추가
         QuestionChoiceScore score = questionChoiceScoreMapper
                 .findByQuestionIdAndChoice(answer.getQuestionId(), answer.getChoice());
-        
+
         if (score != null) {
             typeScores.merge(score.getInvestmentTypeId(), score.getScore(), Integer::sum);
         }
@@ -166,13 +195,24 @@ public class TypeTestServiceImpl implements TypeTestService {
         }
     }
 
-    private TypeTestResultDTO createSuccessResult(Long userId, InvestmentType investmentType) {
-        // 성공 결과 생성
+    private List<RecommendedProductDTO> getRecommendedProducts(Long investmentTypeId) {
+        // 투자성향에 따른 추천상품 조회
+        try {
+            return productRecommendationService.getRecommendedProducts(investmentTypeId);
+        } catch (Exception e) {
+            log.error("추천상품 조회 중 오류 발생: investmentTypeId={}", investmentTypeId, e);
+            return List.of(); // 빈 리스트 반환
+        }
+    }
+
+    private TypeTestResultDTO createSuccessResult(Long userId, InvestmentType investmentType, List<RecommendedProductDTO> recommendedProducts) {
+        // 성공 결과 생성 (추천상품 포함)
         return TypeTestResultDTO.builder()
                 .userId(userId)
                 .investmentTypeId(investmentType.getId())
                 .investmentTypeName(investmentType.getInvestmentTypeName())
                 .investmentTypeDesc(investmentType.getInvestmentTypeDesc())
+                .recommendedProducts(recommendedProducts) // 추천상품 추가
                 .message(TypeTestMessageUtil.SUCCESS_MSG)
                 .build();
     }

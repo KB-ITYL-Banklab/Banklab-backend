@@ -21,4 +21,11 @@ public interface TypeTestService {
      * @return 테스트 결과 DTO
      */
     TypeTestResultDTO submitAnswers(Map<String, Object> payload);
+    /**
+     * 사용자 ID로 테스트 결과를 조회합니다.
+     *
+     * @param userId 사용자 ID
+     * @return 테스트 결과 DTO
+     */
+    TypeTestResultDTO getTestResultByUserId(Long userId);
 }
