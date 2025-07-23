@@ -40,34 +40,24 @@ public class TypeTestServiceImpl implements TypeTestService {
     }
 
     @Override
-    public TypeTestResultDTO submitAnswers(Map<String, Object> payload) {
+    public TypeTestResultDTO submitAnswersWithMemberId(Map<String, Object> payload, Long memberId) {
         try {
-            //사용자 ID와 답변 데이터 추출
-            Long userId = extractUserId(payload);
+            // memberId를 userId로 사용
             List<AnswerDTO> answers = parseAnswers(payload);
-
-            //답변을 기반으로 투자 성향 계산
             Long bestTypeId = calculateBestInvestmentType(answers);
             if (bestTypeId == null) {
-                return createFailResult(TypeTestMessageUtil.FAIL_SCORE_MSG);
+                return createFailResult("점수 계산 결과가 없습니다");
             }
-
-            // 투자 성향 정보 조회 및 저장
             InvestmentType investmentType = getInvestmentType(bestTypeId);
-            saveUserInvestmentType(userId, bestTypeId);
-
-            // 추천상품 조회 추가
+            saveUserInvestmentType(memberId, bestTypeId);
             List<RecommendedProductDTO> recommendedProducts = getRecommendedProducts(bestTypeId);
-
-            //성공 결과 반환 (추천상품 포함)
-            return createSuccessResult(userId, investmentType, recommendedProducts);
-
+            return createSuccessResult(memberId, investmentType, recommendedProducts);
         } catch (IllegalArgumentException e) {
             log.warn("투자성향 테스트 실행 중 잘못된 파라미터: {}", e.getMessage());
             return createFailResult(e.getMessage());
         } catch (Exception e) {
             log.error("투자성향 테스트 실행 중 예상치 못한 오류 발생", e);
-            return createFailResult(TypeTestMessageUtil.SERVER_ERROR_MSG + e.getMessage());
+            return createFailResult("서버 오류: " + e.getMessage());
         }
     }
 

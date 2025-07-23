@@ -18,9 +18,10 @@ public interface TypeTestService {
      * 사용자의 답변을 제출하고 결과를 반환합니다.
      *
      * @param payload 사용자의 답변 데이터
+     * @param memberId JWT에서 추출한 회원 ID
      * @return 테스트 결과 DTO
      */
-    TypeTestResultDTO submitAnswers(Map<String, Object> payload);
+    TypeTestResultDTO submitAnswersWithMemberId(Map<String, Object> payload, Long memberId);
     /**
      * 사용자 ID로 테스트 결과를 조회합니다.
      *
