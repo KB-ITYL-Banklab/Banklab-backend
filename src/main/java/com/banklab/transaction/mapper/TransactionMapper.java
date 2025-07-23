@@ -4,6 +4,7 @@ import com.banklab.category.dto.CategoryExpenseDTO;
 import com.banklab.transaction.domain.TransactionHistoryVO;
 import com.banklab.transaction.dto.response.DailyExpenseDTO;
 import com.banklab.transaction.dto.response.MonthlySummaryDTO;
+import com.banklab.transaction.summary.dto.DailySummaryDTO;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.Date;
@@ -17,4 +18,6 @@ public interface TransactionMapper {
     MonthlySummaryDTO getMonthlySummary(@Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("resAccount") String resAccount);
     List<DailyExpenseDTO> getDailyExpense(@Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("resAccount") String resAccount);
     List<CategoryExpenseDTO> getExpensesByCategory(@Param("startDate") Date startDate, @Param("endDate") Date endDate,@Param("resAccount") String resAccount);
+
+    List<DailySummaryDTO> getDailyCategorySummary(@Param("memberId") Long memberId, @Param("targetDate") Date date);
 }

@@ -49,7 +49,7 @@ public class TransactionServiceImpl implements TransactoinService {
         // 1. 사용자의 전체 계좌 목록 가져오기
         List<AccountVO> userAccounts = accountMapper.selectAccountsByUserId(memberId);
 
-        //2. 계좌별 거래 내역 조회
+        //2. 계좌별 거래 내역 불러오기
         for (AccountVO account : userAccounts) {
             TransactionDTO dto = TransactionDTO.builder()
                     .account(account.getResAccount())
@@ -62,8 +62,9 @@ public class TransactionServiceImpl implements TransactoinService {
             List<TransactionHistoryVO> transactions;
 
             try {
-                transactions = TransactionResponse.requestTransactions(dto);
+                transactions = TransactionResponse.requestTransactions(memberId,dto);
                 transactions = desTocategory(transactions);
+
 
             } catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);

@@ -21,7 +21,6 @@ public interface TransactoinService {
 
     int saveTransactionList(List<TransactionHistoryVO> transactionVOList);
 
-
     public SummaryDTO getSummary(Long memberId, Date startDate, Date endDate);
     public MonthlySummaryDTO getMonthlySummary(Date startDate, Date endDate, String account) ;
     public List<DailyExpenseDTO> getDailyExpense(Date startDate, Date endDate, String account);

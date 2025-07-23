@@ -47,4 +47,7 @@
     <select id="findByUsername" resultType="MemberVO">
         SELECT * FROM member WHERE username = #{username}
     </select>
+    <select id="findAllMemberIds" resultType="java.lang.Long">
+        select member_id from member;
+    </select>
 </mapper>

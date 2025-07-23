@@ -26,7 +26,7 @@ public class TransactionResponse {
      * @throws IOException
      * @throws InterruptedException
      */
-    public static List<TransactionHistoryVO> requestTransactions(TransactionDTO request) throws IOException, InterruptedException {
+    public static List<TransactionHistoryVO> requestTransactions(Long memberId, TransactionDTO request) throws IOException, InterruptedException {
         String urlPath = CommonConstant.TEST_DOMAIN + CommonConstant.KR_BK_1_P_002;
 
         HashMap<String, Object> bodyMap = new HashMap<>();
@@ -54,6 +54,7 @@ public class TransactionResponse {
         for (JsonNode item : list) {
             TransactionHistoryVO vo = mapper.treeToValue(item, TransactionHistoryVO.class);
             vo.setResAccount(dataNode.path("resAccount").asText());
+            vo.setMemberId(memberId);
             transactions.add(vo);
         }
 

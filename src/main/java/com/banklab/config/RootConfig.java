@@ -2,6 +2,7 @@ package com.banklab.config;
 
 import com.banklab.category.dto.CategoryDTO;
 import com.banklab.category.service.CategoryService;
+import com.banklab.transaction.summary.batch.config.SchedulerConfig;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -27,8 +28,11 @@ import java.util.stream.Collectors;
         "com.banklab.member.mapper",
         "com.banklab.account.mapper",
         "com.banklab.transaction.mapper",
-        "com.banklab.category.mapper"})
+        "com.banklab.category.mapper",
+        "com.banklab.transaction.summary.mapper"
+})
 @ComponentScan(basePackages = {
+        "com.banklab.transaction.summary.service",
         "com.banklab.member.service",
         "com.banklab.account.service",
         "com.banklab.codef.service",
@@ -37,6 +41,7 @@ import java.util.stream.Collectors;
         "com.banklab.perplexity.service",
 })
 @EnableTransactionManagement
+@Import({SchedulerConfig.class})
 public class RootConfig {
     @Value("${jdbc.driver}")
     String driver;

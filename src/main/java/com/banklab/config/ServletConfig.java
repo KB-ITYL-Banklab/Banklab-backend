@@ -18,6 +18,7 @@ import org.springframework.web.servlet.view.JstlView;
         "com.banklab.account.controller",
         "com.banklab.security.controller",
         "com.banklab.member.controller",
+        "com.banklab.transaction.summary",
         "org.banklab.controller",
 })
 public class ServletConfig implements WebMvcConfigurer {

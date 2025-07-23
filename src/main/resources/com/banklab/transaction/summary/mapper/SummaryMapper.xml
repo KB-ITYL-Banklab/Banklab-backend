@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.transaction.summary.mapper.SummaryMapper">
+
+
+    <insert id="upsertDailySummary" parameterType="com.banklab.transaction.summary.dto.DailySummaryDTO">
+        INSERT INTO daily_user_expense_summary (
+            member_id, category_id, date, total_expense, total_income
+        ) VALUES (
+                     #{memberId}, #{categoryId}, #{date}, #{totalExpense}, #{totalIncome}
+                 )
+            ON DUPLICATE KEY UPDATE
+                                 total_expense = VALUES(total_expense),
+                                 total_income = VALUES(total_income),
+                                 updated_at = NOW()
+    </insert>
+    <select id="getLastTransactionDate" resultType="java.util.Date">
+        SELECT max(transaction_date) from transaction_history
+        WHERE member_id = #{memberId}
+    </select>
+</mapper>

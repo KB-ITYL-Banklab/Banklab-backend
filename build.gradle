@@ -37,6 +37,15 @@ dependencies {
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.3' // JSON 파싱용
 
 
+  // Spring 스케줄러
+  implementation 'org.springframework:spring-context:5.3.30'
+
+  implementation 'org.springframework.batch:spring-batch-core:4.3.10'  // 버전 확인 필수
+  implementation 'org.springframework.batch:spring-batch-infrastructure:4.3.10'
+
+
+
+
   // 보안
   implementation("org.springframework.security:spring-security-web:${springSecurityVersion}")
   implementation("org.springframework.security:spring-security-config:${springSecurityVersion}")

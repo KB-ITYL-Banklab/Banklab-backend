@@ -31,6 +31,7 @@
 
     <insert id="saveTransactionList"  parameterType="java.util.List">
         INSERT INTO transaction_history (
+        member_id,
         resAccount,
         transaction_date,
         transaction_time,
@@ -43,6 +44,7 @@
         VALUES
         <foreach collection="list" item="item" separator=",">
             (
+            #{item.memberId},
             #{item.resAccount},
             STR_TO_DATE(#{item.transactionDate}, '%Y%m%d'),
             TIME_FORMAT(#{item.transactionTime}, '%H%i%s'),
@@ -106,5 +108,15 @@
 
         GROUP BY c.id, c.name
         ORDER BY totalExpense DESC
+    </select>
+
+
+    <select id="getDailyCategorySummary" resultType="com.banklab.transaction.summary.dto.DailySummaryDTO">
+        SELECT *
+        FROM daily_user_expense_summary
+        WHERE member_id = #{memberId}
+          AND category_id = 0
+          AND date = #{targetDate}
+
     </select>
 </mapper>

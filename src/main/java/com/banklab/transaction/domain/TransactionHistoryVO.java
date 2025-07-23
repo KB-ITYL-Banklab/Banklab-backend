@@ -16,6 +16,7 @@ import java.util.Date;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TransactionHistoryVO {
     private Long id;
+    private Long memberId;
     private Long accountId;
     private String resAccount;
 
