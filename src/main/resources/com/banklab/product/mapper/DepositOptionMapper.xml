@@ -17,4 +17,24 @@
     <delete id="deleteAllDepositOptions">
         DELETE FROM deposit_option
     </delete>
+    
+    <!-- 특정 상품의 모든 옵션 조회 -->
+    <select id="findOptionsByProduct" resultType="com.banklab.product.domain.DepositOption">
+        SELECT 
+            id,
+            dcls_month as dclsMonth,
+            fin_co_no as finCoNo,
+            fin_prdt_cd as finPrdtCd,
+            intr_rate_type as intrRateType,
+            intr_rate_type_nm as intrRateTypeNm,
+            save_trm as saveTrm,
+            intr_rate as intrRate,
+            intr_rate2 as intrRate2
+        FROM deposit_option
+        WHERE dcls_month = #{dclsMonth}
+          AND fin_co_no = #{finCoNo}
+          AND fin_prdt_cd = #{finPrdtCd}
+        ORDER BY save_trm, intr_rate_type
+    </select>
+
 </mapper>

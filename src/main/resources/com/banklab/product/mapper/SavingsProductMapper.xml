@@ -19,5 +19,27 @@
     <delete id="deleteAllSavingsProducts">
         DELETE FROM savings_product
     </delete>
-
+    <select id="findByProductKey" resultType="com.banklab.product.domain.SavingsProduct">
+        SELECT 
+            id,
+            dcls_month as dclsMonth,
+            fin_co_no as finCoNo,
+            kor_co_nm as korCoNm,
+            fin_prdt_cd as finPrdtCd,
+            fin_prdt_nm as finPrdtNm,
+            join_way as joinWay,
+            mtrt_int as mtrtInt,
+            spcl_cnd as spclCnd,
+            join_deny as joinDeny,
+            join_member as joinMember,
+            etc_note as etcNote,
+            max_limit as maxLimit,
+            dcls_strt_day as dclsStrtDay,
+            dcls_end_day as dclsEndDay,
+            fin_co_subm_day as finCoSubmDay
+        FROM savings_product
+        WHERE dcls_month = #{dclsMonth}
+          AND fin_co_no = #{finCoNo}
+          AND fin_prdt_cd = #{finPrdtCd}
+    </select>
 </mapper>

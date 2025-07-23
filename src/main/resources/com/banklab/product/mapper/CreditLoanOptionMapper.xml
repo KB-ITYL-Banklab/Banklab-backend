@@ -50,6 +50,31 @@
         FROM credit_loan_option
         ORDER BY fin_co_no, fin_prdt_cd, crdt_lend_rate_type
     </select>
+    <select id="findOptionsByProduct" resultType="com.banklab.product.domain.CreditLoanOption">
+        SELECT
+            id,
+            dcls_month as dclsMonth,
+            fin_co_no as finCoNo,
+            fin_prdt_cd as finPrdtCd,
+            crdt_prdt_type as crdtPrdtType,
+            crdt_lend_rate_type as crdtLendRateType,
+            crdt_lend_rate_type_nm as crdtLendRateTypeNm,
+            crdt_grad_1 as crdtGrad1,
+            crdt_grad_4 as crdtGrad4,
+            crdt_grad_5 as crdtGrad5,
+            crdt_grad_6 as crdtGrad6,
+            crdt_grad_10 as crdtGrad10,
+            crdt_grad_11 as crdtGrad11,
+            crdt_grad_12 as crdtGrad12,
+            crdt_grad_13 as crdtGrad13,
+            crdt_grad_avg as crdtGradAvg
+        FROM credit_loan_option
+        WHERE dcls_month = #{dclsMonth}
+          AND fin_co_no = #{finCoNo}
+          AND fin_prdt_cd = #{finPrdtCd}
+        ORDER BY crdt_lend_rate_type
+
+    </select>
 
     <delete id="deleteAllCreditLoanOptions">
         DELETE FROM credit_loan_option

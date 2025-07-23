@@ -39,6 +39,26 @@
         FROM savings_option
         ORDER BY fin_co_no, fin_prdt_cd, save_trm
     </select>
+    <select id="findOptionsByProduct" resultType="com.banklab.product.domain.SavingsOption">
+        SELECT
+            id,
+            dcls_month as dclsMonth,
+            fin_co_no as finCoNo,
+            fin_prdt_cd as finPrdtCd,
+            intr_rate_type as intrRateType,
+            intr_rate_type_nm as intrRateTypeNm,
+            rsrv_type as rsrvType,
+            rsrv_type_nm as rsrvTypeNm,
+            save_trm as saveTrm,
+            intr_rate as intrRate,
+            intr_rate2 as intrRate2
+        FROM savings_option
+        WHERE dcls_month = #{dclsMonth}
+          AND fin_co_no = #{finCoNo}
+          AND fin_prdt_cd = #{finPrdtCd}
+        ORDER BY save_trm, intr_rate_type
+
+    </select>
 
     <delete id="deleteAllSavingsOptions">
         DELETE FROM savings_option

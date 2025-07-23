@@ -19,4 +19,11 @@
     <delete id="deleteAllCreditLoanProducts">
         DELETE FROM credit_loan_product
     </delete>
+    <select id="findByProductKey" resultType="com.banklab.product.domain.CreditLoanProduct">
+        SELECT *
+        FROM credit_loan_product
+        WHERE dcls_month = #{dclsMonth}
+          AND fin_co_no = #{finCoNo}
+          AND fin_prdt_cd = #{finPrdtCd}
+    </select>
 </mapper>
