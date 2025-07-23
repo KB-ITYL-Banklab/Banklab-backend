@@ -28,7 +28,7 @@ public class JwtProcessor {
     /* ***** 토큰 생성 메서드 ***** */
     /**
      * JWT 토큰 생성
-     * @param subject 사용자 식별자 (보통 username)
+     * @param subject 사용자 식별자 (보통 username(email))
      * @return 생성된 JWT 토큰 문자열
      */
     public String generateToken(String subject) {
@@ -51,6 +51,23 @@ public class JwtProcessor {
                 .claim("role", role)                   // 권한 정보 추가
                 .signWith(getKey())
                 .compact();
+    }
+
+    /* ***** 토큰 생성 메서드 ***** */
+    /**
+     * JWT 토큰 생성
+     * @param subject 사용자 식별자 (보통 username(email))
+     * @param memberId 사용자 고유 ID (보통 member_id)
+     * @return 생성된 JWT 토큰 문자열
+     */
+    public String generateTokenWithId(String subject, Long memberId) {
+        return Jwts.builder()
+                .setSubject(subject)                    // 사용자 식별자
+                .claim("member_id", memberId)      // member_id 추가
+                .setIssuedAt(new Date())                 // 발급 시간
+                .setExpiration(new Date(new Date().getTime() + TOKEN_VALID_MILLISECOND))  // 만료 시간
+                .signWith(getKey())                     // 서명
+                .compact();                            // 문자열 생성
     }
 
 
@@ -101,6 +118,21 @@ public class JwtProcessor {
                 .get("role", String.class);
     }
 
+    /**
+     * JWT Member ID 추출
+     * @param token JWT 토큰
+     * @return member_id
+     * @throws JwtException 토큰 해석 불가 시 예외 발생
+     */
+    public Long getMemberId(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(getKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("member_id", Long.class);  // member_id claim 추출
+    }
+
 
     /**
      * JWT 검증 (유효 기간 및 서명 검증)
@@ -131,4 +163,3 @@ public class JwtProcessor {
     }
 
 }
-
