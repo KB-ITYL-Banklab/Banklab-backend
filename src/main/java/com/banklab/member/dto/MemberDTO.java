@@ -17,7 +17,6 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class MemberDTO {
-    private String username;
     private String email;
     private String phone;
     private String name;
@@ -30,7 +29,6 @@ public class MemberDTO {
     // MemberVO에서 DTO 생성 (정적 팩토리 메서드)
     public static MemberDTO of(MemberVO m) {
         return MemberDTO.builder()
-                .username(m.getUsername())
                 .email(m.getEmail())
                 .phone(m.getPhone())
                 .name(m.getName())

@@ -25,10 +25,10 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     // 인증 성공 결과 생성
     private AuthResultDTO makeAuthResult(CustomUser user) {
-        String username = user.getUsername();
+        String email = user.getUsername();
 
         // JWT 토큰 생성
-        String token = jwtProcessor.generateToken(username);
+        String token = jwtProcessor.generateToken(email);
 
         // 토큰 + 사용자 기본 정보를 AuthResultDTO로 구성
         return new AuthResultDTO(token, UserInfoDTO.of(user.getMember()));

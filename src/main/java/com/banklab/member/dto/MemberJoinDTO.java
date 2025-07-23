@@ -15,20 +15,18 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 public class MemberJoinDTO {
-    private String username;   // 로그인 ID
+    private String email;      // 로그인 ID
     private String password;   // 평문 비밀번호
     private String name;
-    private String email;
     private String phone;
     private Gender gender;     // enum: MALE / FEMALE
-    private String birth;   // 예: "2009-10-16"
+    private String birth;      // 예: "2009-10-16"
 
     public MemberVO toVO(PasswordEncoder encoder) {
         return MemberVO.builder()
-                .username(username)
+                .email(email)
                 .password(encoder.encode(password))
                 .name(name)
-                .email(email)
                 .phone(phone)
                 .gender(gender)
                 .birth(LocalDate.parse(birth))

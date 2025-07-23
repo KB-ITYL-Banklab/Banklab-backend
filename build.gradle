@@ -39,6 +39,11 @@ dependencies {
   implementation("org.springframework.security:spring-security-core:${springSecurityVersion}")
   implementation("org.springframework.security:spring-security-taglibs:${springSecurityVersion}")
 
+  //Spring Security OAuth2
+  implementation 'org.springframework.security:spring-security-oauth2-client:5.7.3'
+  implementation 'org.springframework.security:spring-security-oauth2-jose:5.7.3'
+  implementation 'org.springframework.security:spring-security-oauth2-core:5.7.3'
+
 
   // swagger
   implementation 'io.springfox:springfox-swagger2:2.9.2'

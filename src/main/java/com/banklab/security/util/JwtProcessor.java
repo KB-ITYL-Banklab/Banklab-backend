@@ -28,7 +28,7 @@ public class JwtProcessor {
     /* ***** 토큰 생성 메서드 ***** */
     /**
      * JWT 토큰 생성
-     * @param subject 사용자 식별자 (보통 username)
+     * @param subject 사용자 식별자 (보통 username(email))
      * @return 생성된 JWT 토큰 문자열
      */
     public String generateToken(String subject) {
