@@ -18,7 +18,6 @@ public class CreditLoanOption {
     private String finCoNo; // 금융회사 번호
     private String finPrdtCd; // 금융상품 코드
     private String crdtPrdtType; // 대출상품구분
-    private Long creditLoanProductId; // 연관된 신용대출상품 ID
     private String crdtLendRateType; // 금리구분 코드
     private String crdtLendRateTypeNm; // 금리구분명
     private BigDecimal crdtGrad1; // 신용등급 1등급 금리

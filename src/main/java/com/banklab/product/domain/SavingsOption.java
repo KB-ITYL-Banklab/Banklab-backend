@@ -17,7 +17,6 @@ public class SavingsOption {
     private String dclsMonth; // 공시 월
     private String finCoNo; // 금융회사 번호  
     private String finPrdtCd; // 금융상품 코드
-    private Long savingsProductId; // 연관된 적금상품 ID
     private String intrRateType; // 저축금리유형 코드
     private String intrRateTypeNm; // 저축금리유형명
     private String rsrvType; // 적립유형 코드
