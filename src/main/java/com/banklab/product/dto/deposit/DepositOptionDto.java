@@ -32,7 +32,7 @@ public class DepositOptionDto {
     private String intrRateTypeNm;
 
     @JsonProperty("save_trm")
-    private String saveTrmStr; // API에서는 String으로 옴 (예: "1", "3", "6")
+    private String saveTrm;
 
     @JsonProperty("intr_rate")
     private BigDecimal intrRate;
@@ -49,7 +49,7 @@ public class DepositOptionDto {
                 .finPrdtCd(dto.getFinPrdtCd())
                 .intrRateType(dto.getIntrRateType())
                 .intrRateTypeNm(dto.getIntrRateTypeNm())
-                .saveTrm(parseSaveTrm(dto.getSaveTrmStr()))
+                .saveTrm(parseSaveTrm(dto.getSaveTrm()))
                 .intrRate(dto.getIntrRate())
                 .intrRate2(dto.getIntrRate2())
                 .build();
