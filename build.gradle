@@ -122,6 +122,10 @@ dependencies {
 
   testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+  
+//  // 임베디드 톰캣
+//  testImplementation 'org.apache.tomcat.embed:tomcat-embed-core:9.0.65'
+//  testImplementation 'org.apache.tomcat.embed:tomcat-embed-jasper:9.0.65'
 
   // Hamcrest for MockMvc tests   // 테스트코드 관련
   testImplementation 'org.hamcrest:hamcrest:2.2'

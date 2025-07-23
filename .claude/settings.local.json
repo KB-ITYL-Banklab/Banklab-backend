@@ -5,7 +5,10 @@
       "Bash(./gradlew:*)",
       "Bash(mkdir:*)",
       "WebFetch(domain:apis.data.go.kr)",
-      "WebFetch(domain:www.data.go.kr)"
+      "WebFetch(domain:www.data.go.kr)",
+      "Bash(ls:*)",
+      "Bash(where:*)",
+      "Bash(echo $CATALINA_HOME)"
     ],
     "deny": []
   }
