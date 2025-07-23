@@ -37,12 +37,10 @@ public class SavingsWithOptionsDto {
     private String joinMember;     // 가입대상
     private String etcNote;        // 기타사항
     private BigDecimal maxLimit;   // 최고한도
-    
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate dclsStrtDay; // 공시시작일
-    
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate dclsEndDay;  // 공시종료일
+
+    private String dclsStrtDay; // 공시시작일
+
+    private String dclsEndDay;  // 공시종료일
     
     // 적금 옵션 목록
     private List<SavingsOptionDto> options;

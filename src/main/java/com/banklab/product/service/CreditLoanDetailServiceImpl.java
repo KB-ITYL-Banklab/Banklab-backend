@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CreditLoanOptionsServiceImpl implements CreditLoanOptionsService {
+public class CreditLoanDetailServiceImpl implements CreditLoanDetailService {
 
     private final CreditLoanProductMapper creditLoanProductMapper;
     private final CreditLoanOptionMapper creditLoanOptionMapper;
@@ -101,8 +101,8 @@ public class CreditLoanOptionsServiceImpl implements CreditLoanOptionsService {
                 .cbName(product.getCbName())
                 .spclCnd(product.getSpclCnd())
                 .etcNote(product.getEtcNote())
-                .dclsStrtDay(product.getDclsStrtDay())
-                .dclsEndDay(product.getDclsEndDay())
+                .dclsStrtDay(product.getDclsStrtDay() != null ? product.getDclsStrtDay().toString() : null)
+                .dclsEndDay(product.getDclsEndDay() != null ? product.getDclsEndDay().toString() : null)
                 .options(options)
                 .optionCount(options.size())
                 .minRate(minRate)

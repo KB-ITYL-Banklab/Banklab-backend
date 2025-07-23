@@ -36,12 +36,10 @@ public class CreditLoanWithOptionsDto {
     private String cbName;         // CB 회사명
     private String spclCnd;        // 특별조건
     private String etcNote;        // 기타사항
-    
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate dclsStrtDay; // 공시시작일
-    
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate dclsEndDay;  // 공시종료일
+
+    private String dclsStrtDay; // 공시시작일
+
+    private String dclsEndDay;  // 공시종료일
     
     // 신용대출 옵션 목록
     private List<CreditLoanOptionDto> options;

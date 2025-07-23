@@ -1,7 +1,7 @@
 package com.banklab.product.controller;
 
 import com.banklab.product.dto.savings.SavingsWithOptionsDto;
-import com.banklab.product.service.SavingsOptionsService;
+import com.banklab.product.service.SavingsDetailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -14,15 +14,15 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/savings")
 @RequiredArgsConstructor
-public class SavingsOptionsController {
+public class SavingsDetailController {
 
-    private final SavingsOptionsService savingsOptionsService;
+    private final SavingsDetailService savingsDetailService;
 
     /**
      * 특정 적금 상품의 모든 옵션 조회
-     * GET /api/savings/{dclsMonth}/{finCoNo}/{finPrdtCd}/options
+     * GET /api/savings/{dclsMonth}/{finCoNo}/{finPrdtCd}
      */
-    @GetMapping("/{dclsMonth}/{finCoNo}/{finPrdtCd}/options")
+    @GetMapping("/{dclsMonth}/{finCoNo}/{finPrdtCd}")
     public ResponseEntity<SavingsWithOptionsDto> getSavingsWithOptions(
             @PathVariable String dclsMonth,
             @PathVariable String finCoNo,
@@ -33,7 +33,7 @@ public class SavingsOptionsController {
                 dclsMonth, finCoNo, finPrdtCd);
 
         try {
-            SavingsWithOptionsDto result = savingsOptionsService.getSavingsWithOptions(dclsMonth, finCoNo, finPrdtCd);
+            SavingsWithOptionsDto result = savingsDetailService.getSavingsWithOptions(dclsMonth, finCoNo, finPrdtCd);
 
             if (result == null) {
                 log.warn("적금 상품을 찾을 수 없음: dclsMonth={}, finCoNo={}, finPrdtCd={}",

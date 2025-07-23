@@ -1,7 +1,7 @@
 package com.banklab.product.controller;
 
 import com.banklab.product.dto.creditloan.CreditLoanWithOptionsDto;
-import com.banklab.product.service.CreditLoanOptionsService;
+import com.banklab.product.service.CreditLoanDetailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -14,25 +14,22 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/creditloan")
 @RequiredArgsConstructor
-public class CreditLoanOptionsController {
+public class CreditLoanDetailController {
 
-    private final CreditLoanOptionsService creditLoanOptionsService;
+    private final CreditLoanDetailService creditLoanDetailService;
 
     /**
-     * 특정 신용대출 상품의 모든 옵션 조회
-     * GET /api/creditloan/{dclsMonth}/{finCoNo}/{finPrdtCd}/options
+     * 특정 신용대출 상품의 모든 정보 조회
+     * GET /api/creditloan/{dclsMonth}/{finCoNo}/{finPrdtCd}
      */
-    @GetMapping("/{dclsMonth}/{finCoNo}/{finPrdtCd}/options")
+    @GetMapping("/{dclsMonth}/{finCoNo}/{finPrdtCd}")
     public ResponseEntity<CreditLoanWithOptionsDto> getCreditLoanWithOptions(
             @PathVariable String dclsMonth,
             @PathVariable String finCoNo,
             @PathVariable String finPrdtCd) {
         
-        log.info("신용대출 상품 옵션 조회 요청: dclsMonth={}, finCoNo={}, finPrdtCd={}", 
-                dclsMonth, finCoNo, finPrdtCd);
-        
         try {
-            CreditLoanWithOptionsDto result = creditLoanOptionsService.getCreditLoanWithOptions(dclsMonth, finCoNo, finPrdtCd);
+            CreditLoanWithOptionsDto result = creditLoanDetailService.getCreditLoanWithOptions(dclsMonth, finCoNo, finPrdtCd);
             
             if (result == null) {
                 log.warn("신용대출 상품을 찾을 수 없음: dclsMonth={}, finCoNo={}, finPrdtCd={}", 

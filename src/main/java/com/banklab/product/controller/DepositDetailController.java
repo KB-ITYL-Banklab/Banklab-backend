@@ -1,7 +1,7 @@
 package com.banklab.product.controller;
 
 import com.banklab.product.dto.deposit.DepositWithOptionsDto;
-import com.banklab.product.service.DepositOptionsService;
+import com.banklab.product.service.DepositDetailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -14,16 +14,16 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/deposit")
 @RequiredArgsConstructor
-public class DepositOptionsController {
+public class DepositDetailController {
 
-    private final DepositOptionsService depositOptionsService;
+    private final DepositDetailService depositDetailService;
 
     /**
      * 특정 예금 상품의 모든 옵션 조회
      * dcls_month + fin_co_no + fin_prdt_cd로 상품을 고유하게 식별
-     * GET /api/deposit/{dclsMonth}/{finCoNo}/{finPrdtCd}/options
+     * GET /api/deposit/{dclsMonth}/{finCoNo}/{finPrdtCd}
      */
-    @GetMapping("/{dclsMonth}/{finCoNo}/{finPrdtCd}/options")
+    @GetMapping("/{dclsMonth}/{finCoNo}/{finPrdtCd}")
     public ResponseEntity<DepositWithOptionsDto> getDepositWithOptions(
             @PathVariable String dclsMonth,
             @PathVariable String finCoNo,
@@ -33,7 +33,7 @@ public class DepositOptionsController {
                 dclsMonth, finCoNo, finPrdtCd);
         
         try {
-            DepositWithOptionsDto result = depositOptionsService.getDepositWithOptions(dclsMonth, finCoNo, finPrdtCd);
+            DepositWithOptionsDto result = depositDetailService.getDepositWithOptions(dclsMonth, finCoNo, finPrdtCd);
             
             if (result == null) {
                 log.warn("예금 상품을 찾을 수 없음: dclsMonth={}, finCoNo={}, finPrdtCd={}", 
