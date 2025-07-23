@@ -1,34 +1,55 @@
 package com.banklab.transaction.summary.batch.scheduler;
 
 import com.banklab.transaction.summary.service.SummaryBatchService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobParameter;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.explore.JobExplorer;
+import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 @Log4j2
 public class DailySummaryScheduler {
-    private final SummaryBatchService  summaryBatchService;
 
-    public DailySummaryScheduler(SummaryBatchService summaryBatchService) {
-        this.summaryBatchService = summaryBatchService;
+    private final JobLauncher jobLauncher;
+    private final Job savingSummaryJob;
+
+    public DailySummaryScheduler(
+            JobLauncher jobLauncher,
+            @Qualifier("savingSummaryJob") Job savingSummaryJob) {
+        this.jobLauncher = jobLauncher;
+        this.savingSummaryJob =savingSummaryJob;
     }
 
+    /**
+     * 전체 사용자 거래 내역 최신화 & 집계 테이블 최신화
+     */
     // 매일 새벽 1시 실행(작성 전)
-//    @Scheduled(cron = "*/10 * * * * ?")
-////    public void Test(){
-////        log.info("Start test DailySummaryScheduler");
-////        LocalDate yesterdayLocalDate = LocalDate.now().minusDays(1);
-////
-////        // 2. LocalDate → java.util.Date 변환 (시:분:초는 00:00:00 으로 자동 설정됨)
-////        Date yesterdayDate = Date.from(yesterdayLocalDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-////
-////        // 3. 서비스 메서드 호출
-////        summaryBatchService.aggregateDailySummary(yesterdayDate);
-////        log.info("End test DailySummaryScheduler");
-////    }
+    @Scheduled(cron = "0/10 * * * * ?")
+    public void runDailySummaryBatch(){
+        try {
+            log.info("=== 거래 내역 & 집계 최신화 시작 ===");
+            JobParameters jobParameters = new JobParametersBuilder()
+                    .addString("uuid", UUID.randomUUID().toString())
+                    .toJobParameters();
+
+            jobLauncher.run(savingSummaryJob, jobParameters);
+
+            log.info("=== 거래 내역 최신화 & 집계 완료 ===");
+        }catch (Exception e){
+            log.error("거래 내역 최신화 & 집계 작업 중 오류 발생", e);
+        }
+    }
 }

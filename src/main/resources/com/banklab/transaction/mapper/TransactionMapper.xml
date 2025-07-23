@@ -28,7 +28,6 @@
               )
     </insert>
 
-
     <insert id="saveTransactionList"  parameterType="java.util.List">
         INSERT INTO transaction_history (
         member_id,
@@ -110,13 +109,9 @@
         ORDER BY totalExpense DESC
     </select>
 
-
-    <select id="getDailyCategorySummary" resultType="com.banklab.transaction.summary.dto.DailySummaryDTO">
-        SELECT *
-        FROM daily_user_expense_summary
+    <select id="getLastTransactionDate" resultType="java.time.LocalDate">
+        SELECT max(transaction_date) from transaction_history
         WHERE member_id = #{memberId}
-          AND category_id = 0
-          AND date = #{targetDate}
-
     </select>
+
 </mapper>

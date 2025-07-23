@@ -1,10 +1,9 @@
 package com.banklab.transaction.summary.service;
 
-import org.springframework.stereotype.Service;
-
+import java.time.LocalDate;
 import java.util.Date;
 
 
 public interface SummaryBatchService {
-    void aggregateDailySummary(Date targetDate);
+    void aggregateDailySummary(LocalDate targetDate);
 }

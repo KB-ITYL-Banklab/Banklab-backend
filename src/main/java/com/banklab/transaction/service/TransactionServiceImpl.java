@@ -9,7 +9,10 @@ import com.banklab.transaction.dto.request.TransactionDTO;
 import com.banklab.transaction.dto.request.TransactionRequestDto;
 import com.banklab.transaction.dto.response.*;
 import com.banklab.transaction.mapper.TransactionMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -19,9 +22,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Log4j2
 @RequiredArgsConstructor
-public class TransactionServiceImpl implements TransactoinService {
-
+public class TransactionServiceImpl implements TransactionService {
     private final TransactionMapper transactionMapper;
     private final AccountMapper accountMapper;
     private final Map<String, Long> categoryMap;
@@ -35,7 +38,18 @@ public class TransactionServiceImpl implements TransactoinService {
 
     @Override
     public int saveTransactionList(List<TransactionHistoryVO> transactionVOList) {
+        if(transactionVOList.size()==0){return 0;}
+        try {
+            log.info("샘플 거래 내역: {}", new ObjectMapper().writeValueAsString(transactionVOList.get(0)));
+        } catch (JsonProcessingException e) {
+            log.error("Json Processing Exception", e);
+        }
         return transactionMapper.saveTransactionList(transactionVOList);
+    }
+
+    @Override
+    public LocalDate getLastTransactionDay(Long memberId) {
+        return transactionMapper.getLastTransactionDate(memberId);
     }
 
     /**

@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = {RootConfig.class, RestTemplateConfig.class})
+@ContextConfiguration(classes = {RootConfig.class})
 @Transactional
 @Log4j2
 class TransactionServiceTest {
