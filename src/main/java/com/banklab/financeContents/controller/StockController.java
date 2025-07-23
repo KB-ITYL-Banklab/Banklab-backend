@@ -26,7 +26,8 @@ import java.util.Map;
  * - 주식 목록 조회 (페이징 지원)
  * - 주요 종목 정보 제공
  * - 상위 N개 종목 조회
- * - 종목 코드 유효성 검증
+ *
+ * ++++  특정 종목 정보 날짜로 조회
  * 
  * API 문서: Swagger UI에서 확인 가능
  * 기본 경로: /api/stocks
@@ -40,185 +41,48 @@ public class StockController {
     @Autowired
     private PublicDataStockService publicDataStockService;
 
-    @GetMapping("/public/{stockCode}")      //가능
-    @ApiOperation(value = "공공데이터 주식 정보 조회 (종목별)")
-    public ResponseEntity<?> getPublicStockInfo(
-            @ApiParam(value = "종목 단축코드 (6자리)", required = true)
-            @PathVariable String stockCode) {
+
+    // 현재가, 업데이트 날짜 추가
+    @GetMapping("/chart")
+    @ApiOperation(value = "웹페이지 차트용 주식 정보 조회")
+    public ResponseEntity<Map<String, Object>> getStocksForChart() {
         try {
-            log.info("🔍 종목 {} 조회 요청", stockCode);
-            
-            // 종목 코드 검증
-            if (stockCode == null || stockCode.trim().length() != 6) {
-                Map<String, Object> errorResponse = new HashMap<>();
-                errorResponse.put("error", "종목 코드는 6자리여야 합니다");
-                errorResponse.put("requestedCode", stockCode);
-                return ResponseEntity.badRequest().body(errorResponse);
-            }
-            
-            StockSecurityInfoDto stockInfo = publicDataStockService.getStockInfoByCode(stockCode.trim());
-            if (stockInfo != null) {
-                log.info("✅ 종목 {} 조회 성공: {}", stockCode, stockInfo.getItemName());
-                return ResponseEntity.ok(stockInfo);
-            } else {
-                Map<String, Object> errorResponse = new HashMap<>();
-                errorResponse.put("error", "해당 종목을 찾을 수 없습니다");
-                errorResponse.put("requestedCode", stockCode);
-                errorResponse.put("message", "최근 7일간의 데이터에서 해당 종목을 찾을 수 없습니다");
-                return ResponseEntity.notFound().build();
-            }
-        } catch (Exception e) {
-            log.error("❌ 주식 정보 조회 실패: {}", e.getMessage(), e);
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("error", "서버 오류가 발생했습니다");
-            errorResponse.put("message", e.getMessage());
-            errorResponse.put("requestedCode", stockCode);
-            return ResponseEntity.internalServerError().body(errorResponse);
-        }
-    }
-    
-    @GetMapping("/public/list")   //가능
-    @ApiOperation(value = "공공데이터 주식 정보 목록 조회")
-    public ResponseEntity<?> getPublicStockList(
-            @ApiParam(value = "기준일자 (YYYYMMDD), 미입력시 전일")
-            @RequestParam(required = false) String baseDate,
-            
-            @ApiParam(value = "조회할 종목 수")
-            @RequestParam(defaultValue = "10") int numOfRows,
-            
-            @ApiParam(value = "페이지 번호")
-            @RequestParam(defaultValue = "1") int pageNo) {
-        try {
-            log.info("📊 주식 목록 조회 요청 - 기준일:{}, 개수:{}, 페이지:{}", baseDate, numOfRows, pageNo);
-            
-            // 파라미터 검증
-            if (numOfRows <= 0 || numOfRows > 1000) {
-                Map<String, Object> errorResponse = new HashMap<>();
-                errorResponse.put("error", "조회 개수는 1~1000 사이여야 합니다");
-                errorResponse.put("requestedRows", numOfRows);
-                return ResponseEntity.badRequest().body(errorResponse);
-            }
-            
-            if (pageNo <= 0) {
-                Map<String, Object> errorResponse = new HashMap<>();
-                errorResponse.put("error", "페이지 번호는 1 이상이어야 합니다");
-                errorResponse.put("requestedPage", pageNo);
-                return ResponseEntity.badRequest().body(errorResponse);
-            }
+            log.info("📊 차트용 주식 정보 조회 요청");
             
             List<StockSecurityInfoDto> stockList = publicDataStockService.getStockPriceInfo(
-                    baseDate, null, numOfRows, pageNo);
+                    null, null, 20, 1);
             
             if (stockList != null && !stockList.isEmpty()) {
-                log.info("✅ 주식 목록 조회 성공: {}개", stockList.size());
-                Map<String, Object> successResponse = new HashMap<>();
-                successResponse.put("data", stockList);
-                successResponse.put("count", stockList.size());
-                successResponse.put("page", pageNo);
-                successResponse.put("numOfRows", numOfRows);
-                return ResponseEntity.ok(successResponse);
-            } else {
-                Map<String, Object> errorResponse = new HashMap<>();
-                errorResponse.put("message", "조회된 데이터가 없습니다");
-                errorResponse.put("baseDate", baseDate);
-                errorResponse.put("page", pageNo);
-                return ResponseEntity.noContent().build();
-            }
-        } catch (Exception e) {
-            log.error("❌ 주식 목록 조회 실패: {}", e.getMessage(), e);
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("error", "서버 오류가 발생했습니다");
-            errorResponse.put("message", e.getMessage());
-            return ResponseEntity.internalServerError().body(errorResponse);
-        }
-    }
-    
-    @GetMapping("/public/major")
-    @ApiOperation(value = "주요 종목 정보 조회")
-    public ResponseEntity<Map<String, Object>> getMajorStocks() {
-        try {
-            Map<String, String> majorStocks = StockCodeUtil.getMajorStocks();
-            Map<String, Object> result = new HashMap<>();
-            result.put("majorStocks", majorStocks);
-            result.put("count", majorStocks.size());
-            result.put("message", "주요 종목 목록 조회 성공");
-            
-            return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            log.error("주요 종목 조회 실패: {}", e.getMessage());
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-
-    @GetMapping("/public/top/{count}")
-    @ApiOperation(value = "공공데이터 주요 종목 조회")
-    public ResponseEntity<?> getTopStocks(
-            @ApiParam(value = "조회할 종목 수", required = true)
-            @PathVariable int count) {
-        try {
-            log.info("🏆 상위 {} 종목 조회 요청", count);
-            
-            if (count <= 0 || count > 100) {
-                Map<String, Object> errorResponse = new HashMap<>();
-                errorResponse.put("error", "조회 개수는 1~100 사이여야 합니다");
-                errorResponse.put("requestedCount", count);
-                return ResponseEntity.badRequest().body(errorResponse);
-            }
-            
-            List<StockSecurityInfoDto> topStocks = publicDataStockService.getTopStocks(count);
-            
-            if (topStocks != null && !topStocks.isEmpty()) {
-                log.info("✅ 상위 종목 조회 성공: {}개", topStocks.size());
-                Map<String, Object> successResponse = new HashMap<>();
-                successResponse.put("data", topStocks);
-                successResponse.put("count", topStocks.size());
-                successResponse.put("requestedCount", count);
-                return ResponseEntity.ok(successResponse);
+                List<Map<String, Object>> chartData = stockList.stream()
+                    .map(stock -> {
+                        Map<String, Object> chartItem = new HashMap<>();
+                        chartItem.put("stockCode", stock.getShortCode());
+                        chartItem.put("name", stock.getItemName());
+                        chartItem.put("currentPrice", stock.getClosePrice());
+                        chartItem.put("updateDate", stock.getBaseDate());
+                        return chartItem;
+                    })
+                    .collect(java.util.stream.Collectors.toList());
+                
+                Map<String, Object> result = new HashMap<>();
+                result.put("data", chartData);
+                result.put("count", chartData.size());
+                result.put("message", "차트용 주식 정보 조회 성공");
+                
+                log.info("✅ 차트용 주식 정보 조회 성공: {}개", chartData.size());
+                return ResponseEntity.ok(result);
             } else {
                 Map<String, Object> errorResponse = new HashMap<>();
                 errorResponse.put("error", "조회된 데이터가 없습니다");
                 errorResponse.put("message", "최근 영업일 데이터를 찾을 수 없습니다");
-                errorResponse.put("requestedCount", count);
                 return ResponseEntity.noContent().build();
             }
         } catch (Exception e) {
-            log.error("❌ 주요 종목 조회 실패: {}", e.getMessage(), e);
+            log.error("❌ 차트용 주식 정보 조회 실패: {}", e.getMessage(), e);
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", "서버 오류가 발생했습니다");
             errorResponse.put("message", e.getMessage());
-            errorResponse.put("requestedCount", count);
             return ResponseEntity.internalServerError().body(errorResponse);
         }
-    }
-    
-    @GetMapping("/public/validate/{stockCode}")
-    @ApiOperation(value = "종목 코드 유효성 검증")
-    public ResponseEntity<Map<String, Object>> validateStockCode(
-            @ApiParam(value = "검증할 종목 코드", required = true)
-            @PathVariable String stockCode) {
-        
-        Map<String, Object> result = new HashMap<>();
-        
-        // 종목 코드 정규화
-        String normalizedCode = StockCodeUtil.normalizeStockCode(stockCode);
-        boolean isValid = StockCodeUtil.isValidStockCode(normalizedCode);
-        boolean isMajor = isValid && StockCodeUtil.isMajorStock(normalizedCode);
-        String stockName = isMajor ? StockCodeUtil.getStockName(normalizedCode) : null;
-        
-        result.put("originalCode", stockCode);
-        result.put("normalizedCode", normalizedCode);
-        result.put("isValid", isValid);
-        result.put("isMajorStock", isMajor);
-        result.put("stockName", stockName);
-        
-        return ResponseEntity.ok(result);
-    }
-
-    @GetMapping("/{stockCode}")
-    @ApiOperation(value = "주식 정보 조회 (공공데이터 API)")
-    public ResponseEntity<?> getStockInfo(@PathVariable String stockCode) {
-        log.info("🔄 기본 엔드포인트 -> 공공데이터 API 리다이렉트: {}", stockCode);
-        // 기존 엔드포인트를 공공데이터 API로 리다이렉트
-        return getPublicStockInfo(stockCode);
     }
 }
