@@ -18,4 +18,13 @@ public enum Gender {
         }
         throw new IllegalArgumentException("Unknown gender code: " + code);
     }
+
+    public static Gender fromString(String str) {
+        for (Gender g : values()) {
+            if (g.name().equalsIgnoreCase(str)) {
+                return g;
+            }
+        }
+        throw new IllegalArgumentException("Unknown gender code: " + str);
+    }
 }

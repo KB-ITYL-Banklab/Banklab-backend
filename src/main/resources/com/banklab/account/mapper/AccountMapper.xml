@@ -62,11 +62,5 @@
         WHERE member_id = #{memberId}
           AND resAccount = #{resAccount}
     </update>
-
-    <!-- username으로 memberId 조회 (JWT 토큰 인증용) -->
-    <select id="getMemberIdByUsername" parameterType="String" resultType="Long">
-        SELECT member_id
-        FROM member
-        WHERE username = #{username}
-    </select>
+    
 </mapper>

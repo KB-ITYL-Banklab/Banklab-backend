@@ -23,8 +23,8 @@ import javax.sql.DataSource;
 @ComponentScan(basePackages = {"com.banklab.account.service",
         "com.banklab.account.mapper",
         "com.banklab.member.service",
-        "com.banklab.member.mapper",
-        "com.banklab.account.util"})
+        "com.banklab.member.mapper"
+})
 @EnableTransactionManagement
 public class RootConfig {
     @Value("${jdbc.driver}") String driver;
