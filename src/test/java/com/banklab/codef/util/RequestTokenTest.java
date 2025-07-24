@@ -22,7 +22,7 @@ class RequestTokenTest {
 
     // 수정 요망
     private String clientId = CommonConstant.CLIENT_ID;
-    private String clientSecret = CommonConstant.SECERET_KEY;
+    private String clientSecret = CommonConstant.SECRET_KEY;
 
     @Test
     void getToken() throws Exception {

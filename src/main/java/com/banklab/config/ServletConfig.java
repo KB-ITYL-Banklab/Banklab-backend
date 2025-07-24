@@ -11,8 +11,9 @@ import org.springframework.web.servlet.view.JstlView;
 
 @EnableWebMvc
 @ComponentScan(basePackages = {
-        "org.banklab.exception",
-        "org.banklab.controller",
+        "com.banklab.exception",
+        "com.banklab.controller",
+        "com.banklab.codef.util",
         "com.banklab.account.controller",
         "com.banklab.security.controller",
         "com.banklab.member.controller",

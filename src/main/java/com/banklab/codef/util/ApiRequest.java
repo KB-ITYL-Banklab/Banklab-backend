@@ -35,7 +35,7 @@ public class ApiRequest {
 
         // 토큰이 없으면 액세스 토큰 새로 발급
         if (accessToken == null || accessToken.isEmpty()) {
-            accessToken = RequestToken.getAccessToken(CommonConstant.CLIENT_ID, CommonConstant.SECERET_KEY);
+            accessToken = RequestToken.getAccessToken(CommonConstant.CLIENT_ID, CommonConstant.SECRET_KEY);
             CommonConstant.ACCESS_TOKEN = accessToken;
         }
 
@@ -48,7 +48,7 @@ public class ApiRequest {
 
         // 유효성 검사
         if (json.has("error") && "invalid_token".equals(json.get("error").asText())) {
-            accessToken = RequestToken.getAccessToken(CommonConstant.CLIENT_ID, CommonConstant.SECERET_KEY);
+            accessToken = RequestToken.getAccessToken(CommonConstant.CLIENT_ID, CommonConstant.SECRET_KEY);
             CommonConstant.ACCESS_TOKEN = accessToken;
 
             json = (JsonNode) HttpRequest.post(urlPath, accessToken, bodyJson);

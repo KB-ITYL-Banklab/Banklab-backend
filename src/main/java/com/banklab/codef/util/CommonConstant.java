@@ -1,8 +1,10 @@
 package com.banklab.codef.util;
 
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
 
 /**
  *	Codef 공식 상수 클래스
@@ -75,16 +77,37 @@ public class CommonConstant {
 
 
     /**	CODEF로부터 발급받은 클라이언트 아이디	*/
-    public static String CLIENT_ID ="6675c900-d0bf-4fd1-ba20-28387b613835";
+    public static String CLIENT_ID;
 
     /**	CODEF로부터 발급받은 시크릿 키	*/
-    public static String SECERET_KEY ="5ca86438-4597-4878-b6bb-781f4100ce2f";
+    public static String SECRET_KEY;
 
     /**	CODEF로부터 발급받은 퍼블릭 키	*/
-    public static String PUBLIC_KEY ="MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAjyupOLcYQ2/0OjWyYjyPq9v1/X0bx9tUdGe6s7sMGCEW7u+J6jdiK/sgJRRNdcPYLrAkRY1HQPvZmmdc25oizX1zLFnq2RDUW0VH4ec41VYG5NOYAQfJiY8sJtouas/JNh0uXfQGp2i7WW6NtLAQgaeymEEU+YdTeXpeIQuKcLPjnwLPaejwFM4Tb7hlzzhin74tjf2xJQKqfieS5+q+l1Zyze1JNE+BlzhMOZ1T1b6K1umChc04bt0+nflgpvT2GF2HXaYCJ8x7OQmtN54EdFPOywEfjtxiKCxT82wfPpdb8/KmjM4xIMFvywHlen/gUglaGVzN7L2jTMXsI6ey6wIDAQAB";
+    public static String PUBLIC_KEY;
 
     /**	OAUTH2.0 토큰 샘플	*/
-    public static String ACCESS_TOKEN ="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXJ2aWNlX3R5cGUiOiIxIiwic2NvcGUiOlsicmVhZCJdLCJzZXJ2aWNlX25vIjoiMDAwMDA1NzU4MDAyIiwiZXhwIjoxNzUzNzY0MTI5LCJhdXRob3JpdGllcyI6WyJJTlNVUkFOQ0UiLCJQVUJMSUMiLCJCQU5LIiwiRVRDIiwiU1RPQ0siLCJDQVJEIl0sImp0aSI6ImU1NjU0NGEyLWY5OTktNGJhYS1iZjFjLTEzNzk4YmQ1OTgyYiIsImNsaWVudF9pZCI6IjY2NzVjOTAwLWQwYmYtNGZkMS1iYTIwLTI4Mzg3YjYxMzgzNSJ9.TvjCvmgf9CmVwI6LJA1tm1FNEhw_t7-t9Qh9gIqZJx0d0gKEdTTk84e1t_dxbOSwlKjh-9nimgCX6izB1U7CcmwCfZfHr5vF76RAgGAVQw6DI8txzITqlbJYRxpis3pvXfF-KlJBDd2ajL9r1o_sn59MGyV4EwvOo8ZVQKa1f6G8MEvlnl-aSqt8hNAyPcM0DtCjgzqJLzQcnl74et2Wt6k6IFYmRt-eY01Baa2NNkG6grX-VnuRBjTEy_1zOI-LuKFIJ7wAv8J4GPt2VH-TQiSyAWrUKHuSQlNKjGKEIT7-fKrfPAs5TlwhPZYd-st0ujxcBmcfBh0vATZVFpLQCg";
+    public static String ACCESS_TOKEN;
+
+    @Value("${codef.client-id}")
+    private String clientId;
+
+    @Value("${codef.secret-key}")
+    private String secretKey;
+
+    @Value("${codef.public-key}")
+    private String publicKey;
+
+    @Value("${codef.access-token}")
+    private String accessToken;
+
+    // PostConstruct로 static 필드에 값 할당
+    @PostConstruct
+    public void init() {
+        CLIENT_ID = this.clientId;
+        SECRET_KEY = this.secretKey;
+        PUBLIC_KEY = this.publicKey;
+        ACCESS_TOKEN = this.accessToken;
+    }
 
 
 }
