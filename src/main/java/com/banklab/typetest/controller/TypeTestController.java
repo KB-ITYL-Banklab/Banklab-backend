@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.banklab.typetest.dto.TypeTestResultDTO;
+import com.banklab.typetest.dto.QuestionsResponseDTO;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
@@ -22,8 +23,12 @@ public class TypeTestController {
     private final JwtProcessor jwtProcessor;
 
     @GetMapping("/questions")
-    public ResponseEntity<List<Question>> getAllQuestions() {
-        return ResponseEntity.ok(typeTestService.getAllQuestions());
+    public ResponseEntity<QuestionsResponseDTO> getAllQuestions() {
+        List<Question> questions = typeTestService.getAllQuestions();
+        QuestionsResponseDTO response = QuestionsResponseDTO.builder()
+                .questions(questions)
+                .build();
+        return ResponseEntity.ok(response);
     }
 
     // 질문 제출: JWT에서 memberId 추출해 userId로 사용
