@@ -39,7 +39,7 @@ public class RequestConnectedId {
 
         HashMap<String, Object> accountMap = new HashMap<String, Object>();
         accountMap.put("countryCode", "KR");
-        accountMap.put("businessType", "BK");
+        accountMap.put("businessType", "ST");
         accountMap.put("clientType", "P");
         accountMap.put("organization", bankCode);
         accountMap.put("loginType", "1");
@@ -51,19 +51,25 @@ public class RequestConnectedId {
 
         String result = ApiRequest.request(urlPath, bodyMap);
         //System.out.println(result);
+        log.info("🔍 CODEF API 전체 응답: " + result);
 
         JsonNode root = mapper.readTree(result);
-        JsonNode connectedIdNode = root.path("data").path("connectedId");
+        log.info("🔍 파싱된 JSON: " + root.toString());
 
-        if (connectedIdNode != null && !connectedIdNode.isNull()) {
-            String connectedId = connectedIdNode.asText();
-            log.info("커넥티드 아이디 발급 완료: {}", connectedId);
-            return connectedId;  // connectedId 반환
-        }
-        else {
-            log.error("connectedId를 응답에서 찾을 수 없습니다.");
-            throw new RuntimeException("connectedId를 응답에서 찾을 수 없습니다.");
-        }
+        JsonNode connectedIdNode = root.path("data").path("connectedId");
+        String connectedId = connectedIdNode.asText();
+        log.info("🔍 추출된 connectedId: " + connectedId);
+        return connectedId;
+        //if (connectedIdNode != null && !connectedIdNode.isNull()) {
+        //    String connectedId = connectedIdNode.asText();
+        //    log.info("🔍 추출된 connectedId: " + connectedId);
+        //    //log.info("커넥티드 아이디 발급 완료: {}", connectedId);
+        //    return connectedId;  // connectedId 반환
+        //}
+        //else {
+        //    log.error("connectedId를 응답에서 찾을 수 없습니다.");
+        //    throw new RuntimeException("connectedId를 응답에서 찾을 수 없습니다.");
+        //}
     }
 
     /**
