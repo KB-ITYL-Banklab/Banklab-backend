@@ -44,14 +44,91 @@ public class StockController {
 
     // 현재가, 업데이트 날짜 추가
     @GetMapping("/chart")
-    @ApiOperation(value = "웹페이지 차트용 주식 정보 조회")
+    @ApiOperation(value = "웹페이지 차트용 주식 정보 조회 (주요 5개 종목 - 실제 데이터)")
     public ResponseEntity<Map<String, Object>> getStocksForChart() {
         try {
-            log.info("📊 차트용 주식 정보 조회 요청");
+            log.info("📊 차트용 주식 정보 조회 요청 (주요 5개 종목) - 실제 데이터 모드");
             
-            List<StockSecurityInfoDto> stockList = publicDataStockService.getTopStocks(20);
+            // 주요 5개 종목 코드 정의
+            String[] targetStocks = {"005930", "035420", "005380", "035720", "000150"}; // 삼성전자, 네이버, 현대차, 카카오, 두산
+            List<StockSecurityInfoDto> stockList = new java.util.ArrayList<>();
             
-            log.info("서비스에서 반환된 주식 데이터 수: {}", stockList != null ? stockList.size() : "null");
+            log.info("🔍 실제 공공데이터 API에서 5개 종목 직접 조회 시작");
+            
+            // 각 종목을 개별적으로 조회 (100개 전체 조회하지 않고 직접 조회)
+            // 성능 최적화: 병렬 처리로 동시 조회
+            java.util.concurrent.CompletableFuture<StockSecurityInfoDto>[] futures = new java.util.concurrent.CompletableFuture[targetStocks.length];
+            
+            for (int i = 0; i < targetStocks.length; i++) {
+                final String stockCode = targetStocks[i];
+                final int index = i;
+                
+                futures[i] = java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+                    try {
+                        log.debug("종목 조회 시작: {}", stockCode);
+                        StockSecurityInfoDto stock = publicDataStockService.getStockInfoByCode(stockCode);
+                        if (stock != null) {
+                            log.info("✅ 주식 조회 성공: {} ({}) - {}원", 
+                                stock.getItemName(), stock.getShortCode(), stock.getClosePrice());
+                            return stock;
+                        } else {
+                            log.warn("⚠️ 주식 조회 실패: {} (데이터 없음)", stockCode);
+                            return null;
+                        }
+                    } catch (Exception e) {
+                        log.error("❌ 주식 조회 오류 {}: {}", stockCode, e.getMessage());
+                        return null;
+                    }
+                });
+            }
+            
+            // 모든 비동기 작업 완료 대기 (최대 20초)
+            try {
+                java.util.concurrent.CompletableFuture.allOf(futures)
+                    .get(20, java.util.concurrent.TimeUnit.SECONDS);
+                
+                // 결과 수집
+                for (java.util.concurrent.CompletableFuture<StockSecurityInfoDto> future : futures) {
+                    try {
+                        StockSecurityInfoDto stock = future.get();
+                        if (stock != null) {
+                            stockList.add(stock);
+                        }
+                    } catch (Exception e) {
+                        log.warn("개별 종목 결과 수집 실패: {}", e.getMessage());
+                    }
+                }
+            } catch (java.util.concurrent.TimeoutException e) {
+                log.warn("⏰ 주식 조회 타임아웃 (20초 초과), 부분 결과 사용");
+                // 완료된 것만 수집
+                for (java.util.concurrent.CompletableFuture<StockSecurityInfoDto> future : futures) {
+                    if (future.isDone() && !future.isCompletedExceptionally()) {
+                        try {
+                            StockSecurityInfoDto stock = future.get(100, java.util.concurrent.TimeUnit.MILLISECONDS);
+                            if (stock != null) {
+                                stockList.add(stock);
+                            }
+                        } catch (Exception ignored) {
+                            // 무시
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.error("병렬 처리 오류: {}", e.getMessage());
+                // 폴백: 순차 처리
+                for (String stockCode : targetStocks) {
+                    try {
+                        StockSecurityInfoDto stock = publicDataStockService.getStockInfoByCode(stockCode);
+                        if (stock != null) {
+                            stockList.add(stock);
+                        }
+                    } catch (Exception ex) {
+                        log.warn("순차 처리 폴백 실패: {}", ex.getMessage());
+                    }
+                }
+            }
+            
+            log.info("📊 실제 데이터 조회 완료: {}/5개 종목 성공", stockList.size());
             
             if (stockList != null && !stockList.isEmpty()) {
                 List<Map<String, Object>> chartData = stockList.stream()

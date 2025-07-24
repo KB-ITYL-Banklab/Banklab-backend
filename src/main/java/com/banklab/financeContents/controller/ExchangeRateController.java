@@ -39,15 +39,21 @@ public class ExchangeRateController {
      * 지정된 날짜의 특정 통화 환율 정보만 반환합니다.
      */
     @GetMapping("/chart")
-    @ApiOperation(value = "웹페이지 차트용 환율 정보 조회")
+    @ApiOperation(value = "웹페이지 차트용 환율 정보 조회 (주요 5개 통화)")
     public ResponseEntity<Map<String, Object>> getExchangeRateForChart() {
         try {
-            log.info("📊 차트용 환율 정보 조회 요청");
+            log.info("📊 차트용 환율 정보 조회 요청 (주요 5개 통화)");
             
             ExchangeRateResponse response = exchangeRateService.getTodayExchangeRates();
             
             if (response.isSuccess() && response.getData() != null && !response.getData().isEmpty()) {
+                // 주요 5개 통화만 필터링
+                List<String> targetCurrencies = java.util.Arrays.asList(
+                    "미국 달러", "유로", "영국 파운드", "호주 달러", "일본 옌"
+                );
+                
                 List<Map<String, Object>> chartData = response.getData().stream()
+                    .filter(exchange -> targetCurrencies.contains(exchange.getCur_nm()))
                     .map(exchange -> {
                         Map<String, Object> chartItem = new HashMap<>();
                         chartItem.put("name", exchange.getCur_nm());
@@ -56,6 +62,8 @@ public class ExchangeRateController {
                         return chartItem;
                     })
                     .collect(java.util.stream.Collectors.toList());
+                
+                log.info("필터링된 통화 수: {} / 전체: {}", chartData.size(), response.getData().size());
                 
                 Map<String, Object> result = new HashMap<>();
                 result.put("data", chartData);
