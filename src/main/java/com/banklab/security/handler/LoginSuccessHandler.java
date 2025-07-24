@@ -23,14 +23,12 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtProcessor jwtProcessor;
 
-    // 인증 성공 결과 생성
     private AuthResultDTO makeAuthResult(CustomUser user) {
         String email = user.getUsername();
         Long memberId = user.getMember().getMemberId();
 
         // JWT 토큰 생성
         String token = jwtProcessor.generateTokenWithId(email, memberId);
-        System.out.println("member"+memberId);
 
         // 토큰 + 사용자 기본 정보를 AuthResultDTO로 구성
         return new AuthResultDTO(token, UserInfoDTO.of(user.getMember()));
@@ -42,7 +40,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         // 인증 결과에서 사용자 정보 추출
         CustomUser user = (CustomUser) authentication.getPrincipal();
-        System.out.println(user.toString());
+
         // 인증 성공 결과를 JSON으로 직접 응답
         AuthResultDTO result = makeAuthResult(user);
         JsonResponse.send(response, result);

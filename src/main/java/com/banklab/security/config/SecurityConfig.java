@@ -110,12 +110,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement()        // 세션 관리 설정
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);  // 무상태 모드
 
+        // 소셜 로그인 설정
+        //http.oauth2Login();
+
         // 기본 설정으로 시작 - 모든 요청에 인증 필요
         http.authorizeRequests() //  요청 권한 설정
                 // 회원 관련 공개 API (인증 불필요)
                 .antMatchers(HttpMethod.POST, "/api/member").permitAll()                    // 회원가입
                 .antMatchers(HttpMethod.GET, "/api/member/checkusername/**").permitAll()    // ID 중복 체크
-                .anyRequest().authenticated(); // 모든 요청에 인증 필요
+                .antMatchers(HttpMethod.GET, "/api/oauth/kakao/**").permitAll()
+//                .anyRequest().authenticated(); // 모든 요청에 인증 필요
+                .anyRequest().permitAll();
 
     }
 

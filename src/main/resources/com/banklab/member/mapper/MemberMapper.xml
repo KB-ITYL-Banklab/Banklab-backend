@@ -10,30 +10,31 @@
     </resultMap>
     <resultMap id="memberMap" type="MemberVO">
         <id property="memberId" column="member_id" />
-        <result property="username" column="username" />
+        <result property="email" column="email" />
         <result property="password" column="password" />
         <result property="name" column="name" />
         <result property="phone" column="phone" />
         <result property="gender" column="gender" />
         <result property="birth" column="birth_date" />
-        <result property="email" column="email" />
+        <result property="provider" column="provider"/>
+        <result property="providerId" column="provider_id"/>
         <result property="regDate" column="reg_date" />
         <result property="updateDate" column="update_date" />
         <collection property="authList" resultMap="authMap" />
     </resultMap>
     <!-- 회원 정보 조회 (LEFT JOIN으로 권한 정보 포함) -->
     <select id="get" resultMap="memberMap">
-        SELECT m.member_id, username, password, name, phone, email, gender, birth_date, email, reg_date, update_date, auth
+        SELECT m.email, password, name, phone, gender, birth_date, reg_date, update_date, auth
         FROM
             member m
                 LEFT OUTER JOIN member_auth a
                                 ON m.member_id = a.member_id
-        where m.username = #{username}
+        where m.email = #{email}
     </select>
     <!-- 회원 정보 저장 -->
     <insert id="insert">
-        INSERT INTO member (username, password, name, phone, email, gender, birth_date, reg_date, update_date)
-        VALUES(#{username}, #{password}, #{name}, #{phone}, #{email}, #{gender}, #{birth}, now(), now())
+        INSERT INTO member (email, password, name, phone, gender, birth_date, provider, provider_id, reg_date, update_date)
+        VALUES(#{email}, #{password}, #{name}, #{phone}, #{gender}, #{birth}, #{provider}, #{providerId}, now(), now())
         <selectKey resultType="Long" keyProperty="memberId" keyColumn="member_id" order="AFTER">
             SELECT LAST_INSERT_ID()
         </selectKey>
@@ -43,8 +44,17 @@
         INSERT INTO member_auth(member_id, auth)
         VALUES(#{memberId}, #{auth})
     </insert>
-    <!--  ID 중복 체크용 조회  -->
-    <select id="findByUsername" resultType="MemberVO">
-        SELECT * FROM member WHERE username = #{username}
+    <!--  이메일 중복 체크용 조회  -->
+    <select id="findByEmail" resultType="MemberVO">
+        SELECT * FROM member WHERE email = #{email}
+    </select>
+    <select id="findByProviderAndProviderId" resultMap="memberMap">
+        SELECT m.email, password, name, phone, gender, birth_date, reg_date, update_date, auth
+        FROM
+            member m
+                LEFT OUTER JOIN member_auth a
+                                ON m.member_id = a.member_id
+        WHERE provider = #{provider}
+          AND provider_id = #{providerId}
     </select>
 </mapper>
