@@ -1,6 +1,10 @@
 package com.banklab.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewResolverRegistry;
@@ -8,15 +12,16 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
+import java.util.List;
+
 
 @EnableWebMvc
 @ComponentScan(basePackages = {
-        "org.banklab.exception",
-        "org.banklab.controller",
+        "com.banklab.exception",
+        "com.banklab.security.controller",
+        "com.banklab.member.controller",
+        "com.banklab.oauth.controller",
         "com.banklab.account.controller"
-         "com.banklab.security.controller",
-        "com.banklab.member.controller"
-
 })
 public class ServletConfig implements WebMvcConfigurer {
 
@@ -43,5 +48,13 @@ public class ServletConfig implements WebMvcConfigurer {
         registry.viewResolver(bean);
     }
 
+    @Override
+    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+
+        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter(objectMapper);
+        converters.add(0, converter); // 최우선 적용 (우선순위 최상위)
+    }
 }
 
