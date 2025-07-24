@@ -110,9 +110,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement()        // 세션 관리 설정
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);  // 무상태 모드
 
-        // 소셜 로그인 설정
-        http.oauth2Login();
-
+//        // 소셜 로그인 설정
+//        http.oauth2Login();
+//
         http.cors();
 
         // 기본 설정으로 시작 - 모든 요청에 인증 필요

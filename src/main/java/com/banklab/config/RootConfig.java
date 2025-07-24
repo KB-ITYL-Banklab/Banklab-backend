@@ -1,7 +1,7 @@
 package com.banklab.config;
 
-import com.banklab.product.batch.config.BatchConfig;
-import com.banklab.product.batch.config.SchedulerConfig;
+import com.banklab.category.dto.CategoryDTO;
+import com.banklab.category.service.CategoryService;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -16,16 +16,23 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
 
 import javax.sql.DataSource;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Configuration
-@PropertySource({"classpath:/application.properties"})
+@PropertySources({
+        @PropertySource("classpath:/application.properties"),
+        @PropertySource("classpath:application-secret.properties")})
 @MapperScan(basePackages = {
         "com.banklab.account.mapper",
         "com.banklab.member.mapper",
         "com.banklab.financeContents",
         "com.banklab.typetest.mapper",
         "com.banklab.product.mapper",
-        "com.banklab.risk.mapper"
+        "com.banklab.risk.mapper",
+        "com.banklab.transaction.mapper",
+        "com.banklab.category.mapper",
+        "com.banklab.transaction.summary.mapper"
 })
 @ComponentScan(basePackages = {
         "com.banklab.member.service",
@@ -36,6 +43,10 @@ import javax.sql.DataSource;
         "com.banklab.typetest",
         "com.banklab.product",
         "com.banklab.risk",
+        "com.banklab.codef",
+        "com.banklab.transaction",
+        "com.banklab.category",
+        "com.banklab.perplexity",
 })
 @EnableTransactionManagement
 public class RootConfig {
@@ -78,8 +89,17 @@ public class RootConfig {
 
     @Bean
     public DataSourceTransactionManager transactionManager() {
-        return new DataSourceTransactionManager(dataSource());
+        DataSourceTransactionManager manager = new DataSourceTransactionManager(dataSource());
+
+        return manager;
     }
+
+    @Bean(name = "categoryMap")
+    public Map<String, Long> categoryMap(CategoryService categoryService) {
+        return categoryService.findAll().stream()
+                .collect(Collectors.toMap(CategoryDTO::getName, CategoryDTO::getId));
+    }
+
 
 
 }

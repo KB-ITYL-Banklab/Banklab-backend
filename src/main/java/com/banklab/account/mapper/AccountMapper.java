@@ -22,7 +22,7 @@ public interface AccountMapper {
     int insertAccount(AccountVO accountVO);
 
     /**
-     * Select : userId에 해당하는 계좌를 조회
+     * Select : memberId에 해당하는 계좌를 조회
      *
      * @param memberId 서비스 유저 아이디
      * @return 계좌 리스트를 반환

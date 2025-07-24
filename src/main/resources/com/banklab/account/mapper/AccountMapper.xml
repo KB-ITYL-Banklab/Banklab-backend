@@ -62,5 +62,5 @@
         WHERE member_id = #{memberId}
           AND resAccount = #{resAccount}
     </update>
-    
+
 </mapper>

@@ -36,6 +36,19 @@ dependencies {
 
   //
   implementation 'com.google.code.gson:gson:2.10.1'
+  // RestTemplate
+  implementation 'org.springframework:spring-web:5.3.30' // Spring 5 기준
+  implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.3' // JSON 파싱용
+
+
+  // Spring 스케줄러
+  implementation 'org.springframework:spring-context:5.3.30'
+
+  implementation 'org.springframework.batch:spring-batch-core:4.3.10'  // 버전 확인 필수
+  implementation 'org.springframework.batch:spring-batch-infrastructure:4.3.10'
+
+
+
 
   // 보안
   implementation("org.springframework.security:spring-security-web:${springSecurityVersion}")
@@ -122,7 +135,7 @@ dependencies {
 
   // HTTP 클라이언트 (네이버 API 연동용)
   implementation 'org.apache.httpcomponents:httpclient:4.5.14'
-  
+
   // 스케줄링
   implementation("org.springframework:spring-context-support:${springVersion}")
 
@@ -141,6 +154,7 @@ dependencies {
   testImplementation 'org.hamcrest:hamcrest:2.2'
   testImplementation 'org.hamcrest:hamcrest-library:2.2'
 
+  testImplementation 'org.springframework.boot:spring-boot-starter-log4j2:2.7.18'
 }
 
 
