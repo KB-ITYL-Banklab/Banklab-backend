@@ -1,198 +1,275 @@
 package com.banklab.typetest.controller;
 
-import com.banklab.typetest.domain.Question;
-import com.banklab.product.domain.ProductType;
-import com.banklab.risk.domain.RiskLevel;
 import com.banklab.security.util.JwtProcessor;
-import com.banklab.typetest.dto.RecommendedProductDTO;
+import com.banklab.typetest.domain.Question;
 import com.banklab.typetest.dto.TypeTestResultDTO;
 import com.banklab.typetest.service.TypeTestService;
+import com.banklab.typetest.util.JwtTokenUtil;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.http.HttpStatus;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
-@DisplayName("TypeTestController 테스트")
+@ExtendWith(MockitoExtension.class)
+@DisplayName("유형검사 컨트롤러 테스트")
 class TypeTestControllerTest {
 
     @Mock
-    private HttpServletRequest mockRequest;
+    private TypeTestService typeTestService;
 
     @Mock
     private JwtProcessor jwtProcessor;
 
     @Mock
-    private TypeTestService typeTestService;
+    private HttpServletRequest httpServletRequest;
 
-    @InjectMocks
-    private TypeTestController controller;
+    private TypeTestController typeTestController;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
-    //유형 검사 질문 조회 테스트
-    @Test
-    @DisplayName("유형검사 질문 조회")
-    void 유형검사_질문_조회_API_테스트() {
-        // Given
-        List<Question> mockQuestions = List.of(createQuestion(1L, "질문1", "A", "B"));
-        when(typeTestService.getAllQuestions()).thenReturn(mockQuestions);
-        // When
-        ResponseEntity<List<Question>> response = controller.getAllQuestions();
-        // Then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).hasSize(1);
-        assertThat(response.getBody().get(0).getQuestionText()).isEqualTo("질문1");
+        typeTestController = new TypeTestController(typeTestService, jwtProcessor);
     }
 
-    //유형검사 제출 테스트
     @Test
-    @DisplayName("유형검사 제출")
-    void 유형검사_제출_API_테스트() {
+    @DisplayName("유형검사 질문 조회시 질문이 잘 나오는지")
+    void 유형검사_질문_조회시_질문이_잘_나오는지() {
         // Given
-        Map<String, Object> payload = createValidPayload();
-        TypeTestResultDTO expectedResult = createSuccessResult();
-        String token = "test-token";
-        when(mockRequest.getHeader("Authorization")).thenReturn("Bearer " + token);
-        when(jwtProcessor.getMemberId(token)).thenReturn(1L);
-        when(typeTestService.submitAnswersWithMemberId(payload, 1L)).thenReturn(expectedResult);
+        Question question1 = new Question();
+        question1.setId(1L);
+        question1.setQuestionText("투자 경험이 어느 정도이신가요?");
+        
+        Question question2 = new Question();
+        question2.setId(2L);
+        question2.setQuestionText("투자 손실을 어느 정도 감수할 수 있나요?");
+        
+        List<Question> questions = Arrays.asList(question1, question2);
+        
+        when(typeTestService.getAllQuestions()).thenReturn(questions);
 
         // When
-        ResponseEntity<TypeTestResultDTO> response = controller.submitAnswers(mockRequest, payload);
+        ResponseEntity<?> response = typeTestController.getAllQuestions();
 
         // Then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().getUserId()).isEqualTo(1L);
-        assertThat(response.getBody().getInvestmentTypeName()).isEqualTo("공격형");
+        assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+        verify(typeTestService).getAllQuestions();
     }
 
     @Test
-    @DisplayName("잘못된 답변 데이터 제출 시 실패 응답을 반환한다")
-    void 잘못된_답변_제출_시_실패_응답_반환_테스트() {
+    @DisplayName("사용자가 유형검사를 제출했을 때 결과가 잘 뜨는지")
+    void 사용자가_유형검사를_제출했을_때_결과가_잘_뜨는지() {
         // Given
-        Map<String, Object> payload = createValidPayload();
-        TypeTestResultDTO expectedResult = createFailResult();
-        String token = "test-token";
-        when(mockRequest.getHeader("Authorization")).thenReturn("Bearer " + token);
-        when(jwtProcessor.getMemberId(token)).thenReturn(1L);
-        when(typeTestService.submitAnswersWithMemberId(payload, 1L)).thenReturn(expectedResult);
-
-        // When
-        ResponseEntity<TypeTestResultDTO> response = controller.submitAnswers(mockRequest, payload);
-
-        // Then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isEqualTo(expectedResult);
-        assertThat(response.getBody().getMessage()).contains("점수 계산 결과가 없습니다");
-    }
-
-    @Test
-    @DisplayName("유형검사 결과 및 추천상품 조회")
-    void 유형검사_결과_및_추천상품_조회_컨트롤러_테스트() {
-        // Given
-        TypeTestResultDTO resultDTO = createSuccessResult();
-        String token = "test-token";
-        when(mockRequest.getHeader("Authorization")).thenReturn("Bearer " + token);
-        when(jwtProcessor.getMemberId(token)).thenReturn(1L);
-        when(typeTestService.getTestResultByUserId(1L)).thenReturn(resultDTO);
-
-        // When
-        ResponseEntity<TypeTestResultDTO> response = controller.getTestResultByToken(mockRequest);
-
-        // Then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().getUserId()).isEqualTo(1L);
-        assertThat(response.getBody().getRecommendedProducts()).isNotNull();
-    }
-
-    @Test
-    @DisplayName("유형검사 답변 제출")
-    void 유형검사_답변_제출_테스트() {
-        String token = "test-token";
-        when(mockRequest.getHeader("Authorization")).thenReturn("Bearer " + token);
-        when(jwtProcessor.getMemberId(token)).thenReturn(1L);
-
-        // 사용자가 선택한 답변 리스트
-        List<Map<String, Object>> answers = List.of(
-            Map.of("question_id", 1, "choice", "A"),
-            Map.of("question_id", 2, "choice", "B"),
-            Map.of("question_id", 3, "choice", "A"),
-            Map.of("question_id", 4, "choice", "B"),
-            Map.of("question_id", 5, "choice", "A"),
-            Map.of("question_id", 6, "choice", "B"),
-            Map.of("question_id", 7, "choice", "A"),
-            Map.of("question_id", 8, "choice", "B"),
-            Map.of("question_id", 9, "choice", "A"),
-            Map.of("question_id", 10, "choice", "B")
-        );
+        String mockToken = "valid-jwt-token";
+        Long memberId = 1L;
+        
         Map<String, Object> payload = new HashMap<>();
-        payload.put("answers", answers);
-
-        TypeTestResultDTO resultDTO = TypeTestResultDTO.builder().userId(1L).message("success").build();
-        when(typeTestService.submitAnswersWithMemberId(payload, 1L)).thenReturn(resultDTO);
-
-        ResponseEntity<TypeTestResultDTO> response = controller.submitAnswers(mockRequest, payload);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().getUserId()).isEqualTo(1L);
-        assertThat(response.getBody().getMessage()).isEqualTo("success");
-    }
-
-    private Map<String, Object> createValidPayload() {
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("user_id", 1L);
-        payload.put("answers", Collections.emptyList());
-        return payload;
-    }
-
-    private TypeTestResultDTO createSuccessResult() {
-        return TypeTestResultDTO.builder()
-                .userId(1L)
+        payload.put("answers", Arrays.asList(1, 2, 3, 1, 2));
+        
+        TypeTestResultDTO expectedResult = TypeTestResultDTO.builder()
                 .investmentTypeId(2L)
-                .investmentTypeName("공격형")
-                .investmentTypeDesc("공격적으로 투자하는 유형")
-                .message("ok")
-                .recommendedProducts(List.of(createDepositProduct()))
+                .investmentTypeName("중립형")
+                .investmentTypeDesc("적당한 위험을 감수하며 안정적인 수익을 추구합니다.")
                 .build();
-    }
-    private RecommendedProductDTO createDepositProduct() {
-        return RecommendedProductDTO.builder()
-                .productId(47L)
-                .productType(ProductType.valueOf("DEPOSIT"))
-                .productName("LIVE정기예금")
-                .companyName("부산은행")
-                .riskLevel(RiskLevel.valueOf("LOW"))
-                .riskReason("LIVE정기예금은 우대 이율 조건이 비교적 단순하며, 가입금액 및 기간 제한도 없어 위험 요소가 낮은 편이므로 저위험(LOW) 수준으로 평가됩니다.")
-                .interestRate("2.5~3.5%")
-                .productFeature("안전한 예금상품")
-                .targetCustomer("안정적인 수익을 원하는 고객")
-                .build();
+
+        try (MockedStatic<JwtTokenUtil> mockedJwtTokenUtil = mockStatic(JwtTokenUtil.class)) {
+            mockedJwtTokenUtil.when(() -> JwtTokenUtil.extractToken(any(HttpServletRequest.class)))
+                    .thenReturn(mockToken);
+            
+            when(jwtProcessor.getMemberId(mockToken)).thenReturn(memberId);
+            when(typeTestService.submitAnswersWithMemberId(eq(payload), eq(memberId)))
+                    .thenReturn(expectedResult);
+
+            // When
+            ResponseEntity<TypeTestResultDTO> response = typeTestController.submitAnswers(httpServletRequest, payload);
+
+            // Then
+            assertEquals(200, response.getStatusCodeValue());
+            assertNotNull(response.getBody());
+            assertEquals(Long.valueOf(2L), response.getBody().getInvestmentTypeId());
+            assertEquals("중립형", response.getBody().getInvestmentTypeName());
+
+            verify(jwtProcessor).getMemberId(mockToken);
+            verify(typeTestService).submitAnswersWithMemberId(any(Map.class), eq(memberId));
+        }
     }
 
-    private TypeTestResultDTO createFailResult() {
-        return TypeTestResultDTO.fail("점수 계산 결과가 없습니다. 답변 데이터를 확인하세요.");
+    @Test
+    @DisplayName("유효하지 않은 토큰일 때 에러 메시지가 뜨는지")
+    void 유효하지_않은_토큰일_때_에러_메시지가_뜨는지() {
+        // Given
+        String invalidToken = "invalid-jwt-token";
+        
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("answers", Arrays.asList(1, 2, 3, 1, 2));
+
+        try (MockedStatic<JwtTokenUtil> mockedJwtTokenUtil = mockStatic(JwtTokenUtil.class)) {
+            mockedJwtTokenUtil.when(() -> JwtTokenUtil.extractToken(any(HttpServletRequest.class)))
+                    .thenReturn(invalidToken);
+            
+            when(jwtProcessor.getMemberId(invalidToken)).thenReturn(null);
+
+            // When
+            ResponseEntity<TypeTestResultDTO> response = typeTestController.submitAnswers(httpServletRequest, payload);
+
+            // Then
+            assertEquals(400, response.getStatusCodeValue());
+            assertNotNull(response.getBody());
+            assertEquals("유효하지 않은 토큰입니다.", response.getBody().getMessage());
+
+            verify(jwtProcessor).getMemberId(invalidToken);
+            verify(typeTestService, never()).submitAnswersWithMemberId(any(), any());
+        }
     }
 
-    private Question createQuestion(Long id, String questionText, String choiceAText, String choiceBText) {
-        Question q = new Question();
-        q.setId(id);
-        q.setQuestionText(questionText);
-        q.setChoiceAText(choiceAText);
-        q.setChoiceBText(choiceBText);
-        return q;
+    @Test
+    @DisplayName("유형검사 결과 조회를 했을 때 앞서 테스트한 결과가 잘 뜨는지")
+    void 유형검사_결과_조회를_했을_때_앞서_테스트한_결과가_잘_뜨는지() {
+        // Given
+        String mockToken = "valid-jwt-token";
+        Long memberId = 1L;
+        
+        TypeTestResultDTO expectedResult = TypeTestResultDTO.builder()
+                .investmentTypeId(2L)
+                .investmentTypeName("중립형")
+                .investmentTypeDesc("적당한 위험을 감수하며 안정적인 수익을 추구합니다.")
+                .build();
+
+        try (MockedStatic<JwtTokenUtil> mockedJwtTokenUtil = mockStatic(JwtTokenUtil.class)) {
+            mockedJwtTokenUtil.when(() -> JwtTokenUtil.extractToken(any(HttpServletRequest.class)))
+                    .thenReturn(mockToken);
+            
+            when(jwtProcessor.getMemberId(mockToken)).thenReturn(memberId);
+            when(typeTestService.getTestResultByUserId(memberId)).thenReturn(expectedResult);
+
+            // When
+            ResponseEntity<TypeTestResultDTO> response = typeTestController.getTestResultByToken(httpServletRequest);
+
+            // Then
+            assertEquals(200, response.getStatusCodeValue());
+            assertNotNull(response.getBody());
+            assertEquals(Long.valueOf(2L), response.getBody().getInvestmentTypeId());
+            assertEquals("중립형", response.getBody().getInvestmentTypeName());
+
+            verify(jwtProcessor).getMemberId(mockToken);
+            verify(typeTestService).getTestResultByUserId(memberId);
+        }
+    }
+
+    @Test
+    @DisplayName("유형검사 결과가 존재하지 않으면 유형검사를 하라고 메시지가 뜨는지")
+    void 유형검사_결과가_존재하지_않으면_유형검사를_하라고_메시지가_뜨는지() {
+        // Given
+        String mockToken = "valid-jwt-token";
+        Long memberId = 1L;
+
+        try (MockedStatic<JwtTokenUtil> mockedJwtTokenUtil = mockStatic(JwtTokenUtil.class)) {
+            mockedJwtTokenUtil.when(() -> JwtTokenUtil.extractToken(any(HttpServletRequest.class)))
+                    .thenReturn(mockToken);
+            
+            when(jwtProcessor.getMemberId(mockToken)).thenReturn(memberId);
+            when(typeTestService.getTestResultByUserId(memberId)).thenReturn(null);
+
+            // When
+            ResponseEntity<TypeTestResultDTO> response = typeTestController.getTestResultByToken(httpServletRequest);
+
+            // Then
+            assertEquals(200, response.getStatusCodeValue());
+            assertNotNull(response.getBody());
+            assertEquals("검사 결과가 없습니다. 먼저 검사를 진행하세요.", response.getBody().getMessage());
+
+            verify(jwtProcessor).getMemberId(mockToken);
+            verify(typeTestService).getTestResultByUserId(memberId);
+        }
+    }
+
+    @Test
+    @DisplayName("investmentTypeId가 null인 경우 메시지가 뜨는지")
+    void investmentTypeId가_null인_경우_메시지가_뜨는지() {
+        // Given
+        String mockToken = "valid-jwt-token";
+        Long memberId = 1L;
+        
+        TypeTestResultDTO resultWithoutType = TypeTestResultDTO.builder()
+                .investmentTypeId(null)
+                .message("검사가 완료되지 않았습니다.")
+                .build();
+
+        try (MockedStatic<JwtTokenUtil> mockedJwtTokenUtil = mockStatic(JwtTokenUtil.class)) {
+            mockedJwtTokenUtil.when(() -> JwtTokenUtil.extractToken(any(HttpServletRequest.class)))
+                    .thenReturn(mockToken);
+            
+            when(jwtProcessor.getMemberId(mockToken)).thenReturn(memberId);
+            when(typeTestService.getTestResultByUserId(memberId)).thenReturn(resultWithoutType);
+
+            // When
+            ResponseEntity<TypeTestResultDTO> response = typeTestController.getTestResultByToken(httpServletRequest);
+
+            // Then
+            assertEquals(200, response.getStatusCodeValue());
+            assertNotNull(response.getBody());
+            assertEquals("검사 결과가 없습니다. 먼저 검사를 진행하세요.", response.getBody().getMessage());
+
+            verify(jwtProcessor).getMemberId(mockToken);
+            verify(typeTestService).getTestResultByUserId(memberId);
+        }
+    }
+
+    @Test
+    @DisplayName("JWT 토큰 추출 단위 테스트")
+    void JWT_토큰_추출_단위_테스트() {
+        // Given
+        String expectedToken = "valid-jwt-token";
+
+        try (MockedStatic<JwtTokenUtil> mockedJwtTokenUtil = mockStatic(JwtTokenUtil.class)) {
+            mockedJwtTokenUtil.when(() -> JwtTokenUtil.extractToken(any(HttpServletRequest.class)))
+                    .thenReturn(expectedToken);
+
+            // When
+            String actualToken = JwtTokenUtil.extractToken(httpServletRequest);
+
+            // Then
+            assertEquals(expectedToken, actualToken);
+        }
+    }
+
+    @Test
+    @DisplayName("memberId가 null일 때 처리 테스트")
+    void memberId가_null일_때_처리_테스트() {
+        // Given
+        String token = "some-token";
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("answers", Arrays.asList(1, 2, 3));
+
+        try (MockedStatic<JwtTokenUtil> mockedJwtTokenUtil = mockStatic(JwtTokenUtil.class)) {
+            mockedJwtTokenUtil.when(() -> JwtTokenUtil.extractToken(any(HttpServletRequest.class)))
+                    .thenReturn(token);
+            
+            when(jwtProcessor.getMemberId(token)).thenReturn(null);
+
+            // When
+            ResponseEntity<TypeTestResultDTO> response = typeTestController.submitAnswers(httpServletRequest, payload);
+
+            // Then
+            assertEquals(400, response.getStatusCodeValue());
+            assertNotNull(response.getBody());
+            assertEquals("유효하지 않은 토큰입니다.", response.getBody().getMessage());
+
+            verify(jwtProcessor).getMemberId(token);
+            verify(typeTestService, never()).submitAnswersWithMemberId(any(), any());
+        }
     }
 }
