@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor
@@ -38,6 +39,16 @@ public class MemberDTO {
                 .updateDate(m.getUpdateDate())
                 .authList(m.getAuthList().stream()
                         .map(AuthVO::getAuth)
+                        .toList())
+                .build();
+    }
+
+    public MemberVO toVO() {
+        return MemberVO.builder()
+                .email(this.email)
+                .name(this.name)
+                .authList(authList.stream()
+                        .map(auth -> new AuthVO(null, auth))
                         .toList())
                 .build();
     }

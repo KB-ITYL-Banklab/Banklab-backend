@@ -35,7 +35,7 @@ class MemberServiceImplTest {
     void 존재하는_사용자ID로_회원정보_조회시_정상반환확인() {
         String username = "admin@example.com";
 
-        MemberDTO dto = memberService.get(username);
+        MemberDTO dto = memberService.get(null, username);
 
         assertNotNull(dto);
         assertEquals(username, dto.getEmail());
@@ -46,7 +46,7 @@ class MemberServiceImplTest {
         String username = "nonexistent";
 
         assertThrows(NoSuchElementException.class, () -> {
-            memberService.get(username);
+            memberService.get(null, username);
         });
     }
 

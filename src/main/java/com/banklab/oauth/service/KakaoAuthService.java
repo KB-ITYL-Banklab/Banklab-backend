@@ -1,6 +1,5 @@
 package com.banklab.oauth.service;
 
-import com.banklab.member.dto.MemberDTO;
 import com.banklab.member.mapper.MemberMapper;
 import com.banklab.member.service.MemberService;
 import com.banklab.oauth.client.KakaoOAuthClient;
@@ -32,13 +31,13 @@ public class KakaoAuthService {
         // 회원이 없으면 → 최초 로그인
         if (member == null) {
             member = userInfo.toVO();
-            memberService.join(member);
+            member = memberService.join(member).toVO();
         } else {
             // 기존 회원이라도 → 전화번호 등이 바뀌었을 수 있음
             // → 필요하면 업데이트
         }
 
-        String token = jwtProcessor.generateToken(member.getEmail());
+        String token = jwtProcessor.generateTokenWithId(member.getEmail(), member.getMemberId());
 
         return new AuthResultDTO(token, UserInfoDTO.of(member));
     }

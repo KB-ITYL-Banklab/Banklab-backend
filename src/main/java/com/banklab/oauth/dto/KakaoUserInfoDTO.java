@@ -3,15 +3,12 @@ package com.banklab.oauth.dto;
 import com.banklab.member.domain.Gender;
 import com.banklab.oauth.domain.OAuthProvider;
 import com.banklab.security.account.domain.MemberVO;
-import com.banklab.security.oauth2.dto.OAuth2UserInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
 
 @Getter
 @NoArgsConstructor
