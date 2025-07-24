@@ -14,6 +14,9 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
+/**
+ * 유형검사 컨트롤러
+ */
 @RestController
 @RequestMapping("api/typetest")
 @RequiredArgsConstructor
@@ -22,6 +25,10 @@ public class TypeTestController {
     private final TypeTestService typeTestService;
     private final JwtProcessor jwtProcessor;
 
+    /**
+     * 투자 유형 검사를 위한 질문 조회 API
+     * @return 질문 목록
+     */
     @GetMapping("/questions")
     public ResponseEntity<QuestionsResponseDTO> getAllQuestions() {
         List<Question> questions = typeTestService.getAllQuestions();
@@ -31,24 +38,32 @@ public class TypeTestController {
         return ResponseEntity.ok(response);
     }
 
-    // 질문 제출: JWT에서 memberId 추출해 userId로 사용
+    /**
+     * 사용자가 유형검사를 제출합니다
+     * @param request 토큰 추출을 위한 request
+     * @param payload 질문 답변
+     * @return 사용자의 투자 유형과 추천 상품이 반환됩니다.
+     */
     @PostMapping("")
     public ResponseEntity<TypeTestResultDTO> submitAnswers(HttpServletRequest request, @RequestBody Map<String, Object> payload) {
         String token = JwtTokenUtil.extractToken(request);
         Long memberId = jwtProcessor.getMemberId(token);
-        // memberId가 null이면 400 에러 반환
         if (memberId == null) {
             return ResponseEntity.badRequest().body(TypeTestResultDTO.builder().message("유효하지 않은 토큰입니다.").build());
         }
         return ResponseEntity.ok(typeTestService.submitAnswersWithMemberId(payload, memberId));
     }
 
-    // 검사 결과 조회: JWT에서 memberId 추출해 userId로 사용
+    /**
+     * 사용자 투자 유형 조회API
+     * @param request 토큰 추출을 위한 request
+     * @return 검사결과가 있는 경우, 사용자 투자유형과 추천 상품이 반환됩니다.
+     * @return 검사결과가 없는 경우, 투자유형 검사로 유도합니다.
+     */
     @GetMapping("/result")
     public ResponseEntity<TypeTestResultDTO> getTestResultByToken(HttpServletRequest request) {
         String token = JwtTokenUtil.extractToken(request);
         Long memberId = jwtProcessor.getMemberId(token);
-        // memberId가 null이면 안내 메시지 반환
         if (memberId == null) {
             System.out.println("member Id 가 null 입니다.");
         }

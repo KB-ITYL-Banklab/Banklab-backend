@@ -91,14 +91,4 @@ public class ProductScheduler {
             log.error("신용대출 상품 배치 실행 중 오류 발생", e);
         }
     }
-
-    /**
-     * 테스트용 - 매분 실행 (개발 중에만 사용)
-     * 운영 환경에서는 주석 처리하세요
-     */
-//    // @Scheduled(fixedRate = 60000) // 1분마다
-//    public void runTestBatch() {
-//        log.info("=== 테스트 배치 실행 ===");
-//        // 필요시 여기서 테스트 로직 실행
-//    }
 }

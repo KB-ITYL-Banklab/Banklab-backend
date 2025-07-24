@@ -77,9 +77,6 @@ public class DepositProductDto {
                 .mtrtInt(dto.getMtrtInt())
                 .spclCnd(dto.getSpclCnd())
                 .joinDeny(parseJoinDeny(dto.getJoinDeny()))
-                .joinMember(dto.getJoinMember())
-                .etcNote(dto.getEtcNote())
-                .maxLimit(dto.getMaxLimit())
                 .dclsStrtDay(parseDate(dto.getDclsStrtDay()))
                 .dclsEndDay(parseDate(dto.getDclsEndDay()))
                 .finCoSubmDay(parseDateTime(dto.getFinCoSubmDayr()))
@@ -87,34 +84,23 @@ public class DepositProductDto {
     }
 
     private static Integer parseJoinDeny(String joinDenyStr) {
-        try {
-            return joinDenyStr != null ? Integer.parseInt(joinDenyStr) : 1;
-        } catch (NumberFormatException e) {
+        if (joinDenyStr == null || joinDenyStr.trim().isEmpty()) {
             return 1;
         }
+        return joinDenyStr.chars().allMatch(Character::isDigit) ? Integer.parseInt(joinDenyStr) : 1;
     }
 
     private static LocalDate parseDate(String dateStr) {
-        if (dateStr == null || dateStr.trim().isEmpty() || "null".equals(dateStr)) {
+        if (dateStr == null || dateStr.trim().isEmpty() || "null".equalsIgnoreCase(dateStr)) {
             return null;
         }
-        try {
-            return LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyyMMdd"));
-        } catch (Exception e) {
-            return null;
-        }
+        return LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyyMMdd"));
     }
 
     private static LocalDateTime parseDateTime(String dateTimeStr) {
-        if (dateTimeStr == null || dateTimeStr.trim().isEmpty() || "null".equals(dateTimeStr)) {
+        if (dateTimeStr == null || dateTimeStr.trim().isEmpty() || "null".equalsIgnoreCase(dateTimeStr)) {
             return null;
         }
-        try {
-            return LocalDateTime.parse(dateTimeStr, DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
-        } catch (Exception e) {
-            return null;
-        }
+        return LocalDateTime.parse(dateTimeStr, DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
     }
-
 }
-

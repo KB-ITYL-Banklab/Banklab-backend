@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 신용대출 상품 전용 옵션 조회 컨트롤러
+ * 신용대출 상품 전용 조회 컨트롤러
  */
 @Slf4j
 @RestController
@@ -20,7 +20,6 @@ public class CreditLoanDetailController {
 
     /**
      * 특정 신용대출 상품의 모든 정보 조회
-     * GET /api/creditloan/{dclsMonth}/{finCoNo}/{finPrdtCd}
      */
     @GetMapping("/{dclsMonth}/{finCoNo}/{finPrdtCd}")
     public ResponseEntity<CreditLoanWithOptionsDto> getCreditLoanWithOptions(
@@ -45,5 +44,4 @@ public class CreditLoanDetailController {
             return ResponseEntity.internalServerError().build();
         }
     }
-
 }

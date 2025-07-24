@@ -1,10 +1,12 @@
 package com.banklab.risk;
 
+import com.banklab.config.RedisConfig;
 import com.banklab.config.RootConfig;
 import com.banklab.product.service.ProductService;
 import com.banklab.risk.mapper.ProductRiskRatingMapper;
 import com.banklab.risk.domain.ProductRiskRating;
 import com.banklab.risk.service.RiskAnalysisService;
+import com.banklab.security.config.SecurityConfig;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.util.List;
@@ -17,7 +19,7 @@ public class RiskAnalysisRunner {
         try {
             // Spring 컨텍스트 로드
             AnnotationConfigApplicationContext context =
-                new AnnotationConfigApplicationContext(RootConfig.class);
+                    new AnnotationConfigApplicationContext(RootConfig.class, SecurityConfig.class, RedisConfig.class);
 
             // 필요한 서비스 가져오기
             RiskAnalysisService riskAnalysisService = context.getBean(RiskAnalysisService.class);

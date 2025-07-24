@@ -16,6 +16,9 @@ import java.util.stream.IntStream;
 
 @Service
 @Slf4j
+/**
+ * anthropic api를 사용하여 모든 상품의 위험도를 측정합니다
+ */
 public class BatchClaudeAiAnalysisService {
     
     private final RestTemplate restTemplate;
@@ -197,13 +200,13 @@ public class BatchClaudeAiAnalysisService {
             System.out.println("=== PARSING RESPONSE ===");
             System.out.println("Expected count: " + expectedCount);
             System.out.println("Raw response: " + response);
-            
+
             String jsonPart = extractJsonFromResponse(response);
             jsonPart = sanitizeJson(jsonPart);
             System.out.println("Extracted JSON: " + jsonPart);
             
             List<Map<String, Object>> results = objectMapper.readValue(
-                jsonPart, 
+                jsonPart,
                 new TypeReference<List<Map<String, Object>>>() {}
             );
             

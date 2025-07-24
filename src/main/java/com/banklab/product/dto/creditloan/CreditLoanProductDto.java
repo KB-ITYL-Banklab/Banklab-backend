@@ -17,7 +17,7 @@ import java.time.format.DateTimeFormatter;
 @AllArgsConstructor
 public class CreditLoanProductDto {
     
-    private Long id; // 데이터베이스 ID
+    private Long id;
     
     @JsonProperty("dcls_month")
     private String dclsMonth; // 공시 월
@@ -55,7 +55,7 @@ public class CreditLoanProductDto {
     @JsonProperty("fin_co_subm_day")
     private String finCoSubmDay; // 금융회사 제출일
     
-    // 추가 필드들 (위험도 분석용)
+    // 위험도 분석용 추가 필드들
     private String spclCnd; // 우대조건 (실제 API에는 없지만 분석용)
     private String etcNote; // 기타유의사항 (실제 API에는 없지만 분석용)
 

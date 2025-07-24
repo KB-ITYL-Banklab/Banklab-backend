@@ -11,6 +11,9 @@ import org.springframework.web.client.ResourceAccessException;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
+/**
+ * 신용대출 상품 fetch API
+ */
 @Service
 public class CreditLoanApiService {
     private final RestTemplate restTemplate = new RestTemplate();

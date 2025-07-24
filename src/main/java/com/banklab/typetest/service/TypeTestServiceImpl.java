@@ -12,7 +12,6 @@ import com.banklab.typetest.mapper.InvestmentTypeMapper;
 import com.banklab.typetest.mapper.QuestionChoiceScoreMapper;
 import com.banklab.typetest.mapper.QuestionMapper;
 import com.banklab.typetest.mapper.UserInvestmentTypeMapper;
-import com.banklab.typetest.util.TypeTestMessageUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -85,13 +84,6 @@ public class TypeTestServiceImpl implements TypeTestService {
         }
     }
 
-    private Long extractUserId(Map<String, Object> payload) {
-        Object userIdObj = payload.get("user_id");
-        if (userIdObj == null) {
-            throw new IllegalArgumentException("user_id 값이 누락되었습니다.");
-        }
-        return Long.valueOf(userIdObj.toString());
-    }
 
     private List<AnswerDTO> parseAnswers(Map<String, Object> payload) {
         Object rawAnswers = payload.get("answers");
@@ -203,7 +195,7 @@ public class TypeTestServiceImpl implements TypeTestService {
                 .investmentTypeName(investmentType.getInvestmentTypeName())
                 .investmentTypeDesc(investmentType.getInvestmentTypeDesc())
                 .recommendedProducts(recommendedProducts) // 추천상품 추가
-                .message(TypeTestMessageUtil.SUCCESS_MSG)
+                .message("투자유형 계산이 완료되었습니다.")
                 .build();
     }
 

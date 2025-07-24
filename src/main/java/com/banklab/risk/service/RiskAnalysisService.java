@@ -26,8 +26,7 @@ public class RiskAnalysisService {
     
     private final BatchClaudeAiAnalysisService batchAiAnalysisService;
     private final ProductRiskRatingMapper productRiskRatingMapper;
-    
-    // Product Mappers for fetching data
+
     private final DepositProductMapper depositProductMapper;
     private final SavingsProductMapper savingsProductMapper;
     private final CreditLoanProductMapper creditLoanProductMapper;
@@ -77,14 +76,6 @@ public class RiskAnalysisService {
             log.error("배치 위험도 분석 전체 실패", e);
             throw new RuntimeException("배치 위험도 분석 실패", e);
         }
-    }
-    
-    /**
-     * 비동기 배치 위험도 분석
-     */
-    public CompletableFuture<List<ProductRiskRating>> batchAnalyzeRisksAsync(
-            List<BatchRiskAnalysisRequest> requests) {
-        return CompletableFuture.supplyAsync(() -> batchAnalyzeRisks(requests));
     }
     
     /**
@@ -147,43 +138,10 @@ public class RiskAnalysisService {
         
         // 배치 처리 실행
         if (!allRequests.isEmpty()) {
-            // 동기 방식으로 변경하여 즉시 실행 완료 확인
             List<ProductRiskRating> results = batchAnalyzeRisks(allRequests);
             log.info("총 {}개 상품에 대한 배치 위험도 분석이 완료되었습니다. 성공: {}개", allRequests.size(), results.size());
         } else {
             log.warn("분석할 상품이 없습니다.");
         }
-    }
-    
-    /**
-     * 위험도별 상품 조회
-     */
-    @Transactional(readOnly = true)
-    public List<ProductRiskRating> getRiskRatingsByLevel(RiskLevel riskLevel) {
-        return productRiskRatingMapper.selectByRiskLevel(riskLevel);
-    }
-    
-    /**
-     * 모든 위험도 평가 조회
-     */
-    @Transactional(readOnly = true)
-    public List<ProductRiskRating> getAllRiskRatings() {
-        return productRiskRatingMapper.selectAll();
-    }
-    
-    /**
-     * 특정 상품 위험도 조회
-     */
-    @Transactional(readOnly = true)
-    public ProductRiskRating getProductRiskRating(ProductType productType, Long productId) {
-        return productRiskRatingMapper.selectByProductTypeAndId(productType, productId);
-    }
-    
-    /**
-     * 기간별 위험도 평가 조회
-     */
-    @Transactional(readOnly = true)
-    public List<ProductRiskRating> getRiskRatingsByDateRange(LocalDateTime from, LocalDateTime to) {
-        return productRiskRatingMapper.selectByEvaluatedAtBetween(from, to);
     }
 }

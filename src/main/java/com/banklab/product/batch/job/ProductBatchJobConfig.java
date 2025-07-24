@@ -9,6 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * 예금, 적금, 신용대출 상품들을 위한 배치 작업입니다.
+ * 상품을 갱신하고, 이전 상품 정보들을 삭제합니다.
+ * 이후 외부 API를 이용하여 새로운 데이터를 받아옵니다.
+ */
 @Configuration
 public class ProductBatchJobConfig {
 
@@ -39,7 +44,6 @@ public class ProductBatchJobConfig {
     @Autowired
     private FetchAndInsertCreditLoanTasklet fetchAndInsertCreditLoanTasklet;
 
-    // ===== DEPOSIT JOB =====
     @Bean
     public Job depositRefreshJob() {
         return jobBuilderFactory.get("depositRefreshJob")
@@ -62,7 +66,6 @@ public class ProductBatchJobConfig {
                 .build();
     }
 
-    // ===== SAVINGS JOB =====
     @Bean
     public Job savingsRefreshJob() {
         return jobBuilderFactory.get("savingsRefreshJob")
@@ -85,7 +88,6 @@ public class ProductBatchJobConfig {
                 .build();
     }
 
-    // ===== CREDIT LOAN JOB =====
     @Bean
     public Job creditLoanRefreshJob() {
         return jobBuilderFactory.get("creditLoanRefreshJob")

@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 예금 상품 전용 옵션 조회 컨트롤러
+ * 예금 상품 전용 조회 컨트롤러
  */
 @Slf4j
 @RestController
@@ -19,9 +19,7 @@ public class DepositDetailController {
     private final DepositDetailService depositDetailService;
 
     /**
-     * 특정 예금 상품의 모든 옵션 조회
-     * dcls_month + fin_co_no + fin_prdt_cd로 상품을 고유하게 식별
-     * GET /api/deposit/{dclsMonth}/{finCoNo}/{finPrdtCd}
+     * 특정 예금 상품의 모든 정보 조회
      */
     @GetMapping("/{dclsMonth}/{finCoNo}/{finPrdtCd}")
     public ResponseEntity<DepositWithOptionsDto> getDepositWithOptions(

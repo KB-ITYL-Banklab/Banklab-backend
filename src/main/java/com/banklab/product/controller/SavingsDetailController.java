@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 적금 상품 전용 옵션 조회 컨트롤러
+ * 적금 상품 전용 조회 컨트롤러
  */
 @Slf4j
 @RestController
@@ -19,8 +19,7 @@ public class SavingsDetailController {
     private final SavingsDetailService savingsDetailService;
 
     /**
-     * 특정 적금 상품의 모든 옵션 조회
-     * GET /api/savings/{dclsMonth}/{finCoNo}/{finPrdtCd}
+     * 특정 적금 상품의 모든 정보 조회
      */
     @GetMapping("/{dclsMonth}/{finCoNo}/{finPrdtCd}")
     public ResponseEntity<SavingsWithOptionsDto> getSavingsWithOptions(

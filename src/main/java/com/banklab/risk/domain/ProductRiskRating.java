@@ -20,7 +20,7 @@ public class ProductRiskRating {
     private String riskReason;
     private LocalDateTime evaluatedAt;
     
-    // 조회용 추가 필드들 (실제 DB 컬럼이 아님)
+    // 조회용 추가 필드들
     private String productName;
     private String companyName;
     private LocalDateTime analyzedAt; // evaluatedAt의 별칭

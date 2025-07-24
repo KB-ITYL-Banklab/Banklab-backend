@@ -32,7 +32,6 @@ import javax.sql.DataSource;
         "com.banklab.risk",
 })
 @EnableTransactionManagement
-@Import({BatchConfig.class, SchedulerConfig.class})
 public class RootConfig {
     @Value("${jdbc.driver}")
     String driver;

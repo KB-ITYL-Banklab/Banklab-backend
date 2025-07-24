@@ -20,15 +20,7 @@ public class RiskAnalysisResponse {
     private String productCode;
     private Integer riskScore;
     private RiskLevel riskLevelEnum;
-    
-    // 생성자들
-    public RiskAnalysisResponse(String productCode, RiskLevel riskLevel, String riskReason, Integer riskScore) {
-        this.productCode = productCode;
-        this.riskLevel = riskLevel.name();
-        this.riskLevelEnum = riskLevel;
-        this.riskReason = riskReason;
-        this.riskScore = riskScore;
-    }
+
     
     public RiskAnalysisResponse(String riskLevel, String riskReason) {
         this.riskLevel = riskLevel;
