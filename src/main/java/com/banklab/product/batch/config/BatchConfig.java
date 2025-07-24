@@ -15,8 +15,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 
-@Configuration
 @EnableBatchProcessing
+@Configuration("productBatchConfig")
 public class BatchConfig {
 
     @Autowired
