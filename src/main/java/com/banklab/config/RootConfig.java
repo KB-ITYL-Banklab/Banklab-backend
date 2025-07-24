@@ -1,5 +1,7 @@
 package com.banklab.config;
 
+import com.banklab.product.batch.config.BatchConfig;
+import com.banklab.product.batch.config.SchedulerConfig;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -8,10 +10,7 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.*;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
@@ -20,20 +19,34 @@ import javax.sql.DataSource;
 
 @Configuration
 @PropertySource({"classpath:/application.properties"})
-@MapperScan(basePackages = {"com.banklab.account.mapper", "com.banklab.member.mapper", "com.banklab.financeContents.mapper"})
+@MapperScan(basePackages = {
+        "com.banklab.account.mapper",
+        "com.banklab.member.mapper",
+        "com.banklab.financeContents",
+        "com.banklab.typetest.mapper",
+        "com.banklab.product.mapper",
+        "com.banklab.risk.mapper"
+})
 @ComponentScan(basePackages = {
         "com.banklab.member.service",
         "com.banklab.oauth.service",
         "com.banklab.oauth.client",
         "com.banklab.account.service",
-        "com.banklab.financeContents"
+        "com.banklab.financeContents",
+        "com.banklab.typetest",
+        "com.banklab.product",
+        "com.banklab.risk",
 })
 @EnableTransactionManagement
 public class RootConfig {
-    @Value("${jdbc.driver}") String driver;
-    @Value("${jdbc.url}") String url;
-    @Value("${jdbc.username}") String username;
-    @Value(("${jdbc.password}")) String password;
+    @Value("${jdbc.driver}")
+    String driver;
+    @Value("${jdbc.url}")
+    String url;
+    @Value("${jdbc.username}")
+    String username;
+    @Value(("${jdbc.password}"))
+    String password;
 
     @Bean
     public RestTemplate restTemplate() {
@@ -67,5 +80,6 @@ public class RootConfig {
     public DataSourceTransactionManager transactionManager() {
         return new DataSourceTransactionManager(dataSource());
     }
+
 
 }

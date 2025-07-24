@@ -1,5 +1,7 @@
 package com.banklab.config;
 
+import com.banklab.product.batch.config.BatchConfig;
+import com.banklab.product.batch.config.SchedulerConfig;
 import com.banklab.security.config.SecurityConfig;
 
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
@@ -7,8 +9,7 @@ import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatche
 public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitializer {
     @Override
     protected Class<?>[] getRootConfigClasses() {
-
-        return new Class[] { RootConfig.class, SecurityConfig.class, RedisConfig.class };
+        return new Class[] { RootConfig.class, SecurityConfig.class, RedisConfig.class, BatchConfig.class, SchedulerConfig.class };
     }
 
     @Override

@@ -16,7 +16,6 @@ import org.springframework.web.servlet.view.JstlView;
 
 import java.util.List;
 
-
 @Configuration
 @EnableWebMvc
 @ComponentScan(basePackages = {
@@ -25,7 +24,9 @@ import java.util.List;
         "com.banklab.member.controller",
         "com.banklab.oauth.controller",
         "com.banklab.account.controller",
-        "com.banklab.financeContents.controller"
+        "com.banklab.financeContents.controller",
+        "com.banklab.typetest.controller",
+        "com.banklab.product.controller"
 })
 public class ServletConfig implements WebMvcConfigurer {
 
