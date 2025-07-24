@@ -12,6 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserInfoDTO {
+    private String name;
     private String email;
     private List<String> roles;
 
@@ -23,6 +24,7 @@ public class UserInfoDTO {
     public static UserInfoDTO of(MemberVO member) {
 
         return new UserInfoDTO(
+                member.getName(),
                 member.getEmail(),
                 member.getAuthList().stream()
                         .map(AuthVO::getAuth)
