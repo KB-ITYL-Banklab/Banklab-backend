@@ -94,14 +94,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.addFilterBefore(encodingFilter(), CsrfFilter.class)
-            .addFilterBefore(authenticationErrorFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterBefore(jwtUsernamePasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(authenticationErrorFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtUsernamePasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         //예외 처리 설정
         http.exceptionHandling()
-            .authenticationEntryPoint(authenticationEntryPoint)
-            .accessDeniedHandler(accessDeniedHandler);
+                .authenticationEntryPoint(authenticationEntryPoint)
+                .accessDeniedHandler(accessDeniedHandler);
 
         //  HTTP 보안 설정
         http.httpBasic().disable()      // 기본 HTTP 인증 비활성화
@@ -110,18 +110,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement()        // 세션 관리 설정
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);  // 무상태 모드
 
-//        // 소셜 로그인 설정
-//        http.oauth2Login();
-//
+        // 소셜 로그인 설정
+        //http.oauth2Login();
+
         http.cors();
 
         // 기본 설정으로 시작 - 모든 요청에 인증 필요
         http.authorizeRequests() //  요청 권한 설정
+                .antMatchers(HttpMethod.GET, "/api/news/**").permitAll()  // 뉴스 API 공개
                 // 회원 관련 공개 API (인증 불필요)
                 .antMatchers(HttpMethod.POST, "/api/member").permitAll()                    // 회원가입
                 .antMatchers(HttpMethod.GET, "/api/member/checkusername/**").permitAll()    // ID 중복 체크
                 .antMatchers(HttpMethod.GET, "/api/oauth/kakao/**").permitAll()
                 .anyRequest().authenticated(); // 모든 요청에 인증 필요
+
     }
 
 }
