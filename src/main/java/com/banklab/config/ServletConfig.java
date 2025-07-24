@@ -20,7 +20,8 @@ import java.util.List;
         "com.banklab.exception",
         "com.banklab.security.controller",
         "com.banklab.member.controller",
-        "com.banklab.oauth.controller"
+        "com.banklab.oauth.controller",
+        "com.banklab.account.controller"
 })
 public class ServletConfig implements WebMvcConfigurer {
 
@@ -56,3 +57,4 @@ public class ServletConfig implements WebMvcConfigurer {
         converters.add(0, converter); // 최우선 적용 (우선순위 최상위)
     }
 }
+
