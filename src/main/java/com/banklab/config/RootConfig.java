@@ -14,21 +14,19 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.web.client.RestTemplate;
 
 import javax.sql.DataSource;
 
 @Configuration
 @PropertySource({"classpath:/application.properties"})
-@MapperScan(basePackages = {
-        "com.banklab.account.mapper",
-        "com.banklab.member.mapper"
-})
+@MapperScan(basePackages = {"com.banklab.account.mapper", "com.banklab.member.mapper", "com.banklab.financeContents.mapper"})
 @ComponentScan(basePackages = {
         "com.banklab.member.service",
         "com.banklab.oauth.service",
         "com.banklab.oauth.client",
         "com.banklab.account.service",
-        "com.banklab.account.mapper"
+        "com.banklab.financeContents"
 })
 @EnableTransactionManagement
 public class RootConfig {
@@ -36,6 +34,11 @@ public class RootConfig {
     @Value("${jdbc.url}") String url;
     @Value("${jdbc.username}") String username;
     @Value(("${jdbc.password}")) String password;
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
 
     @Bean
     public DataSource dataSource() {

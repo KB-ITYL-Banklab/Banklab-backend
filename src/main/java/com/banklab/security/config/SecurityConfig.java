@@ -122,7 +122,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.GET, "/api/member/checkusername/**").permitAll()    // ID 중복 체크
                 .antMatchers(HttpMethod.GET, "/api/oauth/kakao/**").permitAll()
                 .anyRequest().authenticated(); // 모든 요청에 인증 필요
-
     }
 
 }
