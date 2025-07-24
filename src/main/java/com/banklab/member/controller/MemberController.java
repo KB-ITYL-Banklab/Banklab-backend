@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class MemberController {
     private final MemberService service;
     private final PasswordEncoder passwordEncoder;  // 비밀번호 암호화
+
     private final JwtProcessor jwtProcessor;
 
     // 회원가입 API

@@ -17,7 +17,7 @@ import java.util.Date;
 public class JwtProcessor {
 
     // 테스트용 5분 - 만료 확인용 (수정 필요!!)
-    static private final long TOKEN_VALID_MILLISECOND = 1000L * 60 * 5;
+    static private final long TOKEN_VALID_MILLISECOND = 1000L * 60 * 15;
 
     private final JwtKeyManager jwtKeyManager;
 
@@ -163,4 +163,3 @@ public class JwtProcessor {
     }
 
 }
-

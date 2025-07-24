@@ -44,6 +44,7 @@ public class MemberServiceImpl implements MemberService {
         mapper.insertAuth(auth);
 
         // 저장된 회원정보 반환
+
         return get(null, member.getEmail());
     }
 

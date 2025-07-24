@@ -1,8 +1,10 @@
 package com.banklab.codef.util;
 
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
 
 /**
  *	Codef 공식 상수 클래스
@@ -75,17 +77,37 @@ public class CommonConstant {
 
 
     /**	CODEF로부터 발급받은 클라이언트 아이디	*/
-    public static String CLIENT_ID ="client_id";
+    public static String CLIENT_ID;
 
     /**	CODEF로부터 발급받은 시크릿 키	*/
-    public static String SECERET_KEY ="seceret_key";
+    public static String SECRET_KEY;
 
     /**	CODEF로부터 발급받은 퍼블릭 키	*/
-    public static String PUBLIC_KEY ="public_key";
+    public static String PUBLIC_KEY;
 
     /**	OAUTH2.0 토큰 샘플	*/
-    public static String ACCESS_TOKEN ="access_token";
+    public static String ACCESS_TOKEN;
 
+    @Value("${codef.client-id}")
+    private String clientId;
+
+    @Value("${codef.secret-key}")
+    private String secretKey;
+
+    @Value("${codef.public-key}")
+    private String publicKey;
+
+    @Value("${codef.access-token}")
+    private String accessToken;
+
+    // PostConstruct로 static 필드에 값 할당
+    @PostConstruct
+    public void init() {
+        CLIENT_ID = this.clientId;
+        SECRET_KEY = this.secretKey;
+        PUBLIC_KEY = this.publicKey;
+        ACCESS_TOKEN = this.accessToken;
+    }
 
 
 }
