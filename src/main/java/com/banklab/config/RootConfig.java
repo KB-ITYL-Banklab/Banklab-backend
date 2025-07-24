@@ -20,13 +20,19 @@ import javax.sql.DataSource;
 @Configuration
 @PropertySource({"classpath:/application.properties"})
 @MapperScan(basePackages = {
+        "com.banklab.account.mapper",
         "com.banklab.member.mapper",
+        "com.banklab.financeContents",
         "com.banklab.typetest.mapper",
         "com.banklab.product.mapper",
         "com.banklab.risk.mapper"
 })
 @ComponentScan(basePackages = {
         "com.banklab.member.service",
+        "com.banklab.oauth.service",
+        "com.banklab.oauth.client",
+        "com.banklab.account.service",
+        "com.banklab.financeContents",
         "com.banklab.typetest",
         "com.banklab.product",
         "com.banklab.risk",
@@ -41,6 +47,11 @@ public class RootConfig {
     String username;
     @Value(("${jdbc.password}"))
     String password;
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
 
     @Bean
     public DataSource dataSource() {
@@ -62,17 +73,13 @@ public class RootConfig {
         SqlSessionFactoryBean sqlSessionFactory = new SqlSessionFactoryBean();
         sqlSessionFactory.setConfigLocation(applicationContext.getResource("classpath:/mybatis-config.xml"));
         sqlSessionFactory.setDataSource(dataSource());
-        return (SqlSessionFactory) sqlSessionFactory.getObject();
+        return sqlSessionFactory.getObject();
     }
 
     @Bean
     public DataSourceTransactionManager transactionManager() {
         return new DataSourceTransactionManager(dataSource());
     }
-    
-    @Bean
-    public RestTemplate restTemplate() {
-        return new RestTemplate();
-    }
+
 
 }

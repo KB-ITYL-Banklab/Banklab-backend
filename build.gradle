@@ -34,12 +34,19 @@ dependencies {
   implementation "org.springframework:spring-core:${springVersion}"
   implementation 'javax.inject:javax.inject:1'
 
+  //
+  implementation 'com.google.code.gson:gson:2.10.1'
 
   // 보안
   implementation("org.springframework.security:spring-security-web:${springSecurityVersion}")
   implementation("org.springframework.security:spring-security-config:${springSecurityVersion}")
   implementation("org.springframework.security:spring-security-core:${springSecurityVersion}")
   implementation("org.springframework.security:spring-security-taglibs:${springSecurityVersion}")
+
+  //Spring Security OAuth2
+  implementation 'org.springframework.security:spring-security-oauth2-client:5.7.3'
+  implementation 'org.springframework.security:spring-security-oauth2-jose:5.7.3'
+  implementation 'org.springframework.security:spring-security-oauth2-core:5.7.3'
 
 
   // swagger
@@ -113,6 +120,12 @@ dependencies {
   // HTTP Client for AI API calls
   implementation 'org.springframework:spring-web:5.3.37'
 
+  // HTTP 클라이언트 (네이버 API 연동용)
+  implementation 'org.apache.httpcomponents:httpclient:4.5.14'
+  
+  // 스케줄링
+  implementation("org.springframework:spring-context-support:${springVersion}")
+
   // 테스트
   testImplementation "org.springframework:spring-test:${springVersion}"
   testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
@@ -123,9 +136,17 @@ dependencies {
   testImplementation 'org.assertj:assertj-core:3.24.2'
   testImplementation 'org.mockito:mockito-core:5.2.0'
   testImplementation 'org.mockito:mockito-junit-jupiter:5.2.0'
+
+  // Hamcrest for MockMvc tests   // 테스트코드 관련
+  testImplementation 'org.hamcrest:hamcrest:2.2'
+  testImplementation 'org.hamcrest:hamcrest-library:2.2'
+
 }
 
 
 test {
-  useJUnitPlatform()
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
 }

@@ -3,6 +3,7 @@ package com.banklab.config;
 import com.banklab.product.batch.config.BatchConfig;
 import com.banklab.product.batch.config.SchedulerConfig;
 import com.banklab.security.config.SecurityConfig;
+
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
 public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitializer {
