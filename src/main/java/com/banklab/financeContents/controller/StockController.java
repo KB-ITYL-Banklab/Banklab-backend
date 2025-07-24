@@ -49,8 +49,9 @@ public class StockController {
         try {
             log.info("📊 차트용 주식 정보 조회 요청");
             
-            List<StockSecurityInfoDto> stockList = publicDataStockService.getStockPriceInfo(
-                    null, null, 20, 1);
+            List<StockSecurityInfoDto> stockList = publicDataStockService.getTopStocks(20);
+            
+            log.info("서비스에서 반환된 주식 데이터 수: {}", stockList != null ? stockList.size() : "null");
             
             if (stockList != null && !stockList.isEmpty()) {
                 List<Map<String, Object>> chartData = stockList.stream()
@@ -72,17 +73,20 @@ public class StockController {
                 log.info("✅ 차트용 주식 정보 조회 성공: {}개", chartData.size());
                 return ResponseEntity.ok(result);
             } else {
+                log.warn("⚠️ 주식 서비스에서 데이터를 가져오지 못했습니다");
                 Map<String, Object> errorResponse = new HashMap<>();
                 errorResponse.put("error", "조회된 데이터가 없습니다");
-                errorResponse.put("message", "최근 영업일 데이터를 찾을 수 없습니다");
-                return ResponseEntity.noContent().build();
+                errorResponse.put("message", "공공데이터 API 호출 실패 또는 데이터 없음");
+                errorResponse.put("service", "PublicDataStockService");
+                return ResponseEntity.status(503).body(errorResponse);
             }
         } catch (Exception e) {
             log.error("❌ 차트용 주식 정보 조회 실패: {}", e.getMessage(), e);
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", "서버 오류가 발생했습니다");
             errorResponse.put("message", e.getMessage());
-            return ResponseEntity.internalServerError().body(errorResponse);
+            errorResponse.put("service", "PublicDataStockService");
+            return ResponseEntity.status(500).body(errorResponse);
         }
     }
 }

@@ -25,7 +25,7 @@ import java.util.Map;
  * - 특정 금 상품 정보 조회 (상품코드 기반)
  * - 금 시세 목록 조회 (페이징 지원)
  * - 특정 날짜의 금 시세 조회
- * 
+ *
  * API 문서: Swagger UI에서 확인 가능
  * 기본 경로: /api/gold
  * 
@@ -59,8 +59,8 @@ public class GoldController {
         try {
             log.info("📊 차트용 금 시세 정보 조회 요청");
             
-            List<GoldPriceInfoDto> goldList = goldPriceService.getGoldPriceInfo(
-                    null, null, 10, 1);
+            List<GoldPriceInfoDto> goldList = goldPriceService.getLatestGoldPrices(10);
+            log.info("금 서비스 조회 결과: {}", goldList != null ? goldList.size() : "null");
             
             if (goldList != null && !goldList.isEmpty()) {
                 List<Map<String, Object>> chartData = goldList.stream()
@@ -81,17 +81,20 @@ public class GoldController {
                 log.info("✅ 차트용 금 시세 정보 조회 성공: {}개", chartData.size());
                 return ResponseEntity.ok(result);
             } else {
+                log.warn("⚠️ 금 시세 서비스에서 데이터를 가져오지 못했습니다");
                 Map<String, Object> errorResponse = new HashMap<>();
                 errorResponse.put("error", "조회된 데이터가 없습니다");
-                errorResponse.put("message", "최근 영업일 데이터를 찾을 수 없습니다");
-                return ResponseEntity.noContent().build();
+                errorResponse.put("message", "공공데이터 API 호출 실패 또는 데이터 없음");
+                errorResponse.put("service", "GoldPriceService");
+                return ResponseEntity.status(503).body(errorResponse);
             }
         } catch (Exception e) {
             log.error("❌ 차트용 금 시세 정보 조회 실패: {}", e.getMessage(), e);
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", "서버 오류가 발생했습니다");
             errorResponse.put("message", e.getMessage());
-            return ResponseEntity.internalServerError().body(errorResponse);
+            errorResponse.put("service", "GoldPriceService");
+            return ResponseEntity.status(500).body(errorResponse);
         }
     }
 }

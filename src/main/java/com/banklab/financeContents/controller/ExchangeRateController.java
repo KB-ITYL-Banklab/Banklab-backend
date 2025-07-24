@@ -65,17 +65,20 @@ public class ExchangeRateController {
                 log.info("✅ 차트용 환율 정보 조회 성공: {}개", chartData.size());
                 return ResponseEntity.ok(result);
             } else {
+                log.warn("⚠️ 환율 서비스에서 데이터를 가져오지 못했습니다");
                 Map<String, Object> errorResponse = new HashMap<>();
                 errorResponse.put("error", "조회된 데이터가 없습니다");
                 errorResponse.put("message", response.getMessage());
-                return ResponseEntity.noContent().build();
+                errorResponse.put("service", "ExchangeRateService");
+                return ResponseEntity.status(503).body(errorResponse);
             }
         } catch (Exception e) {
             log.error("❌ 차트용 환율 정보 조회 실패: {}", e.getMessage(), e);
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", "서버 오류가 발생했습니다");
             errorResponse.put("message", e.getMessage());
-            return ResponseEntity.internalServerError().body(errorResponse);
+            errorResponse.put("service", "ExchangeRateService");
+            return ResponseEntity.status(500).body(errorResponse);
         }
     }
 
