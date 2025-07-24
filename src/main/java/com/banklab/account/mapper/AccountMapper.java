@@ -46,4 +46,11 @@ public interface AccountMapper {
      */
     void deleteAccount(@Param("memberId") Long memberId, @Param("connectedId") String connectedId);
 
+    /**
+     * Select : username으로 memberId 조회 (JWT 토큰 인증용)
+     *
+     * @param username 사용자명
+     * @return memberId (Long)
+     */
+    Long getMemberIdByUsername(@Param("username") String username);
 }

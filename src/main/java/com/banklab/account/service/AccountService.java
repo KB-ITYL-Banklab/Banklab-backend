@@ -48,6 +48,13 @@ public interface AccountService {
      */
     public void deleteAccount(Long memberId, String connectedId);
 
-
+    /**
+     * 특정 사용자가 해당 connectedId를 소유하고 있는지 검증
+     *
+     * @param memberId : 유저아이디
+     * @param connectedId : 커넥티드 아이디
+     * @return 소유 여부 (true: 소유, false: 미소유)
+     */
+    public boolean isConnectedIdOwner(Long memberId, String connectedId);
 
 }

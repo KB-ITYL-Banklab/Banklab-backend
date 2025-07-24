@@ -19,7 +19,7 @@ public class CustomUser extends User {
 
     // MemberVO를 받는 생성자 - 실제로 주로 사용
     public CustomUser(MemberVO vo) {
-        super(vo.getUsername(),           // 사용자 ID
+        super(vo.getEmail(),           // 사용자 ID
                 vo.getPassword(),           // 암호화된 비밀번호
                 vo.getAuthList());          // 권한 목록 (List<AuthVO>)
 

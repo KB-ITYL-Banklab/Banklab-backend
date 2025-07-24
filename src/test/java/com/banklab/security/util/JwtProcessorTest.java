@@ -1,5 +1,6 @@
 package com.banklab.security.util;
 
+import com.banklab.config.RedisConfig;
 import com.banklab.config.RootConfig;
 import com.banklab.security.config.SecurityConfig;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -14,7 +15,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = { RootConfig.class, SecurityConfig.class })
+@ContextConfiguration(classes = { RootConfig.class, SecurityConfig.class, RedisConfig.class })
 @Log4j2
 class JwtProcessorTest {
 
@@ -70,6 +71,23 @@ class JwtProcessorTest {
         // Then
         assertEquals(username, extractedUsername);
         assertEquals(role, extractedRole);
+    }
+
+    @DisplayName("사용자명, 권한 추출 테스트")
+    @Test
+    void generateTokenWithId() {
+        String username = "testUser";
+        Long id = 1L;
+        String token = jwtProcessor.generateTokenWithId(username, id);
+
+        String extractedUsername = jwtProcessor.getUsername(token);
+        Long extractedId = jwtProcessor.getMemberId(token);
+        log.info("새로 생성한 토큰에서 추출한 : {}", extractedUsername);
+        log.info("새로 생성한 토큰에서 추출한 member_id: {}", extractedId);
+
+        // Then
+        assertEquals(username, extractedUsername);
+        assertEquals(id, extractedId);
     }
 
     @DisplayName("새로 생성된 토큰 검증 테스트")

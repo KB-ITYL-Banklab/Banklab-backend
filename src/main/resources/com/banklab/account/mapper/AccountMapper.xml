@@ -41,7 +41,7 @@
     </insert>
 
     <!-- 유저 아이디로 계좌 목록 조회 -->
-    <select id="selectAccountsByUserId" parameterType="long" resultMap="AccountMap">
+    <select id="selectAccountsByUserId" parameterType="Long" resultMap="AccountMap">
         SELECT *
         FROM account
         WHERE member_id = #{memberId}
@@ -62,4 +62,5 @@
         WHERE member_id = #{memberId}
           AND resAccount = #{resAccount}
     </update>
+
 </mapper>

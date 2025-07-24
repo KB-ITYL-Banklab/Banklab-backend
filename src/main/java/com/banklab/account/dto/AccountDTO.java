@@ -5,6 +5,8 @@ import lombok.Data;
 
 @Data
 public class AccountDTO {
+    public String connectedId;    // 삭제 요청 시 필요
+    public String organization;
     public String resAccount;
     public String resAccountName;
     public String resAccountDisplay;

@@ -2,7 +2,9 @@ package com.banklab.account.service;
 
 import com.banklab.account.domain.AccountVO;
 import com.banklab.account.dto.AccountDTO;
+import com.banklab.config.RedisConfig;
 import com.banklab.config.RootConfig;
+import com.banklab.security.config.SecurityConfig;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @ExtendWith(SpringExtension.class)
 @Log4j2
-@ContextConfiguration(classes = RootConfig.class)
+@ContextConfiguration(classes = {RootConfig.class, SecurityConfig.class, RedisConfig.class})
 class AccountServiceImplTest {
 
     @Autowired
