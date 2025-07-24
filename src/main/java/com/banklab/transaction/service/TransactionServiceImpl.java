@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -123,30 +124,20 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public SummaryDTO getSummary(Long memberId, Date startDate, Date endDate) {
 
-        List<AccountVO> accounts = accountMapper.selectAccountsByUserId(memberId);
-        List<String> accountList = accounts.stream()
-                .map(AccountVO::getResAccount)
-                .collect(Collectors.toList());
+        MonthlySummaryDTO monthlySummary = getMonthlySummary(memberId, startDate, endDate);
+        List<DailyExpenseDTO> dailyExpense = getDailyExpense(memberId, startDate, endDate);
+        List<WeeklyExpenseDTO> weeklyExpense = getWeeklyExpense(dailyExpense, startDate, endDate);
+        List<CategoryExpenseDTO> categoryExpense = getCategoryExpense(memberId, startDate, endDate);
 
+        AccountSummaryDTO summary = AccountSummaryDTO.builder()
+                .account("Total") // Aggregated data for the member
+                .monthlySummary(monthlySummary)
+                .dailyExpense(dailyExpense)
+                .weeklyExpense(weeklyExpense)
+                .categoryExpense(categoryExpense)
+                .build();
 
-        List<AccountSummaryDTO> accountSummaries = new ArrayList<>();
-
-        for(String account : accountList){
-            MonthlySummaryDTO monthlySummary = getMonthlySummary(startDate, endDate, account);
-            List<DailyExpenseDTO> dailyExpense = getDailyExpense(startDate, endDate, account);
-            List<WeeklyExpenseDTO> weeklyExpense = getWeeklyExpense(dailyExpense, startDate, endDate);
-            List<CategoryExpenseDTO> categoryExpense = getCategoryExpense(startDate, endDate, account);
-
-            AccountSummaryDTO summary = AccountSummaryDTO.builder()
-                    .account(account)
-                    .monthlySummary(monthlySummary)
-                    .dailyExpense(dailyExpense)
-                    .weeklyExpense(weeklyExpense)
-                    .categoryExpense(categoryExpense)
-                    .build();
-
-            accountSummaries.add(summary);
-        }
+        List<AccountSummaryDTO> accountSummaries = Collections.singletonList(summary);
 
         return SummaryDTO.builder()
                 .accountSummaries(accountSummaries)
@@ -156,12 +147,11 @@ public class TransactionServiceImpl implements TransactionService {
     /**
      * @param startDate 시작일
      * @param endDate   종료일
-     * @param account   계좌번호
      * @return 해당 월 총수입 & 지출
      */
     @Override
-    public MonthlySummaryDTO getMonthlySummary(Date startDate, Date endDate, String account) {
-        MonthlySummaryDTO monthlySummary = transactionMapper.getMonthlySummary(startDate, endDate, account);
+    public MonthlySummaryDTO getMonthlySummary(Long memberId, Date startDate, Date endDate) {
+        MonthlySummaryDTO monthlySummary = transactionMapper.getMonthlySummary(memberId, startDate, endDate);
         if (monthlySummary == null) {
             return new MonthlySummaryDTO();
         }
@@ -171,12 +161,11 @@ public class TransactionServiceImpl implements TransactionService {
     /**
      * @param startDate 시작일
      * @param endDate   종료일
-     * @param account   계좌번호
      * @return 일별 지출 내역 리스트
      */
     @Override
-    public List<DailyExpenseDTO> getDailyExpense(Date startDate, Date endDate, String account) {
-        return transactionMapper.getDailyExpense(startDate, endDate, account);
+    public List<DailyExpenseDTO> getDailyExpense(Long memberId, Date startDate, Date endDate) {
+        return transactionMapper.getDailyExpense(memberId, startDate, endDate);
     }
 
     /**
@@ -211,7 +200,7 @@ public class TransactionServiceImpl implements TransactionService {
             LocalDate localDate = toLocalDate(daily.getDate());
 
             // 월 정보 (예: "2025-07")
-            String yearMonth = daily.getYearMonth();
+            String yearMonth = localDate.format(DateTimeFormatter.ofPattern("yyyy-MM"));
 
             // 주차 초기화
             if (curWeek == null || localDate.isAfter(weekEnd)) {
@@ -272,8 +261,8 @@ public class TransactionServiceImpl implements TransactionService {
         return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
     }
 
-    public List<CategoryExpenseDTO> getCategoryExpense(Date startDate, Date endDate, String account) {
-        return transactionMapper.getExpensesByCategory(startDate, endDate, account);
+    public List<CategoryExpenseDTO> getCategoryExpense(Long memberId, Date startDate, Date endDate) {
+        return transactionMapper.getExpensesByCategory(memberId, startDate, endDate);
     }
 
 

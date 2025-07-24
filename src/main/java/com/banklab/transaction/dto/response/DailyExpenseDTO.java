@@ -11,6 +11,5 @@ import java.util.Date;
 public class DailyExpenseDTO {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
     private Date date;
-    private String yearMonth; // yyyy-MM
     private long totalExpense;
 }

@@ -40,7 +40,6 @@ public class TransactionApiController {
         return ResponseEntity.ok(response);
     }
 
-
     @GetMapping("/summary")
     public ResponseEntity<SummaryDTO> getSummary(
             @RequestParam Long memberId,
@@ -56,14 +55,16 @@ public class TransactionApiController {
             endDate = java.sql.Date.valueOf(now.withDayOfMonth(now.lengthOfMonth()));
         }
 
+         System.out.println(startDate+" "+endDate);
+
         return ResponseEntity.ok(transactionService.getSummary(memberId, startDate, endDate));
     }
 
+    /** getSumamry 통합 전 코드
     @GetMapping("/monthly-summary")
     public ResponseEntity<MonthlySummaryDTO> getMonthlySummary(
             @RequestParam("start") @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
             @RequestParam("end") @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
-            @RequestParam("account") String account
     ) {
         return ResponseEntity.ok(transactionService.getMonthlySummary(startDate,endDate, account));
     }
@@ -95,6 +96,7 @@ public class TransactionApiController {
 
         return transactionService.getCategoryExpense(startDate, endDate,account);
     }
+     */
 
 
 }

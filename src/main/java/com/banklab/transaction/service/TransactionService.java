@@ -27,7 +27,7 @@ public interface TransactionService {
     int getTransactions(long memberId, TransactionRequestDto request);
 
     public SummaryDTO getSummary(Long memberId, Date startDate, Date endDate);
-    public MonthlySummaryDTO getMonthlySummary(Date startDate, Date endDate, String account) ;
-    public List<DailyExpenseDTO> getDailyExpense(Date startDate, Date endDate, String account);
-    public List<CategoryExpenseDTO> getCategoryExpense(Date startDate, Date endDate, String account);
+    public MonthlySummaryDTO getMonthlySummary(Long memberId, Date startDate, Date endDate) ;
+    public List<DailyExpenseDTO> getDailyExpense(Long memberId, Date startDate, Date endDate);
+    public List<CategoryExpenseDTO> getCategoryExpense(Long memberId, Date startDate, Date endDate);
 }
