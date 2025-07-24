@@ -14,6 +14,9 @@
         <result property="productName" column="product_name"/>
         <result property="companyName" column="company_name"/>
         <result property="analyzedAt" column="evaluated_at"/>
+        <result property="dclsMonth" column="dcls_month"/>
+        <result property="finCoNo" column="fin_co_no"/>
+        <result property="finPrdtCd" column="fin_prdt_cd"/>
     </resultMap>
 
     <!-- 위험도 평가 저장 -->
@@ -59,7 +62,25 @@
                 WHEN prr.product_type = 'SAVINGS' THEN sp.kor_co_nm
                 WHEN prr.product_type = 'LOAN' THEN clp.kor_co_nm
                 WHEN prr.product_type = 'CREDIT_LOAN' THEN clp.kor_co_nm
-            END as company_name
+            END as company_name,
+            CASE
+                WHEN prr.product_type = 'DEPOSIT' THEN dp.dcls_month
+                WHEN prr.product_type = 'SAVINGS' THEN sp.dcls_month
+                WHEN prr.product_type = 'LOAN' THEN clp.dcls_month
+                WHEN prr.product_type = 'CREDIT_LOAN' THEN clp.dcls_month
+            END as dcls_month,
+            CASE
+                WHEN prr.product_type = 'DEPOSIT' THEN dp.fin_co_no
+                WHEN prr.product_type = 'SAVINGS' THEN sp.fin_co_no
+                WHEN prr.product_type = 'LOAN' THEN clp.fin_co_no
+                WHEN prr.product_type = 'CREDIT_LOAN' THEN clp.fin_co_no
+            END as fin_co_no,
+            CASE
+                WHEN prr.product_type = 'DEPOSIT' THEN dp.fin_prdt_cd
+                WHEN prr.product_type = 'SAVINGS' THEN sp.fin_prdt_cd
+                WHEN prr.product_type = 'LOAN' THEN clp.fin_prdt_cd
+                WHEN prr.product_type = 'CREDIT_LOAN' THEN clp.fin_prdt_cd
+            END as fin_prdt_cd
         FROM product_risk_rating prr
         LEFT JOIN deposit_product dp ON prr.product_type = 'DEPOSIT' AND prr.product_id = dp.id
         LEFT JOIN savings_product sp ON prr.product_type = 'SAVINGS' AND prr.product_id = sp.id
@@ -84,7 +105,25 @@
                 WHEN prr.product_type = 'SAVINGS' THEN sp.kor_co_nm
                 WHEN prr.product_type = 'LOAN' THEN clp.kor_co_nm
                 WHEN prr.product_type = 'CREDIT_LOAN' THEN clp.kor_co_nm
-            END as company_name
+            END as company_name,
+            CASE
+                WHEN prr.product_type = 'DEPOSIT' THEN dp.dcls_month
+                WHEN prr.product_type = 'SAVINGS' THEN sp.dcls_month
+                WHEN prr.product_type = 'LOAN' THEN clp.dcls_month
+                WHEN prr.product_type = 'CREDIT_LOAN' THEN clp.dcls_month
+            END as dcls_month,
+            CASE
+                WHEN prr.product_type = 'DEPOSIT' THEN dp.fin_co_no
+                WHEN prr.product_type = 'SAVINGS' THEN sp.fin_co_no
+                WHEN prr.product_type = 'LOAN' THEN clp.fin_co_no
+                WHEN prr.product_type = 'CREDIT_LOAN' THEN clp.fin_co_no
+            END as fin_co_no,
+            CASE
+                WHEN prr.product_type = 'DEPOSIT' THEN dp.fin_prdt_cd
+                WHEN prr.product_type = 'SAVINGS' THEN sp.fin_prdt_cd
+                WHEN prr.product_type = 'LOAN' THEN clp.fin_prdt_cd
+                WHEN prr.product_type = 'CREDIT_LOAN' THEN clp.fin_prdt_cd
+            END as fin_prdt_cd
         FROM product_risk_rating prr
         LEFT JOIN deposit_product dp ON prr.product_type = 'DEPOSIT' AND prr.product_id = dp.id
         LEFT JOIN savings_product sp ON prr.product_type = 'SAVINGS' AND prr.product_id = sp.id
@@ -131,7 +170,25 @@
                 WHEN prr.product_type = 'DEPOSIT' THEN dp.kor_co_nm
                 WHEN prr.product_type = 'SAVINGS' THEN sp.kor_co_nm
                 WHEN prr.product_type = 'LOAN' THEN clp.kor_co_nm
-            END as company_name
+            END as company_name,
+            CASE
+                WHEN prr.product_type = 'DEPOSIT' THEN dp.dcls_month
+                WHEN prr.product_type = 'SAVINGS' THEN sp.dcls_month
+                WHEN prr.product_type = 'LOAN' THEN clp.dcls_month
+                WHEN prr.product_type = 'CREDIT_LOAN' THEN clp.dcls_month
+            END as dcls_month,
+            CASE
+                WHEN prr.product_type = 'DEPOSIT' THEN dp.fin_co_no
+                WHEN prr.product_type = 'SAVINGS' THEN sp.fin_co_no
+                WHEN prr.product_type = 'LOAN' THEN clp.fin_co_no
+                WHEN prr.product_type = 'CREDIT_LOAN' THEN clp.fin_co_no
+            END as fin_co_no,
+            CASE
+                WHEN prr.product_type = 'DEPOSIT' THEN dp.fin_prdt_cd
+                WHEN prr.product_type = 'SAVINGS' THEN sp.fin_prdt_cd
+                WHEN prr.product_type = 'LOAN' THEN clp.fin_prdt_cd
+                WHEN prr.product_type = 'CREDIT_LOAN' THEN clp.fin_prdt_cd
+            END as fin_prdt_cd
         FROM product_risk_rating prr
         LEFT JOIN deposit_product dp ON prr.product_type = 'DEPOSIT' AND prr.product_id = dp.id
         LEFT JOIN savings_product sp ON prr.product_type = 'SAVINGS' AND prr.product_id = sp.id
