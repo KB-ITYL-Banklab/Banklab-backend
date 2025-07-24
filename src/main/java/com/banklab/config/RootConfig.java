@@ -19,11 +19,16 @@ import javax.sql.DataSource;
 
 @Configuration
 @PropertySource({"classpath:/application.properties"})
-@MapperScan(basePackages = {"com.banklab.account.mapper", "com.banklab.member.mapper"})
-@ComponentScan(basePackages = {"com.banklab.account.service",
+@MapperScan(basePackages = {
         "com.banklab.account.mapper",
-        "com.banklab.member.service",
         "com.banklab.member.mapper"
+})
+@ComponentScan(basePackages = {
+        "com.banklab.member.service",
+        "com.banklab.oauth.service",
+        "com.banklab.oauth.client",
+        "com.banklab.account.service",
+        "com.banklab.account.mapper"
 })
 @EnableTransactionManagement
 public class RootConfig {

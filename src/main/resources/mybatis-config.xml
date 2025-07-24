@@ -15,5 +15,7 @@
     <typeHandlers>
         <typeHandler handler="com.banklab.member.handler.GenderTypeHandler"
                      javaType="com.banklab.member.domain.Gender"/>
+        <typeHandler handler="com.banklab.oauth.handler.OAuthProviderTypeHandler"
+                    javaType="com.banklab.oauth.domain.OAuthProvider"/>
     </typeHandlers>
 </configuration>

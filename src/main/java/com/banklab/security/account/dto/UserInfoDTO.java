@@ -16,13 +16,7 @@ public class UserInfoDTO {
     private String email;
     private List<String> roles;
 
-    /**
-     * MemberVO에서 UserInfoDTO로 변환하는 팩토리 메서드
-     * @param member
-     * @return 변환된 UserInfoDTO
-     */
     public static UserInfoDTO of(MemberVO member) {
-
         return new UserInfoDTO(
                 member.getName(),
                 member.getEmail(),
