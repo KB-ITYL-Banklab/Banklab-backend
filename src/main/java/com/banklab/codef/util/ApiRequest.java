@@ -3,14 +3,18 @@ package com.banklab.codef.util;
 import com.banklab.codef.service.RequestToken;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.log4j.Log4j2;
 
 import java.io.IOException;
 import java.util.Map;
+import java.time.LocalDateTime;  // 추가
+import java.util.UUID;  // 추가
 
 
 /**
  * API 요청 템플릿 클래스
  */
+@Log4j2
 public class ApiRequest {
 
     private static final ObjectMapper mapper = new ObjectMapper();
@@ -31,7 +35,7 @@ public class ApiRequest {
 
         // 토큰이 없으면 액세스 토큰 새로 발급
         if (accessToken == null || accessToken.isEmpty()) {
-            accessToken = RequestToken.getAccessToken(CommonConstant.CLIENT_ID, CommonConstant.SECERET_KEY);
+            accessToken = RequestToken.getAccessToken(CommonConstant.CLIENT_ID, CommonConstant.SECRET_KEY);
             CommonConstant.ACCESS_TOKEN = accessToken;
         }
 
@@ -44,16 +48,18 @@ public class ApiRequest {
 
         // 유효성 검사
         if (json.has("error") && "invalid_token".equals(json.get("error").asText())) {
-            accessToken = RequestToken.getAccessToken(CommonConstant.CLIENT_ID, CommonConstant.SECERET_KEY);
+            accessToken = RequestToken.getAccessToken(CommonConstant.CLIENT_ID, CommonConstant.SECRET_KEY);
             CommonConstant.ACCESS_TOKEN = accessToken;
 
             json = (JsonNode) HttpRequest.post(urlPath, accessToken, bodyJson);
             result = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json);
 
+            log.info("재시도 완료");
+
         }
         else if (json.has("error") && "access_denied".equals(json.get("error").asText())) {
-            System.out.println("access_denied은 API 접근 권한이 없는 경우입니다.");
-            System.out.println("코드에프 대시보드의 API 설정을 통해 해당 업무 접근 권한을 설정해야 합니다.");
+            log.info("access_denied은 API 접근 권한이 없는 경우입니다.");
+            log.info("코드에프 대시보드의 API 설정을 통해 해당 업무 접근 권한을 설정해야 합니다.");
         }
 
         return result;

@@ -23,7 +23,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         log.info("사용자 정보 조회: {}", username);
 
         // 데이터베이스에서 사용자 정보 조회
-        MemberVO vo = mapper.get(username);
+        MemberVO vo = mapper.get(null, username);
 
         // 사용자가 존재하지 않는 경우 예외 발생
         if(vo == null) {

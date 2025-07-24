@@ -1,6 +1,8 @@
 package com.banklab.account.service;
 
+import com.banklab.config.RedisConfig;
 import com.banklab.config.RootConfig;
+import com.banklab.security.config.SecurityConfig;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,13 +19,13 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @ExtendWith(SpringExtension.class)
 @Log4j2
-@ContextConfiguration(classes = RootConfig.class)
+@ContextConfiguration(classes = {RootConfig.class, SecurityConfig.class, RedisConfig.class})
 class AccountResponseTest {
 
     @Test
     void 계좌_연동_테스트() throws Exception {
         String connectedId = "발급된 커넥티드 아이디";
 
-        requestAccounts("test_id","0004", connectedId);
+        requestAccounts(1L,"0004", connectedId);
     }
 }

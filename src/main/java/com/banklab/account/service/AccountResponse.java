@@ -17,7 +17,9 @@ public class AccountResponse {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    public static List<AccountVO> requestAccounts(String userId, String bankCode, String connectedId) throws Exception {
+    public static List<AccountVO> requestAccounts(Long memberId, String bankCode, String connectedId) throws Exception {
+        log.info("계좌 정보 조회 요청 시작 - memberId: {}, 은행코드: {}, connectedId: {}", memberId, bankCode, connectedId);
+
         String urlPath = CommonConstant.TEST_DOMAIN + CommonConstant.KR_BK_1_P_001;
 
         HashMap<String, Object> bodyMap = new HashMap<String, Object>();
@@ -36,6 +38,7 @@ public class AccountResponse {
         JsonNode resDepositTrustNode = root.path("data").path("resDepositTrust");
 
         if (resDepositTrustNode.isMissingNode() || resDepositTrustNode.isNull()) {
+            log.error("resDepositTrust 데이터를 찾을 수 없습니다.");
             throw new RuntimeException("resDepositTrust 데이터를 찾을 수 없습니다.");
         }
 
@@ -56,10 +59,11 @@ public class AccountResponse {
             log.info("---");
 
             // DTO → VO 변환 (비즈니스 정보 추가)
-            AccountVO vo = accountDTO.toVO(userId, connectedId, bankCode);
+            AccountVO vo = accountDTO.toVO(memberId, connectedId, bankCode);
             accountVOList.add(vo);
         }
 
+        log.info("계좌 정보 조회 완료 - 총 {}개 계좌", accountVOList.size());
         return accountVOList;
     }
 }

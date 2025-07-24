@@ -22,13 +22,11 @@ import javax.sql.DataSource;
 @PropertySource({"classpath:/application.properties"})
 @MapperScan(basePackages = {"com.banklab.account.mapper", "com.banklab.member.mapper", "com.banklab.financeContents.mapper"})
 @ComponentScan(basePackages = {
-    "com.banklab.account.service",
-    "com.banklab.account.mapper",
-    "com.banklab.financeContents",
-    "com.banklab.member.service",
-    "com.banklab.member.mapper",
-    "com.banklab.security.service",
-    "com.banklab.codef"
+        "com.banklab.member.service",
+        "com.banklab.oauth.service",
+        "com.banklab.oauth.client",
+        "com.banklab.account.service",
+        "com.banklab.financeContents"
 })
 @EnableTransactionManagement
 public class RootConfig {
@@ -62,7 +60,7 @@ public class RootConfig {
         SqlSessionFactoryBean sqlSessionFactory = new SqlSessionFactoryBean();
         sqlSessionFactory.setConfigLocation(applicationContext.getResource("classpath:/mybatis-config.xml"));
         sqlSessionFactory.setDataSource(dataSource());
-        return (SqlSessionFactory) sqlSessionFactory.getObject();
+        return sqlSessionFactory.getObject();
     }
 
     @Bean
