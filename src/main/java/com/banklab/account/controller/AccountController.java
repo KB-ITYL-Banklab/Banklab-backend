@@ -7,6 +7,7 @@ import com.banklab.account.service.AccountResponse;
 import com.banklab.account.service.AccountService;
 import com.banklab.codef.service.RequestConnectedId;
 import com.banklab.security.util.JwtProcessor;
+import com.banklab.transaction.service.TransactionResponse;
 import com.banklab.transaction.service.TransactionService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -120,10 +121,6 @@ public class AccountController {
 
             // 2. 커넥티드 아이디로 계좌 정보 조회 및 DB 저장
             List<AccountVO> accountList = AccountResponse.requestAccounts(memberId, accountRequest.getBankCode(), userConnectedId);
-
-            
-            //3. 계좌 거래 내역 조회 API 호출
-            transactionService.getTransactions(memberId, null);
             int savedCount = accountService.saveAccounts(accountList);
 
             // 3. 저장된 계좌 정보 조회하여 반환
@@ -131,6 +128,9 @@ public class AccountController {
             response.put("connectedId", userConnectedId);
             response.put("savedCount", savedCount);
             response.put("accounts", accountDTOList);
+
+            transactionService.getTransactions(memberId, null);
+
 
             return ResponseEntity.ok(createSuccessResponse("계좌 연동이 완료되었습니다.", response, authInfo));
 

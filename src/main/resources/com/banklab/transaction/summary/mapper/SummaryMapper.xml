@@ -10,12 +10,13 @@
         SELECT
         member_id,
         category_id,
+        resAccount,
         DATE(transaction_date) as date,
         SUM(CASE WHEN resAccountOut > 0 THEN resAccountOut ELSE 0 END) AS total_expense,
         SUM(CASE WHEN resAccountIn > 0 THEN resAccountIn ELSE 0 END) AS total_income
         FROM transaction_history
         WHERE DATE(transaction_date) = #{targetDate}
-        GROUP BY member_id, category_id, DATE(transaction_date)
+        GROUP BY member_id, category_id,resAccount, DATE(transaction_date)
     </select>
 
     <select id="getLastSummaryDate" resultType="java.time.LocalDate">
@@ -24,9 +25,9 @@
 
     <insert id="upsertDailySummary" parameterType="com.banklab.transaction.summary.dto.DailySummaryDTO">
         INSERT INTO daily_user_expense_summary (
-            member_id, category_id, date, total_expense, total_income
+            member_id, category_id, date, total_expense, total_income, resAccount
         ) VALUES (
-                     #{memberId}, #{categoryId}, #{date}, #{totalExpense}, #{totalIncome}
+                     #{memberId}, #{categoryId}, #{date}, #{totalExpense}, #{totalIncome}, #{resAccount}
                  )
             ON DUPLICATE KEY UPDATE
                                  total_expense = VALUES(total_expense),

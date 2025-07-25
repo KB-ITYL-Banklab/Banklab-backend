@@ -9,6 +9,7 @@ import com.banklab.transaction.dto.request.TransactionDTO;
 import com.banklab.transaction.dto.request.TransactionRequestDto;
 import com.banklab.transaction.dto.response.*;
 import com.banklab.transaction.mapper.TransactionMapper;
+import com.banklab.transaction.summary.service.SummaryBatchService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 public class TransactionServiceImpl implements TransactionService {
     private final TransactionMapper transactionMapper;
     private final AccountMapper accountMapper;
+    private final SummaryBatchService summaryBatchService;
     private final Map<String, Long> categoryMap;
     private final PerplexityService perplexityService;
 
@@ -72,11 +74,15 @@ public class TransactionServiceImpl implements TransactionService {
                 transactions = TransactionResponse.requestTransactions(memberId,dto);
                 transactions = desTocategory(transactions);
             } catch (IOException | InterruptedException e) {
+                log.error("거래 내역 불러오는 중 오류 발생");
                 throw new RuntimeException(e);
             }
 
             // 3. db에 거래 내역 저장
             row += saveTransactionList(transactions);
+
+            // 4. 집계 테이블에 집계 정보 저장
+            summaryBatchService.initDailySummary(memberId);
         }
         return row;
     }
@@ -116,6 +122,8 @@ public class TransactionServiceImpl implements TransactionService {
      * @return 카테고리를 추가한 변환한 거래 내역 리스트
      */
     public List<TransactionHistoryVO> desTocategory(List<TransactionHistoryVO> transactions) {
+
+        log.info("카테고리 분류");
         List<String> desc = transactions.stream()
                 .map(TransactionHistoryVO::getDescription)
                 .collect(Collectors.toList());
