@@ -13,8 +13,10 @@ import java.util.List;
 
 public interface TransactionMapper {
     int saveTransaction(TransactionHistoryVO transaction);
+
     int saveTransactionList(List<TransactionHistoryVO> list);
-    LocalDate getLastTransactionDate(@Param("memberId") Long memberId, @Param("account") String account);
+
+    LocalDate getLastTransactionDate(@Param("memberId") Long memberId, @Param("resAccount") String resAccount);
 
 
     MonthlySummaryDTO getMonthlySummary(
@@ -32,9 +34,4 @@ public interface TransactionMapper {
             @Param("memberId") Long memberId,
             @Param("startDate") Date startDate,
             @Param("endDate") Date endDate);
-
-
-//    MonthlySummaryDTO getMonthlySummary(@Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("resAccount") String resAccount);
-//    List<DailyExpenseDTO> getDailyExpense(@Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("resAccount") String resAccount);
-//    List<CategoryExpenseDTO> getExpensesByCategory(@Param("startDate") Date startDate, @Param("endDate") Date endDate,@Param("resAccount") String resAccount);
 }

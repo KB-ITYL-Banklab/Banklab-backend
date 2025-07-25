@@ -31,7 +31,6 @@ import java.util.Map;
 public class AccountController {
 
     private final AccountService accountService;
-    private final TransactionService transactionService;
     private final JwtProcessor jwtProcessor;
 
     /**

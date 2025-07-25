@@ -1,10 +1,12 @@
 package com.banklab.security.service;
 
 import com.banklab.member.mapper.MemberMapper;
+import com.banklab.oauth.domain.OAuthProvider;
 import com.banklab.security.account.domain.CustomUser;
 import com.banklab.security.account.domain.MemberVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -30,7 +32,12 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new UsernameNotFoundException(username + "은 없는 id입니다.");
         }
 
-        log.info("조회된 사용자: {}", vo);
+        // 소셜 유저인 경우 로그인 차단 (고도화 시 사용)
+//        if (vo.getProvider() != OAuthProvider.LOCAL) {
+//            throw new BadCredentialsException("소셜 계정은 일반 로그인할 수 없습니다.");
+//        }
+
+        log.info("조회된 사용자: {}", vo.getEmail());
 
         // CustomUser 객체로 변환하여 반환
         return new CustomUser(vo);

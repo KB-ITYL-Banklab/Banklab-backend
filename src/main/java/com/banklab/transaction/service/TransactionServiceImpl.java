@@ -34,15 +34,11 @@ public class TransactionServiceImpl implements TransactionService {
     private final PerplexityService perplexityService;
 
 
-    @Override
-    public int saveTransaction(TransactionHistoryVO transaction) {
-        return transactionMapper.saveTransaction(transaction);
-    }
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     @Override
     public int saveTransactionList(List<TransactionHistoryVO> transactionVOList) {
         if(transactionVOList.isEmpty()){return 0;}
-
         return transactionMapper.saveTransactionList(transactionVOList);
     }
 
@@ -59,33 +55,34 @@ public class TransactionServiceImpl implements TransactionService {
      */
     public int getTransactions(long memberId, TransactionRequestDto request) {
         int row = 0;
-        // 1. 사용자의 전체 계좌 목록 가져오기
-        List<AccountVO> userAccounts = accountMapper.selectAccountsByUserId(memberId);
-
+        List<AccountVO> userAccounts= accountMapper.selectAccountsByUserId(memberId);
         //2. 계좌별 거래 내역 조회 api 호출
         for (AccountVO account : userAccounts) {
+
+            // 2-1. 해당 계좌의 거래 내역 존재 확인
+            LocalDate lastTransactionDate = transactionMapper.getLastTransactionDate(memberId, account.getResAccount());
+
+            // 2-2. 거래 내역이 존재하다면, 해당 날짜를 startDate로 설정
+            if(lastTransactionDate!=null){
+                if(request==null) request = new TransactionRequestDto();
+                request.setStartDate(lastTransactionDate.plusDays(1).format(formatter));
+            }
 
             TransactionDTO dto = makeTransactionDTO(account, request);
             List<TransactionHistoryVO> transactions;
             try {
-                log.info("CODEF API 호출 시작");
                 transactions = TransactionResponse.requestTransactions(memberId,dto);
-
-                log.info("생성된 거래 내역: {}", transactions.size());
-
-                log.info("카테고리 분류 함수 호출 시작");
                 transactions = desTocategory(transactions);
             } catch (IOException | InterruptedException e) {
                 log.error("거래 내역 불러오는 중 오류 발생");
                 throw new RuntimeException(e);
             }
-            
-            log.info("거래 내역 호출 완료, 저장 시작");
+
             // 3. db에 거래 내역 저장
             row += saveTransactionList(transactions);
 
             // 4. 집계 테이블에 집계 정보 저장
-            summaryBatchService.initDailySummary(memberId, account);
+            summaryBatchService.initDailySummary(memberId,account);
         }
         return row;
     }
@@ -96,30 +93,27 @@ public class TransactionServiceImpl implements TransactionService {
      * @param request 거래 내역 조회를 위한 요청 파라미터 (sDate, eDate, orderBy)
      * @return  거래 내역 조회를 위한 요청 DTO
      */
-    public TransactionDTO makeTransactionDTO(AccountVO account, TransactionRequestDto request){
-
+    private TransactionDTO makeTransactionDTO(AccountVO account, TransactionRequestDto request){
         if(request == null){
+            request = new TransactionRequestDto();
             LocalDate endDate   = LocalDate.now();
-            LocalDate startDate = endDate.minusYears(1);
+            LocalDate startDate = endDate.minusYears(2);
 
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+            request.setStartDate(startDate.format(formatter)); // "20190601" 형식
+            request.setEndDate(endDate.format(formatter));     // 오늘 날짜 형식
+            request.setOrderBy("0");
+        }
+        else{
+            if (request.getStartDate() == null || request.getStartDate().isEmpty()) {
+                LocalDate defaultStartDate = LocalDate.now().minusYears(2);
+                request.setStartDate(defaultStartDate.format(formatter));
+            }
+            if (request.getEndDate() == null || request.getEndDate().isEmpty()) {
+                LocalDate defaultEndDate = LocalDate.now();
+                request.setEndDate(defaultEndDate.format(formatter));
+            }
 
-            request = TransactionRequestDto.builder()
-                    .startDate(startDate.format(formatter))
-                    .endDate(endDate.format(formatter))
-                    .orderBy("0")
-                    .build();
-        } else {
-            // request가 null이 아니지만 개별 필드가 null일 경우 기본값 설정
-            if(request.getStartDate() == null || request.getStartDate().isEmpty()) {
-                LocalDate startDate = LocalDate.now().minusYears(2);
-                request.setStartDate(startDate.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-            }
-            if(request.getEndDate() == null || request.getEndDate().isEmpty()) {
-                LocalDate endDate = LocalDate.now();
-                request.setEndDate(endDate.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-            }
-            if(request.getOrderBy() == null || request.getOrderBy().isEmpty()) {
+            if (request.getOrderBy() == null || request.getOrderBy().isEmpty()) {
                 request.setOrderBy("0");
             }
         }
@@ -168,6 +162,13 @@ public class TransactionServiceImpl implements TransactionService {
      */
     @Override
     public SummaryDTO getSummary(Long memberId, Date startDate, Date endDate) {
+        LocalDate now = LocalDate.now();
+        if (startDate == null) {
+            startDate = java.sql.Date.valueOf(now.withDayOfMonth(1));
+        }
+        if (endDate == null) {
+            endDate = java.sql.Date.valueOf(now.withDayOfMonth(now.lengthOfMonth()));
+        }
 
         MonthlySummaryDTO monthlySummary = getMonthlySummary(memberId, startDate, endDate);
         List<DailyExpenseDTO> dailyExpense = getDailyExpense(memberId, startDate, endDate);

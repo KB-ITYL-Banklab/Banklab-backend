@@ -1,7 +1,6 @@
 package com.banklab.transaction.summary.batch.tasklet;
 
 import com.banklab.account.dto.AccountDTO;
-import com.banklab.account.mapper.AccountMapper;
 import com.banklab.account.service.AccountService;
 import com.banklab.member.mapper.MemberMapper;
 import com.banklab.member.service.MemberService;
@@ -33,6 +32,7 @@ public class FetchTransactionTasklet implements Tasklet {
     private final TransactionService transactionService;
     private final MemberMapper memberMapper;
     private final AccountService accountService;
+
     @Override
     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
         List<Long> allMemberIds = memberMapper.findAllMemberIds();
@@ -42,13 +42,14 @@ public class FetchTransactionTasklet implements Tasklet {
                     .map(AccountDTO::getResAccount)
                     .toList();
 
-            for(String account : accounts){
-                // 1. 특정 사용자의 특정 계좌 마지막 거래 내역 일자 구하기
+            for(String account: accounts){
+                // 1.사용자 별 마지막 거래 내역 일자 구하기
                 LocalDate lastTransactionDay = transactionService.getLastTransactionDay(memberId, account);
+
                 LocalDate lastDay;
                 LocalDate today =LocalDate.now();
 
-                // 2. 거래 내역이 없는 경우, 현재로부터 2년 전 내역부터 가져오기
+                // 2. 거래 내역이 없는 경우, 현재로부터 10년 전 내역부터 가져오기
                 lastDay = (lastTransactionDay!=null)
                         ?lastTransactionDay.plusDays(1)
                         :today.minusYears(2);

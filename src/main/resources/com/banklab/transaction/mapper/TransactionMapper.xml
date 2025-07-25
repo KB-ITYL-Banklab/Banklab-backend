@@ -111,7 +111,7 @@
 
     <select id="getLastTransactionDate" resultType="java.time.LocalDate">
         SELECT max(transaction_date) from transaction_history
-        WHERE member_id = #{memberId} and resAccount = #{account}
+        WHERE member_id = #{memberId} and resAccount=#{resAccount}
     </select>
 
 
