@@ -39,7 +39,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public int saveTransactionList(List<TransactionHistoryVO> transactionVOList) {
-        if(transactionVOList.size()==0){return 0;}
+        if(transactionVOList.isEmpty()){return 0;}
         try {
             log.info("샘플 거래 내역: {}", new ObjectMapper().writeValueAsString(transactionVOList.get(0)));
         } catch (JsonProcessingException e) {
@@ -64,23 +64,13 @@ public class TransactionServiceImpl implements TransactionService {
         // 1. 사용자의 전체 계좌 목록 가져오기
         List<AccountVO> userAccounts = accountMapper.selectAccountsByUserId(memberId);
 
-        //2. 계좌별 거래 내역 불러오기
+        //2. 계좌별 거래 내역 조회 api 호출
         for (AccountVO account : userAccounts) {
-            TransactionDTO dto = TransactionDTO.builder()
-                    .account(account.getResAccount())
-                    .organization(account.getOrganization())
-                    .connectedId(account.getConnectedId())
-                    .orderBy(request.getOrderBy())
-                    .startDate(request.getStartDate())
-                    .endDate(request.getEndDate())
-                    .build();
+            TransactionDTO dto = makeTransactionDTO(account, request);
             List<TransactionHistoryVO> transactions;
-
             try {
                 transactions = TransactionResponse.requestTransactions(memberId,dto);
                 transactions = desTocategory(transactions);
-
-
             } catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -89,6 +79,35 @@ public class TransactionServiceImpl implements TransactionService {
             row += saveTransactionList(transactions);
         }
         return row;
+    }
+
+    /**
+     *
+     * @param account 계좌 정보
+     * @param request 거래 내역 조회를 위한 요청 파라미터 (sDate, eDate, orderBy)
+     * @return  거래 내역 조회를 위한 요청 DTO
+     */
+    public TransactionDTO makeTransactionDTO(AccountVO account, TransactionRequestDto request){
+        if(request == null){
+            request = new TransactionRequestDto();
+            LocalDate endDate   = LocalDate.now();
+            LocalDate startDate = endDate.minusYears(5);
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+
+            request.setStartDate(startDate.format(formatter)); // "20190601" 형식
+            request.setEndDate(endDate.format(formatter));     // 오늘 날짜 형식
+            request.setOrderBy("0");
+        }
+
+        return TransactionDTO.builder()
+                .account(account.getResAccount())
+                .organization(account.getOrganization())
+                .connectedId(account.getConnectedId())
+                .orderBy(request.getOrderBy())
+                .startDate(request.getStartDate())
+                .endDate(request.getEndDate())
+                .build();
     }
 
     /**
