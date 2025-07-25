@@ -50,7 +50,7 @@ public class RiskAnalysisService {
                     BatchRiskAnalysisRequest request = requests.get(i);
                     RiskAnalysisResponse analysis = analysisResults.get(i);
 
-                    // 새로운 평가 생성
+                    // 새로운 평가 생성 (기본 정보만)
                     ProductRiskRating riskRating = ProductRiskRating.builder()
                             .productType(request.getProductType())
                             .productId(request.getProductId())

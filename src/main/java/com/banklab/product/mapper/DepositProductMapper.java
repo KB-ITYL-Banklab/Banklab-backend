@@ -17,7 +17,9 @@ public interface DepositProductMapper {
     DepositProduct findByProductKey(@Param("dclsMonth") String dclsMonth,
                                     @Param("finCoNo") String finCoNo,
                                     @Param("finPrdtCd") String finPrdtCd);
-
-
-
+    
+    /**
+     * ID로 상품 조회
+     */
+    DepositProduct findById(@Param("id") Long id);
 }
