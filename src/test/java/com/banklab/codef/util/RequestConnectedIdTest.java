@@ -30,11 +30,11 @@ class RequestConnectedIdTest {
         log.info("SECRET_KEY: " + CommonConstant.SECRET_KEY);
         log.info("PUBLIC_KEY: " + CommonConstant.PUBLIC_KEY);
 
-        String id = ""; // 은행 아이디
-        String password = ""; // 은행 비밀번호
+        String id = "2657884"; // 은행 아이디
+        String password = "dbwls66^^"; // 은행 비밀번호
 
 
-        String connected_id = RequestConnectedId.createConnectedId(id, password, "0270");
+        String connected_id = RequestConnectedId.createConnectedId(id, password, "0243");
         log.info("Connected ID: " + connected_id);
 
     }
@@ -46,5 +46,16 @@ class RequestConnectedIdTest {
 
         RequestConnectedId.deleteConnectedId(connected_id, bankCode);
 
+    }
+
+    @Test
+    void testRSAEncryption() {
+        try {
+            String result = RSAUtil.encryptRSA("test", CommonConstant.PUBLIC_KEY);
+            log.info("RSA 암호화 성공: {}", result);
+        } catch (Exception e) {
+            log.error("RSA 암호화 실패: {}", e.getMessage());
+            e.printStackTrace();
+        }
     }
 }
