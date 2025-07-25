@@ -17,5 +17,9 @@ public interface SavingsProductMapper {
     SavingsProduct findByProductKey(@Param("dclsMonth") String dclsMonth,
                                     @Param("finCoNo") String finCoNo,
                                     @Param("finPrdtCd") String finPrdtCd);
-
+    
+    /**
+     * ID로 상품 조회
+     */
+    SavingsProduct findById(@Param("id") Long id);
 }
