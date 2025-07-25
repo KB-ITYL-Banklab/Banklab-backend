@@ -37,7 +37,26 @@ public class SummaryBatchServiceImpl implements SummaryBatchService {
                 summaryMapper.upsertDailySummary(dailySummaryDTO);
                 log.info("DailySummary: {}", dailySummaryDTO);
             }
+        }
+    }
 
+    @Override
+    @Transactional
+    public void initDailySummary(Long memberId) {
+        // 1. 마지막 집계 일자 구하기
+        LocalDate lastSummaryDate = summaryMapper.getLastSummaryDate();
+        LocalDate lastDay;
+        LocalDate today = LocalDate.now();
+
+        // 2. 집계 데이터가 없는 경우, 현재로부터 10년 전 내역부터 가져오기
+        lastDay = (lastSummaryDate!=null)
+                ?lastSummaryDate.plusDays(1)
+                :today.minusYears(10);
+
+        // 3. 마지막 일부터 오늘까지 집계테이블 저장
+        while (!lastDay.isAfter(today)) {
+            aggregateDailySummary(lastDay);
+            lastDay = lastDay.plusDays(1);
         }
     }
 }
