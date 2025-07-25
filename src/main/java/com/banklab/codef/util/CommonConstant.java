@@ -38,6 +38,8 @@ public class CommonConstant {
     public static final String KR_BK_2_P_001	= "/v1/kr/bank2/p/account/account-list";                    // 저축은행 개인 보유계좌 조회
     public static final String KR_BK_2_P_002	= "/v1/kr/bank2/p/account/transaction-list";                // 저축은행 개인 수시입출 거래내역
 
+    public static final String KR_ST_1_P_001	= "v1/kr/stock/a/account/balance-inquiry";                  // 증권 주식잔고조회
+
     public static final String KR_CD_B_001	= "/v1/kr/card/b/account/card-list";                            // 카드 법인 보유카드
     public static final String KR_CD_B_002	= "/v1/kr/card/b/account/approval-list";                        // 카드 법인 승인내역
     public static final String KR_CD_B_003	= "/v1/kr/card/b/account/billing-list";                         // 카드 법인 청구내역
@@ -77,37 +79,39 @@ public class CommonConstant {
 
 
     /**	CODEF로부터 발급받은 클라이언트 아이디	*/
-    public static String CLIENT_ID;
+    public static String CLIENT_ID = "46c0a2da-ded2-4466-9440-dbf21e6699a3";
 
     /**	CODEF로부터 발급받은 시크릿 키	*/
-    public static String SECRET_KEY;
+    public static String SECRET_KEY = "cd812294-063b-4429-822f-cc562f551d06";
 
     /**	CODEF로부터 발급받은 퍼블릭 키	*/
-    public static String PUBLIC_KEY;
+    public static String PUBLIC_KEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5rr2LVqPWyNCSWFN4r6NQ4f7TLWE1ibn+NAXye6W2xRXdwYNHNXuAVIUZzDIlNaPnKQtV/tqFEgCak6wx1rldcx7ohQxoOSuNlQvCbEaNqu6Iqkz7frpcYZZ3GetJ9A7HUBfqBsuUBWzlbr2XVyiPTRw46StTAb/wauoGMk3AVjlR5XUrnIGvGP6AepKzgTn2F8fEsP011hlW6gzWW7TSWGNIO/YTGSqFA9jgSX0IMO8O2pEyRV7p+PM+66q0dKq4gwGak7YaAzxHqnfIBy4eQ7QQBYCW5gkFT3H5QYdZP0zMKHXAKLl2q2ghoh29tpw5J9rEJy8z8c34y2TJry0pQIDAQAB";
 
     /**	OAUTH2.0 토큰 샘플	*/
-    public static String ACCESS_TOKEN;
+    public static String ACCESS_TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXJ2aWNlX3R5cGUiOiIxIiwic2NvcGUiOlsicmVhZCJdLCJzZXJ2aWNlX25vIjoiMDAwMDA1NzY1MDAyIiwiZXhwIjoxNzUzNjY2NTAxLCJhdXRob3JpdGllcyI6WyJJTlNVUkFOQ0UiLCJQVUJMSUMiLCJCQU5LIiwiRVRDIiwiU1RPQ0siLCJDQVJEIl0sImp0aSI6IjBkMDdhY2EzLTNkNWEtNDRmZS1hMDI1LWEzM2U2ZGM4ZDA4ZCIsImNsaWVudF9pZCI6IjQ2YzBhMmRhLWRlZDItNDQ2Ni05NDQwLWRiZjIxZTY2OTlhMyJ9.f3uPAw6PHxBcXiRznrzOrd3A_vSzxL40TTUVCuL5vAScwJ8NAeNAj_4l1gxTfIJ4gHWL15vCQaObNE96QyWXL0O3QSPLFs_rvqd9fLOz5A6zYs6eyjD5wCeOYmtoAAClHVGkfnGxfOhnsnGVW436rnolcSdwR1EdE7ujSSQ0a__4zgvfwbWUtSJekArHX0OValZOC9Cjtk-cJGfc_qdBbGh0Sou2h2iwMQ2sRDS4B5rCXxivuOWfzQWZUeQ9biwSR20IQ-PI4Zm_p8-PG6AQf0-sc-6PxxCtLdnttK109yWG_XshdcfhZFc8xLwxRHyOvcBibZOcM6cnq8YhQuqw2A";
 
-    @Value("${codef.client-id}")
-    private String clientId;
 
-    @Value("${codef.secret-key}")
-    private String secretKey;
 
-    @Value("${codef.public-key}")
-    private String publicKey;
-
-    @Value("${codef.access-token}")
-    private String accessToken;
-
-    // PostConstruct로 static 필드에 값 할당
-    @PostConstruct
-    public void init() {
-        CLIENT_ID = this.clientId;
-        SECRET_KEY = this.secretKey;
-        PUBLIC_KEY = this.publicKey;
-        ACCESS_TOKEN = this.accessToken;
-    }
+    //@Value("${codef.client-id}")
+    //private String clientId;
+    //
+    //@Value("${codef.secret-key}")
+    //private String secretKey;
+    //
+    //@Value("${codef.public-key}")
+    //private String publicKey;
+    //
+    //@Value("${codef.access-token}")
+    //private String accessToken;
+    //
+    //// PostConstruct로 static 필드에 값 할당
+    //@PostConstruct
+    //public void init() {
+    //    CLIENT_ID = this.clientId;
+    //    SECRET_KEY = this.secretKey;
+    //    PUBLIC_KEY = this.publicKey;
+    //    ACCESS_TOKEN = this.accessToken;
+    //}
 
 
 }
