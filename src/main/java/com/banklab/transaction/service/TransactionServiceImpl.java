@@ -34,25 +34,17 @@ public class TransactionServiceImpl implements TransactionService {
     private final PerplexityService perplexityService;
 
 
-    @Override
-    public int saveTransaction(TransactionHistoryVO transaction) {
-        return transactionMapper.saveTransaction(transaction);
-    }
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     @Override
     public int saveTransactionList(List<TransactionHistoryVO> transactionVOList) {
         if(transactionVOList.isEmpty()){return 0;}
-        try {
-            log.info("샘플 거래 내역: {}", new ObjectMapper().writeValueAsString(transactionVOList.get(0)));
-        } catch (JsonProcessingException e) {
-            log.error("Json Processing Exception", e);
-        }
         return transactionMapper.saveTransactionList(transactionVOList);
     }
 
     @Override
-    public LocalDate getLastTransactionDay(Long memberId) {
-        return transactionMapper.getLastTransactionDate(memberId);
+    public LocalDate getLastTransactionDay(Long memberId, String account) {
+        return transactionMapper.getLastTransactionDate(memberId, account);
     }
 
     /**
@@ -63,11 +55,19 @@ public class TransactionServiceImpl implements TransactionService {
      */
     public int getTransactions(long memberId, TransactionRequestDto request) {
         int row = 0;
-        // 1. 사용자의 전체 계좌 목록 가져오기
-        List<AccountVO> userAccounts = accountMapper.selectAccountsByUserId(memberId);
-
+        List<AccountVO> userAccounts= accountMapper.selectAccountsByUserId(memberId);
         //2. 계좌별 거래 내역 조회 api 호출
         for (AccountVO account : userAccounts) {
+            
+            // 2-1. 해당 계좌의 거래 내역 존재 확인
+            LocalDate lastTransactionDate = transactionMapper.getLastTransactionDate(memberId, account.getResAccount());
+
+            // 2-2. 거래 내역이 존재하다면, 해당 날짜를 startDate로 설정
+            if(lastTransactionDate!=null){
+                if(request==null) request = new TransactionRequestDto();
+                request.setStartDate(lastTransactionDate.plusDays(1).format(formatter));
+            }
+
             TransactionDTO dto = makeTransactionDTO(account, request);
             List<TransactionHistoryVO> transactions;
             try {
@@ -93,17 +93,29 @@ public class TransactionServiceImpl implements TransactionService {
      * @param request 거래 내역 조회를 위한 요청 파라미터 (sDate, eDate, orderBy)
      * @return  거래 내역 조회를 위한 요청 DTO
      */
-    public TransactionDTO makeTransactionDTO(AccountVO account, TransactionRequestDto request){
+    private TransactionDTO makeTransactionDTO(AccountVO account, TransactionRequestDto request){
         if(request == null){
             request = new TransactionRequestDto();
             LocalDate endDate   = LocalDate.now();
-            LocalDate startDate = endDate.minusYears(5);
-
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+            LocalDate startDate = endDate.minusYears(2);
 
             request.setStartDate(startDate.format(formatter)); // "20190601" 형식
             request.setEndDate(endDate.format(formatter));     // 오늘 날짜 형식
             request.setOrderBy("0");
+        }
+        else{
+            if (request.getStartDate() == null || request.getStartDate().isEmpty()) {
+                LocalDate defaultStartDate = LocalDate.now().minusYears(2);
+                request.setStartDate(defaultStartDate.format(formatter));
+            }
+            if (request.getEndDate() == null || request.getEndDate().isEmpty()) {
+                LocalDate defaultEndDate = LocalDate.now();
+                request.setEndDate(defaultEndDate.format(formatter));
+            }
+
+            if (request.getOrderBy() == null || request.getOrderBy().isEmpty()) {
+                request.setOrderBy("0");
+            }
         }
 
         return TransactionDTO.builder()
@@ -150,6 +162,13 @@ public class TransactionServiceImpl implements TransactionService {
      */
     @Override
     public SummaryDTO getSummary(Long memberId, Date startDate, Date endDate) {
+        LocalDate now = LocalDate.now();
+        if (startDate == null) {
+            startDate = java.sql.Date.valueOf(now.withDayOfMonth(1));
+        }
+        if (endDate == null) {
+            endDate = java.sql.Date.valueOf(now.withDayOfMonth(now.lengthOfMonth()));
+        }
 
         MonthlySummaryDTO monthlySummary = getMonthlySummary(memberId, startDate, endDate);
         List<DailyExpenseDTO> dailyExpense = getDailyExpense(memberId, startDate, endDate);

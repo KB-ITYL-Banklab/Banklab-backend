@@ -51,7 +51,7 @@ public class SummaryBatchServiceImpl implements SummaryBatchService {
         // 2. 집계 데이터가 없는 경우, 현재로부터 10년 전 내역부터 가져오기
         lastDay = (lastSummaryDate!=null)
                 ?lastSummaryDate.plusDays(1)
-                :today.minusYears(10);
+                :today.minusYears(2);
 
         // 3. 마지막 일부터 오늘까지 집계테이블 저장
         while (!lastDay.isAfter(today)) {

@@ -14,23 +14,19 @@ import java.util.Date;
 import java.util.List;
 
 public interface TransactionService {
-
-    /**
-     * CODEF API에서 불러온 계좌 거래 내역 저장
-     *
-     * @param transaction: 해당 계좌 거래 내역
-     * @return 저장된 거래 내역 수
-     */
-    int saveTransaction(TransactionHistoryVO transaction);
-
     int saveTransactionList(List<TransactionHistoryVO> transactionVOList);
-    LocalDate getLastTransactionDay(Long memberId);
 
-    TransactionDTO makeTransactionDTO(AccountVO account, TransactionRequestDto request);
+    LocalDate getLastTransactionDay(Long memberId, String account);
+
+    //    TransactionDTO makeTransactionDTO(AccountVO account, TransactionRequestDto request);
     int getTransactions(long memberId, TransactionRequestDto request);
 
-    public SummaryDTO getSummary(Long memberId, Date startDate, Date endDate);
-    public MonthlySummaryDTO getMonthlySummary(Long memberId, Date startDate, Date endDate) ;
-    public List<DailyExpenseDTO> getDailyExpense(Long memberId, Date startDate, Date endDate);
-    public List<CategoryExpenseDTO> getCategoryExpense(Long memberId, Date startDate, Date endDate);
+
+    SummaryDTO getSummary(Long memberId, Date startDate, Date endDate);
+
+    MonthlySummaryDTO getMonthlySummary(Long memberId, Date startDate, Date endDate);
+
+    List<DailyExpenseDTO> getDailyExpense(Long memberId, Date startDate, Date endDate);
+
+    List<CategoryExpenseDTO> getCategoryExpense(Long memberId, Date startDate, Date endDate);
 }
