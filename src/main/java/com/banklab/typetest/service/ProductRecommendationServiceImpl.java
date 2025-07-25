@@ -73,7 +73,11 @@ public class ProductRecommendationServiceImpl implements ProductRecommendationSe
                 .productName(rating.getProductName())
                 .companyName(rating.getCompanyName())
                 .riskLevel(rating.getRiskLevel())
-                .riskReason(rating.getRiskReason());
+                .riskReason(rating.getRiskReason())
+                .dclsMonth(rating.getDclsMonth())
+                .finCoNo(rating.getFinCoNo())
+                .finPrdtCd(rating.getFinPrdtCd());
+
         // 상품 타입별 추가 정보 설정
         enrichProductDetails(builder, rating);
         

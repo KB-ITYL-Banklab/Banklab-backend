@@ -23,6 +23,9 @@ public class ProductRiskRating {
     // 조회용 추가 필드들
     private String productName;
     private String companyName;
+    private String dclsMonth;
+    private String finCoNo;
+    private String finPrdtCd;
     private LocalDateTime analyzedAt; // evaluatedAt의 별칭
 }
 
