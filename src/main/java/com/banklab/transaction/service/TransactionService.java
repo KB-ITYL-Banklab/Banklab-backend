@@ -24,7 +24,7 @@ public interface TransactionService {
     int saveTransaction(TransactionHistoryVO transaction);
 
     int saveTransactionList(List<TransactionHistoryVO> transactionVOList);
-    LocalDate getLastTransactionDay(Long memberId);
+    LocalDate getLastTransactionDay(Long memberId, String account);
 
     TransactionDTO makeTransactionDTO(AccountVO account, TransactionRequestDto request);
     int getTransactions(long memberId, TransactionRequestDto request);

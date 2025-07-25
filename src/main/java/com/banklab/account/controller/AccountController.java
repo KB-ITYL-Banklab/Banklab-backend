@@ -129,9 +129,6 @@ public class AccountController {
             response.put("savedCount", savedCount);
             response.put("accounts", accountDTOList);
 
-            transactionService.getTransactions(memberId, null);
-
-
             return ResponseEntity.ok(createSuccessResponse("계좌 연동이 완료되었습니다.", response, authInfo));
 
         } catch (SecurityException e) {

@@ -5,11 +5,13 @@ import com.banklab.transaction.dto.request.TransactionRequestDto;
 import com.banklab.transaction.dto.response.DailyExpenseDTO;
 import com.banklab.transaction.dto.response.MonthlySummaryDTO;
 import com.banklab.transaction.dto.response.SummaryDTO;
+import com.banklab.transaction.service.TransactionService;
 import com.banklab.transaction.service.TransactionServiceImpl;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,7 +27,30 @@ import java.util.Map;
 @Log4j2
 public class TransactionApiController {
 
-    private final TransactionServiceImpl transactionService;
+
+    /**
+     * 표준화된 성공 응답 생성
+     */
+    private Map<String, Object> createSuccessResponse(String message, Object data) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", message);
+        response.put("data", data);
+        return response;
+    }
+
+    /**
+     * 표준화된 에러 응답 생성
+     */
+    private Map<String, Object> createErrorResponse(String message, String errorCode) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", false);
+        response.put("message", message);
+        response.put("error", errorCode);
+        return response;
+    }
+
+    private final TransactionService transactionService;
 
     @PostMapping("/transaction-list")
     @ApiOperation(value = "거래 내역 조회", notes = "사용자와 연동된 계좌 거래 내역 조회")
@@ -34,10 +59,36 @@ public class TransactionApiController {
             @RequestBody TransactionRequestDto request) {
         Map<String, Object> response = new HashMap<>();
 
-        int savedRows = transactionService.getTransactions(memberId, request);
+        try{
+            int savedRows = transactionService.getTransactions(memberId, request);
+            response.put("memberId", memberId);
+            response.put("savedRows", savedRows);
 
-        response.put("저장된 전체 거래 내역", savedRows);
-        return ResponseEntity.ok(response);
+            return ResponseEntity.ok(createSuccessResponse("거래 내역을 불러왔습니다.",response));
+        }catch (Exception e){
+            log.error("거래 내역 api 호출 중 오류 발생",e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(createErrorResponse("거래 내역을 불러오는 중 오류가 발생했습니다","INTERNAL_ERROR"));
+        }
+    }
+
+    @ApiOperation(value = "거래 내역 db 존재 유무 조회", notes = "사용자의 특정 계좌 거래 내역 db 확인")
+    @GetMapping("/transaction-list")
+    public ResponseEntity<Map<String, Object>> checkTransactionHisOfMember(
+            @RequestParam Long memberId,
+            @RequestParam String account){
+
+        Map<String, Object> response = new HashMap<>();
+        try{
+            LocalDate lastTransactionDay = transactionService.getLastTransactionDay(memberId, account);
+            response.put("lastDate", lastTransactionDay);
+
+            return ResponseEntity.ok(createSuccessResponse("거래 내역 db 조회 성공",response));
+        }catch (Exception e){
+            log.error("특정 계좌 거래 내역 db 조회 중 오류 발생",e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(createErrorResponse("거래 내역 db 조회 중 오류가 발생했습니다.","INTERNAL_ERROR"));
+        }
     }
 
     @GetMapping("/summary")

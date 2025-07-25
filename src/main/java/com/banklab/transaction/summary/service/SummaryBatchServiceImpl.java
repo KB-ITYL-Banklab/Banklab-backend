@@ -1,5 +1,6 @@
 package com.banklab.transaction.summary.service;
 
+import com.banklab.account.domain.AccountVO;
 import com.banklab.member.mapper.MemberMapper;
 import com.banklab.security.handler.LoginFailureHandler;
 import com.banklab.transaction.mapper.TransactionMapper;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -25,33 +27,38 @@ public class SummaryBatchServiceImpl implements SummaryBatchService {
     @Override
     @Transactional
     public void aggregateDailySummary(LocalDate targetDate) {
-        // 1. 모든 사용자  조회
+        // 1. 모든 사용자 조회
         List<Long> memberIdList = memberMapper.findAllMemberIds();
-
-        for (Long memberId: memberIdList) {
-            // 2. 각 사용자 + 카테고리별 지출/수입 합계 계산
+        
+        // 2. 모든 사용자의 일일 요약 데이터를 한 번에 수집
+        List<DailySummaryDTO> allDailySummaries = new ArrayList<>();
+        
+        for (Long memberId : memberIdList) {
+            // 각 사용자 + 카테고리별 지출/수입 합계 계산 (특정일)
             List<DailySummaryDTO> dailyCategorySummary = summaryMapper.getDailySummary(memberId, Date.valueOf(targetDate));
-
-            // 3. 받아온 데이터 집계 테이블에 저장
-            for (DailySummaryDTO dailySummaryDTO: dailyCategorySummary) {
-                summaryMapper.upsertDailySummary(dailySummaryDTO);
-                log.info("DailySummary: {}", dailySummaryDTO);
-            }
+            allDailySummaries.addAll(dailyCategorySummary);
+        }
+        
+        // 3. 배치로 한 번에 삽입
+        if (!allDailySummaries.isEmpty()) {
+            summaryMapper.batchUpsertDailySummary(allDailySummaries);
+            log.info("Batch inserted {} daily summaries for date: {}", allDailySummaries.size(), targetDate);
         }
     }
 
+    /**
+     * 첫 자산 연동 시 호출
+     * @param memberId
+     * @param account
+     */
     @Override
     @Transactional
-    public void initDailySummary(Long memberId) {
-        // 1. 마지막 집계 일자 구하기
-        LocalDate lastSummaryDate = summaryMapper.getLastSummaryDate();
-        LocalDate lastDay;
+    public void initDailySummary(Long memberId, AccountVO account) {
+        String accountNumber = account.getResAccount();
+        
+        // 첫 연동은 2년 전 ~ 현재 내역 요청
         LocalDate today = LocalDate.now();
-
-        // 2. 집계 데이터가 없는 경우, 현재로부터 10년 전 내역부터 가져오기
-        lastDay = (lastSummaryDate!=null)
-                ?lastSummaryDate.plusDays(1)
-                :today.minusYears(10);
+        LocalDate lastDay =today.minusYears(2);
 
         // 3. 마지막 일부터 오늘까지 집계테이블 저장
         while (!lastDay.isAfter(today)) {

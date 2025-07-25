@@ -8,8 +8,9 @@ import java.util.Date;
 import java.util.List;
 
 public interface SummaryMapper {
-    LocalDate getLastSummaryDate();
+    LocalDate getLastSummaryDate(String accountNumber);
     List<DailySummaryDTO> getDailySummary(@Param("memberId") Long memberId, @Param("targetDate") Date date);
     void upsertDailySummary(DailySummaryDTO dailySummary);
+    void batchUpsertDailySummary(List<DailySummaryDTO> dailySummaryList);
 
 }

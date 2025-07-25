@@ -42,17 +42,13 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public int saveTransactionList(List<TransactionHistoryVO> transactionVOList) {
         if(transactionVOList.isEmpty()){return 0;}
-        try {
-            log.info("샘플 거래 내역: {}", new ObjectMapper().writeValueAsString(transactionVOList.get(0)));
-        } catch (JsonProcessingException e) {
-            log.error("Json Processing Exception", e);
-        }
+
         return transactionMapper.saveTransactionList(transactionVOList);
     }
 
     @Override
-    public LocalDate getLastTransactionDay(Long memberId) {
-        return transactionMapper.getLastTransactionDate(memberId);
+    public LocalDate getLastTransactionDay(Long memberId, String account) {
+        return transactionMapper.getLastTransactionDate(memberId, account);
     }
 
     /**
@@ -68,21 +64,28 @@ public class TransactionServiceImpl implements TransactionService {
 
         //2. 계좌별 거래 내역 조회 api 호출
         for (AccountVO account : userAccounts) {
+
             TransactionDTO dto = makeTransactionDTO(account, request);
             List<TransactionHistoryVO> transactions;
             try {
+                log.info("CODEF API 호출 시작");
                 transactions = TransactionResponse.requestTransactions(memberId,dto);
+
+                log.info("생성된 거래 내역: {}", transactions.size());
+
+                log.info("카테고리 분류 함수 호출 시작");
                 transactions = desTocategory(transactions);
             } catch (IOException | InterruptedException e) {
                 log.error("거래 내역 불러오는 중 오류 발생");
                 throw new RuntimeException(e);
             }
-
+            
+            log.info("거래 내역 호출 완료, 저장 시작");
             // 3. db에 거래 내역 저장
             row += saveTransactionList(transactions);
 
             // 4. 집계 테이블에 집계 정보 저장
-            summaryBatchService.initDailySummary(memberId);
+            summaryBatchService.initDailySummary(memberId, account);
         }
         return row;
     }
@@ -94,16 +97,31 @@ public class TransactionServiceImpl implements TransactionService {
      * @return  거래 내역 조회를 위한 요청 DTO
      */
     public TransactionDTO makeTransactionDTO(AccountVO account, TransactionRequestDto request){
+
         if(request == null){
-            request = new TransactionRequestDto();
             LocalDate endDate   = LocalDate.now();
-            LocalDate startDate = endDate.minusYears(5);
+            LocalDate startDate = endDate.minusYears(1);
 
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
-            request.setStartDate(startDate.format(formatter)); // "20190601" 형식
-            request.setEndDate(endDate.format(formatter));     // 오늘 날짜 형식
-            request.setOrderBy("0");
+            request = TransactionRequestDto.builder()
+                    .startDate(startDate.format(formatter))
+                    .endDate(endDate.format(formatter))
+                    .orderBy("0")
+                    .build();
+        } else {
+            // request가 null이 아니지만 개별 필드가 null일 경우 기본값 설정
+            if(request.getStartDate() == null || request.getStartDate().isEmpty()) {
+                LocalDate startDate = LocalDate.now().minusYears(2);
+                request.setStartDate(startDate.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+            }
+            if(request.getEndDate() == null || request.getEndDate().isEmpty()) {
+                LocalDate endDate = LocalDate.now();
+                request.setEndDate(endDate.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+            }
+            if(request.getOrderBy() == null || request.getOrderBy().isEmpty()) {
+                request.setOrderBy("0");
+            }
         }
 
         return TransactionDTO.builder()

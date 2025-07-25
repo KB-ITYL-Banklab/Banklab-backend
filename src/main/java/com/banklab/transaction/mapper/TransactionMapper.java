@@ -5,6 +5,7 @@ import com.banklab.transaction.domain.TransactionHistoryVO;
 import com.banklab.transaction.dto.response.DailyExpenseDTO;
 import com.banklab.transaction.dto.response.MonthlySummaryDTO;
 import org.apache.ibatis.annotations.Param;
+import org.springframework.security.core.parameters.P;
 
 import java.time.LocalDate;
 import java.util.Date;
@@ -13,7 +14,7 @@ import java.util.List;
 public interface TransactionMapper {
     int saveTransaction(TransactionHistoryVO transaction);
     int saveTransactionList(List<TransactionHistoryVO> list);
-    LocalDate getLastTransactionDate(@Param("memberId") Long memberId);
+    LocalDate getLastTransactionDate(@Param("memberId") Long memberId, @Param("account") String account);
 
 
     MonthlySummaryDTO getMonthlySummary(
