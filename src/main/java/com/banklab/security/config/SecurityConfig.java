@@ -117,7 +117,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         // 기본 설정으로 시작 - 모든 요청에 인증 필요
         http.authorizeRequests() //  요청 권한 설정
-                .antMatchers(HttpMethod.GET, "/api/news/**").permitAll()  // 뉴스 API 공개
+                .antMatchers(HttpMethod.GET, "/api/news/**").permitAll()  // 경제뉴스 API 공개
+                .antMatchers(HttpMethod.GET, "/api/gold/**").permitAll()  // 금융차트 금 API 공개
+                .antMatchers(HttpMethod.GET, "/api/stocks/**").permitAll() // 금융차트 주식 API 공개
+                .antMatchers(HttpMethod.GET, "/api/upbit/**").permitAll() // 금융차트 가상화페 API 공개
+                .antMatchers(HttpMethod.GET, "/api/exchange/**").permitAll() // 금융차트 외환 API 공개
                 // 회원 관련 공개 API (인증 불필요)
                 .antMatchers(HttpMethod.POST, "/api/member").permitAll()                    // 회원가입
                 .antMatchers(HttpMethod.GET, "/api/member/checkusername/**").permitAll()    // ID 중복 체크
