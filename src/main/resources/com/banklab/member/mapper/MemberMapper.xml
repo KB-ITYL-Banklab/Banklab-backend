@@ -24,7 +24,7 @@
     </resultMap>
     <!-- 회원 정보 조회 (LEFT JOIN으로 권한 정보 포함) -->
     <select id="get" resultMap="memberMap">
-        SELECT m.member_id, email, password, name, phone, gender, birth_date, reg_date, update_date, auth
+        SELECT m.member_id, email, password, name, phone, gender, birth_date, provider, reg_date, update_date, auth
         FROM
             member m
                 LEFT OUTER JOIN member_auth a
