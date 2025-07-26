@@ -97,7 +97,7 @@ public class TransactionServiceImpl implements TransactionService {
         if(request == null){
             request = new TransactionRequestDto();
             LocalDate endDate   = LocalDate.now();
-            LocalDate startDate = endDate.minusYears(5);
+            LocalDate startDate = endDate.minusYears(2);
 
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
