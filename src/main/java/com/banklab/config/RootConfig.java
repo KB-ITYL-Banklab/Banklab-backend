@@ -47,7 +47,9 @@ import java.util.stream.Collectors;
         "com.banklab.transaction.service",
         "com.banklab.transaction",
         "com.banklab.category",
-        "com.banklab.perplexity"
+        "com.banklab.perplexity",
+        "com.banklab.verification.service",
+        "com.banklab.common.redis"
 })
 @EnableTransactionManagement
 public class RootConfig {
