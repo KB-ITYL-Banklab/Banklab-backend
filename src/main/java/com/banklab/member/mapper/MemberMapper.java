@@ -15,4 +15,5 @@ public interface MemberMapper {
     int update(MemberVO member);
     MemberVO findByEmail(String email);
     MemberVO findByProviderAndProviderId(@Param("provider")OAuthProvider provider, @Param("providerId")Long providerId);
+    MemberVO findByPhone(String phone);
 }

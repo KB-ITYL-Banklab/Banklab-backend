@@ -54,7 +54,7 @@
         SELECT * FROM member WHERE email = #{email}
     </select>
     <select id="findByProviderAndProviderId" resultMap="memberMap">
-        SELECT email, password, name, phone, gender, birth_date, reg_date, update_date, auth
+        SELECT m.member_id, email, password, name, phone, gender, birth_date, reg_date, update_date, auth
         FROM
             member m
                 LEFT OUTER JOIN member_auth a
@@ -64,5 +64,8 @@
     </select>
     <select id="findAllMemberIds" resultType="java.lang.Long">
         select member_id from member;
+    </select>
+    <select id="findByPhone" resultType="MemberVO">
+        SELECT * FROM member WHERE phone = #{phone}
     </select>
 </mapper>
