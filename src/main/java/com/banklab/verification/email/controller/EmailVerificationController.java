@@ -1,5 +1,6 @@
 package com.banklab.verification.email.controller;
 
+import com.banklab.common.response.StatusResponse;
 import com.banklab.verification.email.dto.EmailSendDTO;
 import com.banklab.verification.email.dto.EmailVerifyDTO;
 import com.banklab.verification.email.service.EmailVerificationService;
@@ -20,15 +21,15 @@ public class EmailVerificationController {
 
     @PostMapping("/send")
     @ApiOperation(value = "인증번호 전송")
-    public ResponseEntity<String> sendCode(@RequestBody EmailSendDTO request) {
+    public ResponseEntity<StatusResponse> sendCode(@RequestBody EmailSendDTO request) {
         emailService.sendVerificationCode(request.getEmail());
-        return ResponseEntity.ok("이메일 전송 완료");
+        return ResponseEntity.ok(new StatusResponse(true,"이메일 전송 완료"));
     }
 
     @PostMapping("/verify")
     @ApiOperation(value = "인증번호 검증")
-    public ResponseEntity<String> verifyCode(@RequestBody EmailVerifyDTO request){
+    public ResponseEntity<StatusResponse> verifyCode(@RequestBody EmailVerifyDTO request){
         boolean success = emailService.verifyCode(request);
-        return ResponseEntity.ok(success ? "인증 성공" : "인증 실패");
+        return ResponseEntity.ok(new StatusResponse(success, success ? "인증 성공" : "인증 실패"));
     }
 }
