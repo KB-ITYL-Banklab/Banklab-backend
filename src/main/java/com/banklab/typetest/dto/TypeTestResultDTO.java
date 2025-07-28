@@ -18,6 +18,7 @@ public class TypeTestResultDTO {
     private String investmentTypeDesc;
     private String message;
     private List<RecommendedProductDTO> recommendedProducts;
+
     public static TypeTestResultDTO success(Long userId, Long investmentTypeId, String investmentTypeName, String investmentTypeDesc, String message) {
         return TypeTestResultDTO.builder()
                 .userId(userId)

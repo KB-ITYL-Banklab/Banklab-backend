@@ -9,6 +9,6 @@ public class Question {
     private String questionText;
     private String choiceAText;
     private String choiceBText;
-    private QuestionType questionType;  // 질문 유형 추가
+    private QuestionType questionType;  // 질문 유형
     private Boolean isBlocking;         // 제한 여부
 }

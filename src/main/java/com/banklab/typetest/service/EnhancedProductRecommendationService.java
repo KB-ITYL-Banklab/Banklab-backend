@@ -37,6 +37,11 @@ public class EnhancedProductRecommendationService {
 
     /**
      * 메인 추천 메서드: 기존 추천 상품에서 사용자 프로필 기반 Best 4 선별
+     *
+     * @param investmentTypeId 투자 유형 ID
+     * @param constraints 사용자 제약조건 리스트
+     * @param userProfile 사용자 투자 프로필
+     * @return 최적화된 추천 상품 리스트
      */
     public List<RecommendedProductDTO> getFilteredRecommendedProducts(
             Long investmentTypeId,
@@ -47,25 +52,25 @@ public class EnhancedProductRecommendationService {
             log.info("맞춤형 상품 추천 시작 - 투자유형: {}, 제약조건: {}, 프로필: {}",
                     investmentTypeId, constraints, userProfile);
 
-            // 1. 기존 추천 시스템에서 상품 목록 가져오기
+            // 기존 추천 시스템에서 상품 목록 가져오기
             List<RecommendedProductDTO> baseRecommendations = fallbackRecommendationService.getRecommendedProducts(investmentTypeId);
             log.info("기존 추천 상품 수: {}", baseRecommendations.size());
 
-            // 2. 하드 제약조건 적용 (절대적 필터링)
+            // 하드 제약조건 적용 (절대적 필터링)
             List<RecommendedProductDTO> constraintFiltered = applyConstraintsToRecommendations(baseRecommendations, constraints);
             log.info("제약조건 적용 후: {}", constraintFiltered.size());
 
-            // 3. 4개 이하면 그대로 반환
+            // 4개 이하일 경우 그대로 반환
             if (constraintFiltered.size() <= 4) {
                 log.info("필터링 후 4개 이하이므로 전체 반환: {}", constraintFiltered.size());
                 return constraintFiltered;
             }
 
-            // 4. AI 기반 최적 4개 선별 (API 키가 있을 때만)
+            // AI 기반 최적 4개 선별 (API 키가 있을 때만)
             if (apiKey != null && !apiKey.trim().isEmpty()) {
                 return selectBest4WithAI(constraintFiltered, userProfile, constraints, investmentTypeId);
             } else {
-                // 5. AI 없을 때는 규칙 기반 선별
+                // AI 없을 때는 규칙 기반 선별
                 return selectBest4WithRules(constraintFiltered, userProfile, constraints);
             }
 
@@ -77,6 +82,10 @@ public class EnhancedProductRecommendationService {
 
     /**
      * 하드 제약조건 적용 (절대적 필터링)
+     *
+     * @param recommendations 추천 상품 리스트
+     * @param constraints 사용자 제약조건 리스트
+     * @return 필터링된 추천 상품 리스트
      */
     private List<RecommendedProductDTO> applyConstraintsToRecommendations(
             List<RecommendedProductDTO> recommendations,
@@ -89,7 +98,7 @@ public class EnhancedProductRecommendationService {
 
         List<RecommendedProductDTO> filtered = recommendations.stream()
                 .filter(product -> {
-                    // 필터링 조건 추가
+                    // 고위험 상품 제외 조건
                     if (constraints.contains(ConstraintType.HIGH_RISK_FORBIDDEN) &&
                         "HIGH".equals(product.getRiskLevel())) {
                         log.debug("고위험 상품 제외: {}", product.getProductName());
@@ -105,6 +114,12 @@ public class EnhancedProductRecommendationService {
 
     /**
      * AI 기반 최적 4개 선별
+     *
+     * @param filteredProducts 필터링된 추천 상품 리스트
+     * @param userProfile 사용자 투자 프로필
+     * @param constraints 사용자 제약조건 리스트
+     * @param investmentTypeId 투자 유형 ID
+     * @return 최적화된 추천 상품 리스트
      */
     private List<RecommendedProductDTO> selectBest4WithAI(
             List<RecommendedProductDTO> filteredProducts,
@@ -138,6 +153,11 @@ public class EnhancedProductRecommendationService {
 
     /**
      * 규칙 기반 최적 4개 선별 (AI 대안)
+     *
+     * @param filteredProducts 필터링된 추천 상품 리스트
+     * @param userProfile 사용자 투자 프로필
+     * @param constraints 사용자 제약조건 리스트
+     * @return 최적화된 추천 상품 리스트
      */
     private List<RecommendedProductDTO> selectBest4WithRules(
             List<RecommendedProductDTO> filteredProducts,
@@ -146,42 +166,17 @@ public class EnhancedProductRecommendationService {
 
         log.info("규칙 기반 상품 선별 시작");
 
-        // 1. 사용자 프로필에 따른 점수 계산
+        // 사용자 프로필에 따른 점수 계산
         List<ProductScore> scoredProducts = filteredProducts.stream()
                 .map(product -> new ProductScore(product, calculateScore(product, userProfile, constraints)))
                 .sorted((a, b) -> Double.compare(b.score, a.score))
                 .collect(Collectors.toList());
 
-        // 2. 상위 4개 선택 (다양성 고려)
-        List<RecommendedProductDTO> selectedProducts = new ArrayList<>();
-        Set<String> selectedCompanies = new HashSet<>();
-        Set<ProductType> selectedTypes = new HashSet<>();
-
-        // 첫 번째 패스: 점수 순으로 다양성 고려하여 선택
-        for (ProductScore scored : scoredProducts) {
-            if (selectedProducts.size() >= 4) break;
-
-            RecommendedProductDTO product = scored.product;
-            boolean shouldSelect = selectedProducts.size() < 2 || // 처음 2개는 무조건 선택
-                    !selectedCompanies.contains(product.getCompanyName()) || // 다른 회사
-                    !selectedTypes.contains(product.getProductType()); // 다른 상품 타입
-
-            if (shouldSelect) {
-                selectedProducts.add(product);
-                selectedCompanies.add(product.getCompanyName());
-                if (product.getProductType() != null) {
-                    selectedTypes.add(product.getProductType());
-                }
-            }
-        }
-
-        // 두 번째 패스: 4개 미만이면 점수 순으로 채우기
-        for (ProductScore scored : scoredProducts) {
-            if (selectedProducts.size() >= 4) break;
-            if (!selectedProducts.contains(scored.product)) {
-                selectedProducts.add(scored.product);
-            }
-        }
+        // 상위 4개 선택
+        List<RecommendedProductDTO> selectedProducts = scoredProducts.stream()
+                .limit(4)
+                .map(ProductScore::getProduct)
+                .collect(Collectors.toList());
 
         log.info("규칙 기반 선별 완료: {} 개 상품", selectedProducts.size());
         return selectedProducts;
@@ -195,7 +190,7 @@ public class EnhancedProductRecommendationService {
 
         if (profile == null) return score;
 
-        // 1. 위험도 매칭 (가장 중요한 요소)
+        // 위험도 매칭 : 점수 조정
         if (product.getRiskLevel() != null) {
             if (profile.getLossToleranceRange() == RiskRange.LOW_RISK) {
                 if ("LOW".equals(product.getRiskLevel().name())) score += 20;
@@ -208,7 +203,7 @@ public class EnhancedProductRecommendationService {
             }
         }
 
-        // 2. 투자 우선순위 매칭
+        // 투자 우선순위 매칭
         if (profile.getPriority() == Priority.SAFETY) {
             if (product.getRiskLevel() != null && "LOW".equals(product.getRiskLevel().name())) score += 15;
             if (product.getProductType() == ProductType.DEPOSIT) score += 10;
@@ -216,14 +211,14 @@ public class EnhancedProductRecommendationService {
             if (product.getRiskLevel() != null && !"LOW".equals(product.getRiskLevel().name())) score += 10;
         }
 
-        // 3. 투자 방식 매칭
+        // 투자 방식 매칭
         if (profile.getInvestmentStyle() == InvestmentStyle.REGULAR) {
             if (product.getProductType() == ProductType.SAVINGS) score += 10;
         } else if (profile.getInvestmentStyle() == InvestmentStyle.LUMP_SUM) {
             if (product.getProductType() == ProductType.DEPOSIT) score += 10;
         }
 
-        // 4. 투자 기간 매칭 (간접적 추정)
+        // 투자 기간 매칭
         if (profile.getInvestmentPeriodRange() == PeriodRange.SHORT_TERM) {
             if (product.getProductType() == ProductType.DEPOSIT) score += 5;
         } else {
@@ -464,6 +459,10 @@ public class EnhancedProductRecommendationService {
         ProductScore(RecommendedProductDTO product, double score) {
             this.product = product;
             this.score = score;
+        }
+
+        RecommendedProductDTO getProduct() {
+            return product;
         }
     }
 }

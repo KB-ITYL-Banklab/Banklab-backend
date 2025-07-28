@@ -4,6 +4,7 @@
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.banklab.typetest.mapper.QuestionMapper">
+    <!-- 모든 질문을 조회하는 쿼리 -->
     <select id="getAllQuestions" resultType="com.banklab.typetest.domain.Question">
         SELECT
             id,
@@ -17,6 +18,7 @@
     </select>
     
     <select id="findById" resultType="com.banklab.typetest.domain.Question">
+        <!-- id로 질문을 조회하는 쿼리 -->
         SELECT
             id,
             question_text AS questionText,
