@@ -19,7 +19,7 @@ public interface TransactionService {
     LocalDate getLastTransactionDay(Long memberId, String account);
 
     //    TransactionDTO makeTransactionDTO(AccountVO account, TransactionRequestDto request);
-    int getTransactions(long memberId, TransactionRequestDto request);
+    void getTransactions(long memberId, TransactionRequestDto request);
 
 
     SummaryDTO getSummary(Long memberId, Date startDate, Date endDate);

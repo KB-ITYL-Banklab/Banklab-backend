@@ -10,17 +10,18 @@ import com.banklab.transaction.dto.request.TransactionRequestDto;
 import com.banklab.transaction.dto.response.*;
 import com.banklab.transaction.mapper.TransactionMapper;
 import com.banklab.transaction.summary.service.SummaryBatchService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,43 +49,58 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     /**
-     * 
      * @param memberId 사용자 id
      * @param request  거래 내역 조회를 위한 요청 파라미터
-     * @return  저장된 전체 거래 내역 개수
      */
-    public int getTransactions(long memberId, TransactionRequestDto request) {
-        int row = 0;
-        List<AccountVO> userAccounts= accountMapper.selectAccountsByUserId(memberId);
+    @Async
+    @Transactional
+    public void getTransactions(long memberId, TransactionRequestDto request) {
+        log.info("[START] 거래 내역 불러오기 시작 : Thread: {}",Thread.currentThread().getName());
+        List<AccountVO> userAccounts=new ArrayList<>();
+
+        if(request==null||request.getResAccount().isBlank()){
+            userAccounts= accountMapper.selectAccountsByUserId(memberId);
+        }else{
+            AccountVO account = accountMapper.getAccountByAccountNumber(request.getResAccount());
+            userAccounts.add(account);
+        }
+
         //2. 계좌별 거래 내역 조회 api 호출
         for (AccountVO account : userAccounts) {
 
             // 2-1. 해당 계좌의 거래 내역 존재 확인
-            LocalDate lastTransactionDate = transactionMapper.getLastTransactionDate(memberId, account.getResAccount());
-
-            // 2-2. 거래 내역이 존재하다면, 해당 날짜를 startDate로 설정
-            if(lastTransactionDate!=null){
-                if(request==null) request = new TransactionRequestDto();
-                request.setStartDate(lastTransactionDate.plusDays(1).format(formatter));
-            }
+            checkIsPresent(memberId, account, request);
 
             TransactionDTO dto = makeTransactionDTO(account, request);
             List<TransactionHistoryVO> transactions;
             try {
                 transactions = TransactionResponse.requestTransactions(memberId,dto);
-                transactions = desTocategory(transactions);
+                int saved = saveTransactionList(transactions);
             } catch (IOException | InterruptedException e) {
                 log.error("거래 내역 불러오는 중 오류 발생");
                 throw new RuntimeException(e);
             }
+            log.info("[END] 거래 내역 불러오기 종료: Thread: {}",Thread.currentThread().getName());
 
-            // 3. db에 거래 내역 저장
-            row += saveTransactionList(transactions);
+            // 3-1.비동기 카테고리 분류 처리
+            CompletableFuture<Object> categoryFuture = desTocategory(transactions);
 
-            // 4. 집계 테이블에 집계 정보 저장
+            // 3-2. 비동기 완료 대기
+            categoryFuture.join();
+
+            // 4. 카테고리 분류 완료 후 집계 수행
             summaryBatchService.initDailySummary(memberId,account);
         }
-        return row;
+    }
+
+    public void checkIsPresent(Long memberId, AccountVO account, TransactionRequestDto req){
+        LocalDate lastTransactionDate =
+                transactionMapper.getLastTransactionDate(memberId, account.getResAccount());
+
+        if(lastTransactionDate!=null){
+          if (req == null) req = new TransactionRequestDto();
+          req.setStartDate(lastTransactionDate.plusDays(1).format(formatter));
+        }
     }
 
     /**
@@ -130,12 +146,16 @@ public class TransactionServiceImpl implements TransactionService {
 
     /**
      * api의 description (상호명)을 바탕으로 카테고리 추가
+     *
      * @param transactions: 거래 내역 리스트
      * @return 카테고리를 추가한 변환한 거래 내역 리스트
      */
-    public List<TransactionHistoryVO> desTocategory(List<TransactionHistoryVO> transactions) {
+    @Async
+    @Transactional
+    public CompletableFuture<Object> desTocategory(List<TransactionHistoryVO> transactions) {
 
-        log.info("카테고리 분류");
+        log.info("[START] 카테고리 분류 시작 : Thread: {}",Thread.currentThread().getName());
+
         List<String> desc = transactions.stream()
                 .map(TransactionHistoryVO::getDescription)
                 .collect(Collectors.toList());
@@ -151,7 +171,10 @@ public class TransactionServiceImpl implements TransactionService {
             transactions.get(i).setCategory_id(categoryId);
         }
 
-        return transactions;
+        transactionMapper.updateCategories(transactions);
+        log.info("[END] 카테고리 분류 완료 : Thread: {}",Thread.currentThread().getName());
+
+        return CompletableFuture.completedFuture(null);
     }
 
     /**

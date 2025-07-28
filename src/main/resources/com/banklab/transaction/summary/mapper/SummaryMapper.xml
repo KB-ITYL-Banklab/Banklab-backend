@@ -16,12 +16,13 @@
         SUM(CASE WHEN resAccountIn > 0 THEN resAccountIn ELSE 0 END) AS total_income
         FROM transaction_history
         WHERE DATE(transaction_date) = #{targetDate}
+        AND member_id = #{memberId}
         GROUP BY member_id, category_id,resAccount, DATE(transaction_date)
     </select>
 
     <select id="getLastSummaryDate" resultType="java.time.LocalDate">
         SELECT MAX(date) from daily_user_expense_summary
-        WHERE resAccount = #{accountNumber};
+        WHERE resAccount = #{resAccount} and member_id = #{memberId};
     </select>
 
     <insert id="upsertDailySummary" parameterType="com.banklab.transaction.summary.dto.DailySummaryDTO">

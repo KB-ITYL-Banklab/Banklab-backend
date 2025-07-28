@@ -106,10 +106,8 @@ public class TransactionApiController {
 
             log.info("거래 내역 연동 시작 - username: {}, memberId: {}", username, memberId);
 
-            // 2. 거래 내역 조회 및 DB 저장
-            int savedTrHis = transactionService.getTransactions(memberId, dto);
-
-            response.put("savedTransactions", savedTrHis);
+            // 2. 거래 내역 조회 및 DB 저장 - 비동기 처리
+            transactionService.getTransactions(memberId, dto);
 
             return ResponseEntity.ok(createSuccessResponse("거래 내역 저장이 완료되었습니다.", response, authInfo));
         } catch (SecurityException e) {
@@ -140,6 +138,7 @@ public class TransactionApiController {
 
             log.info("집계 테이블 GET 시작 - username: {}, memberId: {}", username, memberId);
 
+            log.info("start - end {}-{}",startDate, endDate);
             // 2. 집계 테이블에 소비 분석 데이터 조회
             SummaryDTO summary = transactionService.getSummary(memberId, startDate, endDate);
             response.put("summaries", summary.getAccountSummaries());

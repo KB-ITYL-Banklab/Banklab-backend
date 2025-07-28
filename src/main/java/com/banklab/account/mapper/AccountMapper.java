@@ -3,6 +3,7 @@ package com.banklab.account.mapper;
 import com.banklab.account.domain.AccountVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.springframework.security.core.parameters.P;
 
 import java.util.List;
 
@@ -53,4 +54,6 @@ public interface AccountMapper {
      * @return memberId (Long)
      */
     Long getMemberIdByUsername(@Param("username") String username);
+
+    AccountVO getAccountByAccountNumber(@Param("account") String account);
 }

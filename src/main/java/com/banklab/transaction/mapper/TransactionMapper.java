@@ -17,7 +17,7 @@ public interface TransactionMapper {
     int saveTransactionList(List<TransactionHistoryVO> list);
 
     LocalDate getLastTransactionDate(@Param("memberId") Long memberId, @Param("resAccount") String resAccount);
-
+    void updateCategories(@Param("list")List<TransactionHistoryVO> transactions);
 
     MonthlySummaryDTO getMonthlySummary(
             @Param("memberId") Long memberId,

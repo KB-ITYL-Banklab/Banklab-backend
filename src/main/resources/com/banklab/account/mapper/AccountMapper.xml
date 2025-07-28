@@ -48,6 +48,12 @@
         ORDER BY created_at DESC
     </select>
 
+    <select id="getAccountByAccountNumber" resultMap="AccountMap">
+        SELECT *
+        FROM account
+        WHERE resAccount = #{account}
+    </select>
+
     <!-- 계좌 연결 해제-->
     <delete id="deleteAccount">
         DELETE FROM account

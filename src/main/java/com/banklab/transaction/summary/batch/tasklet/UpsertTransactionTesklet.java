@@ -51,7 +51,7 @@ public class UpsertTransactionTesklet implements Tasklet {
 
         // 3. 마지막 일부터 오늘까지 집계테이블 저장
         while (!lastDay.isAfter(today)) {
-            summaryBatchService.aggregateDailySummary(lastDay);
+            summaryBatchService.aggregateDailySummary(lastDay,null);
             lastDay = lastDay.plusDays(1);
         }
         return RepeatStatus.FINISHED;
