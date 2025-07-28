@@ -2,10 +2,10 @@ package com.banklab.member.service;
 
 import com.banklab.common.redis.RedisKeyUtil;
 import com.banklab.member.dto.MemberDTO;
+import com.banklab.member.dto.MemberJoinDTO;
 import com.banklab.member.dto.MemberUpdateDTO;
 import com.banklab.member.exception.PasswordMissmatchException;
 import com.banklab.member.mapper.MemberMapper;
-import com.banklab.oauth.domain.OAuthProvider;
 import com.banklab.security.account.domain.AuthVO;
 import com.banklab.security.account.domain.MemberVO;
 import com.banklab.common.redis.RedisService;
@@ -38,26 +38,44 @@ public class MemberServiceImpl implements MemberService {
     // 회원 가입(선언적 트랜잭션 처리)
     @Transactional  // 트랜잭션 처리 보장
     @Override
-    public MemberDTO join(MemberVO member) {
-        if (member.getProvider() == OAuthProvider.LOCAL
-                && !redisService.isVerified(member.getPhone())) {
-            throw new IllegalStateException("전화번호 인증을 먼저 완료하세요.");
-        }
-        if (existsByPhone(member.getPhone())) {
+    public MemberDTO join(MemberJoinDTO dto) {
+        String email = dto.getEmail();
+        String phoneNum = dto.getPhone().replace("-", "");
+        // 이메일 & 전화번호 인증되었는지 확인
+        validateVerification(email, phoneNum);
+        if (existsByPhone(phoneNum)) {
             throw new IllegalStateException("이미 가입된 전화번호입니다.");
             //이미 가입된 계정이 있습니다. 로그인 화면으로 이동합니다.
         }
+        MemberDTO member = registerMember(dto.toVO(passwordEncoder));
+
+        // 인증상태 삭제 (가입 성공 여부와 상관없이 1회용 인증)
+        redisService.delete(RedisKeyUtil.verified(phoneNum));
+        redisService.delete(RedisKeyUtil.verified(email));
+
+        // 저장된 회원정보 반환
+        return member;
+    }
+
+    public MemberDTO registerMember(MemberVO member) {
         mapper.insert(member);
 
         // 권한정보 저장
         AuthVO auth = new AuthVO(member.getMemberId(), "ROLE_MEMBER");
         mapper.insertAuth(auth);
 
-        // 인증상태 삭제 (가입 성공 여부와 상관없이 1회용 인증)
-        redisService.delete(RedisKeyUtil.verified(member.getPhone()));
-
         // 저장된 회원정보 반환
         return get(null, member.getEmail());
+    }
+
+    // 이메일 & 전화번호 인증되었는지 확인
+    private void validateVerification(String email, String phone) {
+        if (!redisService.isVerified(email)) {
+            throw new IllegalStateException("이메일 인증을 먼저 완료하세요.");
+        }
+        if (!redisService.isVerified(phone)) {
+            throw new IllegalStateException("전화번호 인증을 먼저 완료하세요.");
+        }
     }
 
     private boolean existsByPhone(String phone) {

@@ -8,7 +8,6 @@ import com.banklab.security.util.JwtProcessor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -17,14 +16,13 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/member")
 public class MemberController {
     private final MemberService service;
-    private final PasswordEncoder passwordEncoder;  // 비밀번호 암호화
 
     private final JwtProcessor jwtProcessor;
 
     // 회원가입 API
     @PostMapping("")
     public ResponseEntity<MemberDTO> join(@RequestBody MemberJoinDTO member) {
-        return ResponseEntity.ok(service.join(member.toVO(passwordEncoder)));
+        return ResponseEntity.ok(service.join(member));
     }
 
     // ID(email) 중복 체크 API
