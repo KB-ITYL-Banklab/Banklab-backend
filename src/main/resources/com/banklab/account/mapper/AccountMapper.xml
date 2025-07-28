@@ -62,5 +62,22 @@
         WHERE member_id = #{memberId}
           AND resAccount = #{resAccount}
     </update>
-    
+
+
+    <!-- 계좌 ID와 회원 ID로 계좌 정보 조회 (소유권 검증) -->
+    <select id="selectAccountByIdAndMemberId" resultMap="AccountMap">
+        SELECT *
+        FROM account
+        WHERE id = #{accountId}
+          AND member_id = #{memberId}
+    </select>
+
+    <!-- 계좌 ID로 실제 계좌번호 조회 -->
+    <select id="getResAccountById" resultType="String">
+        SELECT resAccount
+        FROM account
+        WHERE id = #{accountId}
+          AND member_id = #{memberId}
+    </select>
+
 </mapper>

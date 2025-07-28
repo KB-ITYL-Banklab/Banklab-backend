@@ -22,7 +22,7 @@ public interface AccountMapper {
     int insertAccount(AccountVO accountVO);
 
     /**
-     * Select : userId에 해당하는 계좌를 조회
+     * Select : memberId에 해당하는 계좌를 조회
      *
      * @param memberId 서비스 유저 아이디
      * @return 계좌 리스트를 반환
@@ -53,4 +53,22 @@ public interface AccountMapper {
      * @return memberId (Long)
      */
     Long getMemberIdByUsername(@Param("username") String username);
+
+
+    /**
+     * 계좌 ID로 계좌 정보 조회 (소유권 검증용)
+     * @param accountId 계좌 ID (PK)
+     * @param memberId 회원 ID
+     * @return 계좌 정보 (소유자가 맞으면 반환, 아니면 null)
+     */
+    AccountVO selectAccountByIdAndMemberId(@Param("accountId") Long accountId, @Param("memberId") Long memberId);
+
+
+    /**
+     * 계좌 ID로 실제 계좌번호 조회
+     * @param accountId 계좌 ID (PK)
+     * @param memberId 회원 ID (소유권 검증용)
+     * @return 실제 계좌번호 (resAccount)
+     */
+    String getResAccountById(@Param("accountId") Long accountId, @Param("memberId") Long memberId);
 }

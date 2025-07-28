@@ -23,6 +23,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtProcessor jwtProcessor;
 
+    // 인증 성공 결과 생성
     private AuthResultDTO makeAuthResult(CustomUser user) {
         String email = user.getUsername();
         Long memberId = user.getMember().getMemberId();

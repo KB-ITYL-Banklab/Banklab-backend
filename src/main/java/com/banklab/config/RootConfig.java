@@ -1,5 +1,7 @@
 package com.banklab.config;
 
+import com.banklab.category.dto.CategoryDTO;
+import com.banklab.category.service.CategoryService;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -8,34 +10,59 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.*;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.web.client.RestTemplate;
 
 import javax.sql.DataSource;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Configuration
-@PropertySource({"classpath:/application.properties"})
+@PropertySources({
+        @PropertySource("classpath:/application.properties")})
 @MapperScan(basePackages = {
         "com.banklab.account.mapper",
-        "com.banklab.member.mapper"
+        "com.banklab.member.mapper",
+        "com.banklab.financeContents",
+        "com.banklab.typetest.mapper",
+        "com.banklab.product.mapper",
+        "com.banklab.risk.mapper",
+        "com.banklab.transaction.mapper",
+        "com.banklab.category.mapper",
+        "com.banklab.transaction.summary.mapper"
 })
 @ComponentScan(basePackages = {
         "com.banklab.member.service",
         "com.banklab.oauth.service",
         "com.banklab.oauth.client",
         "com.banklab.account.service",
-        "com.banklab.account.mapper"
+        "com.banklab.financeContents",
+        "com.banklab.typetest",
+        "com.banklab.product",
+        "com.banklab.risk",
+        "com.banklab.codef",
+        "com.banklab.transaction.service",
+        "com.banklab.transaction",
+        "com.banklab.category",
+        "com.banklab.perplexity"
 })
 @EnableTransactionManagement
 public class RootConfig {
-    @Value("${jdbc.driver}") String driver;
-    @Value("${jdbc.url}") String url;
-    @Value("${jdbc.username}") String username;
-    @Value(("${jdbc.password}")) String password;
+    @Value("${jdbc.driver}")
+    String driver;
+    @Value("${jdbc.url}")
+    String url;
+    @Value("${jdbc.username}")
+    String username;
+    @Value(("${jdbc.password}"))
+    String password;
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
 
     @Bean
     public DataSource dataSource() {
@@ -62,7 +89,17 @@ public class RootConfig {
 
     @Bean
     public DataSourceTransactionManager transactionManager() {
-        return new DataSourceTransactionManager(dataSource());
+        DataSourceTransactionManager manager = new DataSourceTransactionManager(dataSource());
+
+        return manager;
     }
+
+    @Bean(name = "categoryMap")
+    public Map<String, Long> categoryMap(CategoryService categoryService) {
+        return categoryService.findAll().stream()
+                .collect(Collectors.toMap(CategoryDTO::getName, CategoryDTO::getId));
+    }
+
+
 
 }

@@ -94,14 +94,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.addFilterBefore(encodingFilter(), CsrfFilter.class)
-            .addFilterBefore(authenticationErrorFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterBefore(jwtUsernamePasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(authenticationErrorFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtUsernamePasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         //예외 처리 설정
         http.exceptionHandling()
-            .authenticationEntryPoint(authenticationEntryPoint)
-            .accessDeniedHandler(accessDeniedHandler);
+                .authenticationEntryPoint(authenticationEntryPoint)
+                .accessDeniedHandler(accessDeniedHandler);
 
         //  HTTP 보안 설정
         http.httpBasic().disable()      // 기본 HTTP 인증 비활성화
@@ -111,12 +111,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);  // 무상태 모드
 
         // 소셜 로그인 설정
-        http.oauth2Login();
+        //http.oauth2Login();
 
         http.cors();
 
         // 기본 설정으로 시작 - 모든 요청에 인증 필요
         http.authorizeRequests() //  요청 권한 설정
+                .antMatchers(HttpMethod.GET, "/api/news/**").permitAll()  // 경제뉴스 API 공개
+                .antMatchers(HttpMethod.GET, "/api/gold/**").permitAll()  // 금융차트 금 API 공개
+                .antMatchers(HttpMethod.GET, "/api/stocks/**").permitAll() // 금융차트 주식 API 공개
+                .antMatchers(HttpMethod.GET, "/api/upbit/**").permitAll() // 금융차트 가상화페 API 공개
+                .antMatchers(HttpMethod.GET, "/api/exchange/**").permitAll() // 금융차트 외환 API 공개
+                .antMatchers(HttpMethod.GET, "/api/health/**").permitAll() // 금융차트  API 연결여부 공개
                 // 회원 관련 공개 API (인증 불필요)
                 .antMatchers(HttpMethod.POST, "/api/member").permitAll()                    // 회원가입
                 .antMatchers(HttpMethod.GET, "/api/member/checkusername/**").permitAll()    // ID 중복 체크

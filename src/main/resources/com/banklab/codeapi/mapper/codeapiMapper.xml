@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.codeapi.mapper.codeapiMapper">
+
+    <insert id="insertTransactions" parameterType="java.util.List">
+        INSERT INTO transaction_history (
+        resAccount,
+        transaction_date,
+        transaction_time,
+        resAccountOut,
+        resAccountIn,
+        resAfterTranBalance,
+        description,
+        category_id
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.resAccount},
+            STR_TO_DATE(#{item.transactionDate}, '%Y%m%d'),
+            TIME_FORMAT(#{item.transactionTime}, '%H%i%s'),
+            #{item.resAccountOut},
+            #{item.resAccountIn},
+            #{item.resAfterTranBalance},
+            #{item.description},
+            #{item.category_id}
+            )
+        </foreach>
+    </insert>
+    <select id="getTransactionList" resultType="com.banklab.codeapi.domain.TransactionHistoryVO"></select>
+
+
+    <select id="getTransactionSummary" resultType="java.util.Map">
+        SELECT
+            SUM(CASE WHEN res_account_out > 0 THEN res_account_out ELSE 0 END) AS totalExpense,
+            SUM(CASE WHEN res_account_in > 0 THEN res_account_in ELSE 0 END) AS totalIncome
+        FROM transaction_history
+        WHERE DATE_FORMAT(transaction_date, '%Y-%m') = #{targetMonth}
+    </select>
+
+</mapper>
