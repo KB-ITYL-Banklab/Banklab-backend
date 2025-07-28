@@ -5,6 +5,10 @@ public class RedisKeyUtil {
         return "sms:" + phone;
     }
 
+    public static String email(String email) {
+        return "email:" + email;
+    }
+
     public static String resend(String type) {
         return "resend:" + type;
     }

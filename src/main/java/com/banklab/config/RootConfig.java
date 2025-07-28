@@ -49,6 +49,7 @@ import java.util.stream.Collectors;
         "com.banklab.category",
         "com.banklab.perplexity",
         "com.banklab.verification.service",
+        "com.banklab.verification.email.service",
         "com.banklab.common.redis"
 })
 @EnableTransactionManagement
