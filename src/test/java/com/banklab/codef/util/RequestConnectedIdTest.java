@@ -34,7 +34,7 @@ class RequestConnectedIdTest {
         String password = "dbwls66^^"; // 은행 비밀번호
 
 
-        String connected_id = RequestConnectedId.createConnectedId(id, password, "0243");
+        String connected_id = RequestConnectedId.createConnectedId(id, password, "0243", "BK");
         log.info("Connected ID: " + connected_id);
 
     }
@@ -44,7 +44,7 @@ class RequestConnectedIdTest {
         String connected_id = "81NVpRPDQoy8jVmbx6HmP7"; // 커넥티드 아이디
         String bankCode = "0004"; // 기관코드(은행코드 ex. 0004)
 
-        RequestConnectedId.deleteConnectedId(connected_id, bankCode);
+        RequestConnectedId.deleteConnectedId(connected_id, bankCode, "BK");
 
     }
 

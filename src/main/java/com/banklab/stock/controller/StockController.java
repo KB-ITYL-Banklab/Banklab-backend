@@ -1,13 +1,11 @@
-package com.banklab.account.controller;
+package com.banklab.stock.controller;
 
-import com.banklab.account.domain.AccountVO;
-import com.banklab.account.dto.AccountDTO;
-import com.banklab.account.dto.AccountRequestDTO;
-import com.banklab.account.service.AccountResponse;
-import com.banklab.account.service.AccountService;
 import com.banklab.codef.service.RequestConnectedId;
 import com.banklab.security.util.JwtProcessor;
-import com.banklab.transaction.service.TransactionService;
+import com.banklab.stock.domain.StockVO;
+import com.banklab.stock.dto.StockRequestDTO;
+import com.banklab.stock.service.StockResponse;
+import com.banklab.stock.service.StockService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -21,16 +19,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 @Log4j2
 @RestController
-@RequestMapping("/api/account")
+@RequestMapping("/api/stock")
 @RequiredArgsConstructor
-@Api(tags = "계좌 관리 API")
-public class AccountController {
+@Api(tags = "증권 관리 API")
+public class StockController {
 
-    private final AccountService accountService;
-    private final TransactionService transactionService;
+    private final StockService stockService;
     private final JwtProcessor jwtProcessor;
 
     /**
@@ -67,7 +63,6 @@ public class AccountController {
         }
     }
 
-
     /**
      * 표준화된 성공 응답 생성
      */
@@ -92,16 +87,16 @@ public class AccountController {
         return response;
     }
 
+
     /**
-     * 은행 계좌 연동
+     * 증권계좌 연동
      */
     @PostMapping("/link")
-    @ApiOperation(value = "은행 계좌 연동", notes = "은행 로그인 정보로 계좌를 연동하고 DB에 저장.")
-    public ResponseEntity<Map<String, Object>> linkAccount(
+    @ApiOperation(value = "증권계좌 연동", notes = "증권사 로그인 정보로 계좌를 연동하고 보유종목을 DB에 저장.")
+    public ResponseEntity<Map<String, Object>> linkStock(
             HttpServletRequest request,
-            @RequestBody AccountRequestDTO accountRequest
+            @RequestBody StockRequestDTO stockRequest
     ) {
-
         Map<String, Object> response = new HashMap<>();
 
         try {
@@ -110,29 +105,28 @@ public class AccountController {
             Long memberId = (Long) authInfo.get("memberId");
             String username = (String) authInfo.get("username");
 
-            log.info("계좌 연동 시작 - username: {}, memberId: {}, bankCode: {}", username, memberId, accountRequest.getBankCode());
+            log.info("증권계좌 연동 시작 - username: {}, memberId: {}, stockCode: {}",
+                    username, memberId, stockRequest.getStockCode());
 
             // 1. 커넥티드 아이디 발급
             String userConnectedId = RequestConnectedId.createConnectedId(
-                    accountRequest.getBankId(),
-                    accountRequest.getBankPassword(),
-                    accountRequest.getBankCode(),
-                    "BK");
+                    stockRequest.getStockId(),
+                    stockRequest.getStockPassword(),
+                    stockRequest.getStockCode(),
+                    "ST");
 
-            // 2. 커넥티드 아이디로 계좌 정보 조회 및 DB 저장
-            List<AccountVO> accountList = AccountResponse.requestAccounts(memberId, accountRequest.getBankCode(), userConnectedId);
-            int savedCount = accountService.saveAccounts(accountList);
+            // 2. 커넥티드 아이디로 보유종목 정보 조회 및 DB 저장
+            List<StockVO> stockList = StockResponse.requestStocks(
+                    memberId, stockRequest.getStockCode(), userConnectedId, stockRequest.getAccount());
+            stockService.saveStocks(stockList);
 
-            // 3. 저장된 계좌 정보 조회하여 반환
-            List<AccountDTO> accountDTOList = accountService.getUserAccounts(memberId);
+            // 3. 저장된 보유종목 정보 조회하여 반환
+            List<StockVO> userStocks = stockService.getUserStocks(memberId);
             response.put("connectedId", userConnectedId);
-            response.put("savedCount", savedCount);
-            response.put("accounts", accountDTOList);
+            response.put("savedCount", stockList.size());
+            response.put("stocks", userStocks);
 
-            transactionService.getTransactions(memberId, null);
-
-
-            return ResponseEntity.ok(createSuccessResponse("계좌 연동이 완료되었습니다.", response, authInfo));
+            return ResponseEntity.ok(createSuccessResponse("증권계좌 연동이 완료되었습니다.", response, authInfo));
 
         } catch (SecurityException e) {
             log.error("인증 오류: {}", e.getMessage());
@@ -140,32 +134,32 @@ public class AccountController {
                     .body(createErrorResponse(e.getMessage(), "AUTHENTICATION_ERROR"));
 
         } catch (Exception e) {
-            log.error("계좌 연동 중 오류 발생", e);
+            log.error("증권계좌 연동 중 오류 발생", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse("계좌 연동 중 오류가 발생했습니다.", "INTERNAL_ERROR"));
+                    .body(createErrorResponse("증권계좌 연동 중 오류가 발생했습니다.", "INTERNAL_ERROR"));
         }
     }
 
     /**
-     * 사용자 계좌 목록 조회
+     * 사용자 보유종목 목록 조회
      */
     @GetMapping("/list")
-    @ApiOperation(value = "계좌 목록 조회", notes = "사용자의 연동된 계좌 목록을 조회.")
-    public ResponseEntity<Map<String, Object>> getUserAccounts(HttpServletRequest request) {
+    @ApiOperation(value = "보유종목 목록 조회", notes = "사용자의 연동된 증권계좌 보유종목을 조회.")
+    public ResponseEntity<Map<String, Object>> getUserStocks(HttpServletRequest request) {
         try {
             Map<String, Object> authInfo = extractAuthInfo(request);
             Long memberId = (Long) authInfo.get("memberId");
             String username = (String) authInfo.get("username");
 
-            log.info("계좌 목록 조회 - username: {}, memberId: {}", username, memberId);
+            log.info("보유종목 목록 조회 - username: {}, memberId: {}", username, memberId);
 
-            List<AccountDTO> accountList = accountService.getUserAccounts(memberId);
+            List<StockVO> stockList = stockService.getUserStocks(memberId);
 
             Map<String, Object> response = new HashMap<>();
-            response.put("accounts", accountList);
-            response.put("count", accountList.size());
+            response.put("stocks", stockList);
+            response.put("count", stockList.size());
 
-            return ResponseEntity.ok(createSuccessResponse("계좌 목록 조회 완료", response, authInfo));
+            return ResponseEntity.ok(createSuccessResponse("보유종목 목록 조회 완료", response, authInfo));
 
         } catch (SecurityException e) {
             log.error("인증 오류: {}", e.getMessage());
@@ -173,43 +167,43 @@ public class AccountController {
                     .body(createErrorResponse(e.getMessage(), "AUTHENTICATION_ERROR"));
 
         } catch (Exception e) {
-            log.error("계좌 목록 조회 중 오류 발생", e);
+            log.error("보유종목 목록 조회 중 오류 발생", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse("계좌 목록 조회 중 오류가 발생했습니다.", "INTERNAL_ERROR"));
+                    .body(createErrorResponse("보유종목 목록 조회 중 오류가 발생했습니다.", "INTERNAL_ERROR"));
         }
     }
 
     /**
-     * 계좌 잔액 새로고침
+     * 보유종목 정보 새로고침
      */
     @PutMapping("/refresh")
-    @ApiOperation(value = "계좌 잔액 새로고침", notes = "커넥티드 아이디로 계좌 잔액을 새로고침.")
-    public ResponseEntity<Map<String, Object>> refreshAccountBalance(
+    @ApiOperation(value = "보유종목 정보 새로고침", notes = "커넥티드 아이디로 보유종목 정보를 새로고침.")
+    public ResponseEntity<Map<String, Object>> refreshUserStocks(
             HttpServletRequest request,
-            @RequestBody AccountRequestDTO accountRequest
+            @RequestBody StockRequestDTO stockRequest
     ) {
         try {
             Map<String, Object> authInfo = extractAuthInfo(request);
             Long memberId = (Long) authInfo.get("memberId");
             String username = (String) authInfo.get("username");
 
-            log.info("계좌 잔액 새로고침 - username: {}, memberId: {}, bankCode: {}",
-                    username, memberId, accountRequest.getBankCode());
+            log.info("보유종목 정보 새로고침 - username: {}, memberId: {}, stockCode: {}",
+                    username, memberId, stockRequest.getStockCode());
 
-            // 권한 검증
-            if (!accountService.isConnectedIdOwner(memberId, accountRequest.getConnectedId())) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(createErrorResponse("해당 계좌에 대한 권한이 없습니다.", "UNAUTHORIZED_ACCESS"));
-            }
+            // 보유종목 새로고침
+            stockService.refreshUserStocks(
+                    memberId,
+                    stockRequest.getStockCode(),
+                    stockRequest.getConnectedId(),
+                    stockRequest.getAccount()
+            );
 
-            // 잔액 새로고침
-            accountService.refreshAccountBalance(memberId, accountRequest.getBankCode(), accountRequest.getConnectedId());
-            List<AccountDTO> accountList = accountService.getUserAccounts(memberId);
+            List<StockVO> stockList = stockService.getUserStocks(memberId);
 
             Map<String, Object> response = new HashMap<>();
-            response.put("accounts", accountList);
+            response.put("stocks", stockList);
 
-            return ResponseEntity.ok(createSuccessResponse("계좌 잔액 새로고침 완료", response, authInfo));
+            return ResponseEntity.ok(createSuccessResponse("보유종목 정보 새로고침 완료", response, authInfo));
 
         } catch (SecurityException e) {
             log.error("인증 오류: {}", e.getMessage());
@@ -217,45 +211,39 @@ public class AccountController {
                     .body(createErrorResponse(e.getMessage(), "AUTHENTICATION_ERROR"));
 
         } catch (Exception e) {
-            log.error("계좌 잔액 새로고침 중 오류 발생", e);
+            log.error("보유종목 정보 새로고침 중 오류 발생", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse("계좌 잔액 새로고침 중 오류가 발생했습니다.", "INTERNAL_ERROR"));
+                    .body(createErrorResponse("보유종목 정보 새로고침 중 오류가 발생했습니다.", "INTERNAL_ERROR"));
         }
     }
 
     /**
-     * 계좌 연동 해제
+     * 증권계좌 연동 해제
      */
     @DeleteMapping("/unlink")
-    @ApiOperation(value = "계좌 연동 해제", notes = "로그인한 사용자의 커넥티드 아이디를 삭제하고 계좌 연동을 해제.")
-    public ResponseEntity<Map<String, Object>> unlinkAccount(
+    @ApiOperation(value = "증권계좌 연동 해제", notes = "로그인한 사용자의 커넥티드 아이디를 삭제하고 증권계좌 연동을 해제.")
+    public ResponseEntity<Map<String, Object>> unlinkStock(
             HttpServletRequest request,
-            @RequestBody AccountRequestDTO accountRequest
+            @RequestBody StockRequestDTO stockRequest
     ) {
         try {
             Map<String, Object> authInfo = extractAuthInfo(request);
             Long memberId = (Long) authInfo.get("memberId");
             String username = (String) authInfo.get("username");
 
-            log.info("계좌 연동 해제 - username: {}, memberId: {}, bankCode: {}",
-                    username, memberId, accountRequest.getBankCode());
-
-            // 권한 검증
-            if (!accountService.isConnectedIdOwner(memberId, accountRequest.getConnectedId())) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(createErrorResponse("해당 계좌에 대한 권한이 없습니다.", "UNAUTHORIZED_ACCESS"));
-            }
+            log.info("증권계좌 연동 해제 - username: {}, memberId: {}, stockCode: {}, account: {}",
+                    username, memberId, stockRequest.getStockCode(), stockRequest.getAccount());
 
             // 연동 해제
             boolean deleted = RequestConnectedId.deleteConnectedId(
-                    accountRequest.getConnectedId(),
-                    accountRequest.getBankCode(),
-                    "BK"
+                    stockRequest.getConnectedId(),
+                    stockRequest.getStockCode(),
+                    "ST"
             );
 
             if (deleted) {
-                accountService.deleteAccount(memberId, accountRequest.getConnectedId());
-                return ResponseEntity.ok(createSuccessResponse("계좌 연동 해제가 완료되었습니다.", null, authInfo));
+                stockService.disconnectUserStocks(memberId, stockRequest.getConnectedId());
+                return ResponseEntity.ok(createSuccessResponse("증권계좌 연동 해제가 완료되었습니다.", null, authInfo));
             } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(createErrorResponse("커넥티드 아이디 삭제에 실패했습니다.", "DELETE_FAILED"));
@@ -267,9 +255,10 @@ public class AccountController {
                     .body(createErrorResponse(e.getMessage(), "AUTHENTICATION_ERROR"));
 
         } catch (Exception e) {
-            log.error("계좌 연동 해제 중 오류 발생", e);
+            log.error("증권계좌 연동 해제 중 오류 발생", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse("계좌 연동 해제 중 오류가 발생했습니다.", "INTERNAL_ERROR"));
+                    .body(createErrorResponse("증권계좌 연동 해제 중 오류가 발생했습니다.", "INTERNAL_ERROR"));
         }
     }
+
 }

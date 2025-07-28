@@ -29,7 +29,7 @@ public class RequestConnectedId {
      * @implNote accountMap: 데이터를 담은 해시테이블 <"countryCode" : "KR" ...>
      * @throws Exception the exception
      */
-    public static String createConnectedId(String id, String password, String bankCode) throws Exception {
+    public static String createConnectedId(String id, String password, String bankCode, String businessType) throws Exception {
         log.info("🏦 커넥티드 아이디 발급 요청 시작 - 은행코드: {}, ID: {}", bankCode, id);
 
         String urlPath = CommonConstant.TEST_DOMAIN + CommonConstant.CREATE_ACCOUNT;
@@ -39,7 +39,7 @@ public class RequestConnectedId {
 
         HashMap<String, Object> accountMap = new HashMap<String, Object>();
         accountMap.put("countryCode", "KR");
-        accountMap.put("businessType", "ST");
+        accountMap.put("businessType", businessType);
         accountMap.put("clientType", "P");
         accountMap.put("organization", bankCode);
         accountMap.put("loginType", "1");
@@ -80,7 +80,7 @@ public class RequestConnectedId {
      * @return T/F
      * @throws Exception the exception
      */
-    public static boolean deleteConnectedId(String connectedId, String bankCode) throws Exception {
+    public static boolean deleteConnectedId(String connectedId, String bankCode, String businessType) throws Exception {
         String urlPath = CommonConstant.TEST_DOMAIN + CommonConstant.DELETE_ACCOUNT;
 
         HashMap<String, Object> bodyMap = new HashMap<String, Object>();
@@ -88,7 +88,7 @@ public class RequestConnectedId {
 
         HashMap<String, Object> accountMap = new HashMap<String, Object>();
         accountMap.put("countryCode",	"KR");
-        accountMap.put("businessType",	"BK");
+        accountMap.put("businessType",	businessType);
         accountMap.put("clientType",  	"P");
         accountMap.put("organization",	bankCode);
         accountMap.put("loginType",  	"1");
