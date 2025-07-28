@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.typetest.mapper.UserInvestmentProfileMapper">
+    
+    <select id="findByUserId" resultType="com.banklab.typetest.domain.UserInvestmentProfile">
+        SELECT
+            id,
+            user_id AS userId,
+            available_amount_range AS availableAmountRange,
+            target_return_range AS targetReturnRange,
+            investment_period_range AS investmentPeriodRange,
+            loss_tolerance_range AS lossToleranceRange,
+            investment_style AS investmentStyle,
+            priority
+        FROM user_investment_profile
+        WHERE user_id = #{userId}
+    </select>
+    
+    <insert id="insertUserInvestmentProfile" parameterType="com.banklab.typetest.domain.UserInvestmentProfile">
+        INSERT INTO user_investment_profile (
+            user_id,
+            available_amount_range,
+            target_return_range,
+            investment_period_range,
+            loss_tolerance_range,
+            investment_style,
+            priority
+        ) VALUES (
+            #{userId},
+            #{availableAmountRange},
+            #{targetReturnRange},
+            #{investmentPeriodRange},
+            #{lossToleranceRange},
+            #{investmentStyle},
+            #{priority}
+        )
+    </insert>
+    
+    <update id="updateUserInvestmentProfile" parameterType="com.banklab.typetest.domain.UserInvestmentProfile">
+        UPDATE user_investment_profile
+        SET
+            available_amount_range = #{availableAmountRange},
+            target_return_range = #{targetReturnRange},
+            investment_period_range = #{investmentPeriodRange},
+            loss_tolerance_range = #{lossToleranceRange},
+            investment_style = #{investmentStyle},
+            priority = #{priority}
+        WHERE user_id = #{userId}
+    </update>
+    
+</mapper>
