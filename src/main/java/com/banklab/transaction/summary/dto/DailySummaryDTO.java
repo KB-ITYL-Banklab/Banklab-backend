@@ -8,4 +8,5 @@ public class DailySummaryDTO {
     private Date date;
     private Long totalExpense;
     private Long totalIncome;
+    private String resAccount;
 }

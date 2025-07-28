@@ -21,8 +21,7 @@ import java.util.stream.Collectors;
 
 @Configuration
 @PropertySources({
-        @PropertySource("classpath:/application.properties"),
-        @PropertySource("classpath:application-secret.properties")})
+        @PropertySource("classpath:/application.properties")})
 @MapperScan(basePackages = {
         "com.banklab.account.mapper",
         "com.banklab.member.mapper",
@@ -44,9 +43,10 @@ import java.util.stream.Collectors;
         "com.banklab.product",
         "com.banklab.risk",
         "com.banklab.codef",
+        "com.banklab.transaction.service",
         "com.banklab.transaction",
         "com.banklab.category",
-        "com.banklab.perplexity",
+        "com.banklab.perplexity"
 })
 @EnableTransactionManagement
 public class RootConfig {

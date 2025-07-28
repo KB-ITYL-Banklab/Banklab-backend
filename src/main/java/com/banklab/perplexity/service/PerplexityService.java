@@ -3,6 +3,7 @@ package com.banklab.perplexity.service;
 import com.banklab.perplexity.dto.PerplexityRequestDto;
 import com.banklab.perplexity.dto.PerplexityResponseDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PerplexityService {
@@ -34,6 +36,8 @@ public class PerplexityService {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + apiKey);
         headers.set("Content-Type", "application/json");
+        
+        log.info("카테고리 분류 메커니즘 호출");
 
         String joinedDescriptions = String.join(", ", descriptions);
 

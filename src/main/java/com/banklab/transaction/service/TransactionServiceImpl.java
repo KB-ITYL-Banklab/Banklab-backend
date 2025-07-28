@@ -9,6 +9,7 @@ import com.banklab.transaction.dto.request.TransactionDTO;
 import com.banklab.transaction.dto.request.TransactionRequestDto;
 import com.banklab.transaction.dto.response.*;
 import com.banklab.transaction.mapper.TransactionMapper;
+import com.banklab.transaction.summary.service.SummaryBatchService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 public class TransactionServiceImpl implements TransactionService {
     private final TransactionMapper transactionMapper;
     private final AccountMapper accountMapper;
+    private final SummaryBatchService summaryBatchService;
     private final Map<String, Long> categoryMap;
     private final PerplexityService perplexityService;
 
@@ -39,7 +41,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public int saveTransactionList(List<TransactionHistoryVO> transactionVOList) {
-        if(transactionVOList.size()==0){return 0;}
+        if(transactionVOList.isEmpty()){return 0;}
         try {
             log.info("샘플 거래 내역: {}", new ObjectMapper().writeValueAsString(transactionVOList.get(0)));
         } catch (JsonProcessingException e) {
@@ -64,31 +66,54 @@ public class TransactionServiceImpl implements TransactionService {
         // 1. 사용자의 전체 계좌 목록 가져오기
         List<AccountVO> userAccounts = accountMapper.selectAccountsByUserId(memberId);
 
-        //2. 계좌별 거래 내역 불러오기
+        //2. 계좌별 거래 내역 조회 api 호출
         for (AccountVO account : userAccounts) {
-            TransactionDTO dto = TransactionDTO.builder()
-                    .account(account.getResAccount())
-                    .organization(account.getOrganization())
-                    .connectedId(account.getConnectedId())
-                    .orderBy(request.getOrderBy())
-                    .startDate(request.getStartDate())
-                    .endDate(request.getEndDate())
-                    .build();
+            TransactionDTO dto = makeTransactionDTO(account, request);
             List<TransactionHistoryVO> transactions;
-
             try {
                 transactions = TransactionResponse.requestTransactions(memberId,dto);
                 transactions = desTocategory(transactions);
-
-
             } catch (IOException | InterruptedException e) {
+                log.error("거래 내역 불러오는 중 오류 발생");
                 throw new RuntimeException(e);
             }
 
             // 3. db에 거래 내역 저장
             row += saveTransactionList(transactions);
+
+            // 4. 집계 테이블에 집계 정보 저장
+            summaryBatchService.initDailySummary(memberId);
         }
         return row;
+    }
+
+    /**
+     *
+     * @param account 계좌 정보
+     * @param request 거래 내역 조회를 위한 요청 파라미터 (sDate, eDate, orderBy)
+     * @return  거래 내역 조회를 위한 요청 DTO
+     */
+    public TransactionDTO makeTransactionDTO(AccountVO account, TransactionRequestDto request){
+        if(request == null){
+            request = new TransactionRequestDto();
+            LocalDate endDate   = LocalDate.now();
+            LocalDate startDate = endDate.minusYears(2);
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+
+            request.setStartDate(startDate.format(formatter)); // "20190601" 형식
+            request.setEndDate(endDate.format(formatter));     // 오늘 날짜 형식
+            request.setOrderBy("0");
+        }
+
+        return TransactionDTO.builder()
+                .account(account.getResAccount())
+                .organization(account.getOrganization())
+                .connectedId(account.getConnectedId())
+                .orderBy(request.getOrderBy())
+                .startDate(request.getStartDate())
+                .endDate(request.getEndDate())
+                .build();
     }
 
     /**
@@ -97,6 +122,8 @@ public class TransactionServiceImpl implements TransactionService {
      * @return 카테고리를 추가한 변환한 거래 내역 리스트
      */
     public List<TransactionHistoryVO> desTocategory(List<TransactionHistoryVO> transactions) {
+
+        log.info("카테고리 분류");
         List<String> desc = transactions.stream()
                 .map(TransactionHistoryVO::getDescription)
                 .collect(Collectors.toList());

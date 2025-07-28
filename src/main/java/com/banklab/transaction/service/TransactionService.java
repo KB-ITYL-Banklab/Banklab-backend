@@ -1,7 +1,9 @@
 package com.banklab.transaction.service;
 
+import com.banklab.account.domain.AccountVO;
 import com.banklab.category.dto.CategoryExpenseDTO;
 import com.banklab.transaction.domain.TransactionHistoryVO;
+import com.banklab.transaction.dto.request.TransactionDTO;
 import com.banklab.transaction.dto.request.TransactionRequestDto;
 import com.banklab.transaction.dto.response.DailyExpenseDTO;
 import com.banklab.transaction.dto.response.MonthlySummaryDTO;
@@ -24,6 +26,7 @@ public interface TransactionService {
     int saveTransactionList(List<TransactionHistoryVO> transactionVOList);
     LocalDate getLastTransactionDay(Long memberId);
 
+    TransactionDTO makeTransactionDTO(AccountVO account, TransactionRequestDto request);
     int getTransactions(long memberId, TransactionRequestDto request);
 
     public SummaryDTO getSummary(Long memberId, Date startDate, Date endDate);

@@ -41,7 +41,6 @@ public class UpsertTransactionTesklet implements Tasklet {
         while (!lastDay.isAfter(today)) {
             summaryBatchService.aggregateDailySummary(lastDay);
             lastDay = lastDay.plusDays(1);
-
         }
         return RepeatStatus.FINISHED;
     }
