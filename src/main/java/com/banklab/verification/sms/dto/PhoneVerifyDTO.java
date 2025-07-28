@@ -1,4 +1,4 @@
-package com.banklab.verification.dto;
+package com.banklab.verification.sms.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

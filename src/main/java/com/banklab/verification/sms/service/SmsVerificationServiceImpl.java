@@ -1,4 +1,4 @@
-package com.banklab.verification.service;
+package com.banklab.verification.sms.service;
 
 import com.banklab.common.redis.RedisKeyUtil;
 import com.banklab.common.redis.RedisService;
@@ -74,6 +74,7 @@ public class SmsVerificationServiceImpl implements SmsVerificationService {
         boolean success = redisService.verify(RedisKeyUtil.sms(phone), inputCode);
         if (success) {
             redisService.set(RedisKeyUtil.verified(phone), "true", 10);
+            redisService.delete(RedisKeyUtil.sms(phone)); // 인증번호 삭제
         }
         return success;
     }

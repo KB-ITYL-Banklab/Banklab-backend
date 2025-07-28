@@ -1,8 +1,8 @@
-package com.banklab.verification.controller;
+package com.banklab.verification.sms.controller;
 
-import com.banklab.verification.dto.PhoneSendDTO;
-import com.banklab.verification.dto.PhoneVerifyDTO;
-import com.banklab.verification.service.SmsVerificationService;
+import com.banklab.verification.sms.dto.PhoneSendDTO;
+import com.banklab.verification.sms.dto.PhoneVerifyDTO;
+import com.banklab.verification.sms.service.SmsVerificationService;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

@@ -1,4 +1,4 @@
-package com.banklab.verification.service;
+package com.banklab.verification.sms.service;
 
 public interface SmsVerificationService {
     void sendVerificationCode(String phone);
