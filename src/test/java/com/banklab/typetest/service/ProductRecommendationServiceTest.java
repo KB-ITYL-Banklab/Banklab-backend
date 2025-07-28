@@ -40,14 +40,12 @@ class ProductRecommendationServiceTest {
                         .productName("안전한 정기예금")
                         .riskLevel(RiskLevel.LOW)
                         .interestRate("연 2.5%")
-                        .productFeature("원금 보장되는 안전한 상품입니다.")
                         .build(),
                 RecommendedProductDTO.builder()
                         .productId(2L)
-                        .productName("국채형 펀드")
+                        .productName("안전한 적금")
                         .riskLevel(RiskLevel.LOW)
                         .interestRate("연 3.0%")
-                        .productFeature("국채 중심의 안전한 펀드입니다.")
                         .build()
         );
 
@@ -61,7 +59,7 @@ class ProductRecommendationServiceTest {
         assertEquals(2, actualProducts.size());
         assertEquals("안전한 정기예금", actualProducts.get(0).getProductName());
         assertEquals(RiskLevel.LOW, actualProducts.get(0).getRiskLevel());
-        assertEquals("국채형 펀드", actualProducts.get(1).getProductName());
+        assertEquals("안전한 적금", actualProducts.get(1).getProductName());
         assertEquals(RiskLevel.LOW, actualProducts.get(1).getRiskLevel());
     }
 
@@ -74,17 +72,15 @@ class ProductRecommendationServiceTest {
         List<RecommendedProductDTO> expectedProducts = Arrays.asList(
                 RecommendedProductDTO.builder()
                         .productId(3L)
-                        .productName("혼합형 펀드")
+                        .productName("복잡한 적금")
                         .riskLevel(RiskLevel.MEDIUM)
                         .interestRate("연 5.0%")
-                        .productFeature("주식과 채권을 균형있게 투자하는 펀드입니다.")
                         .build(),
                 RecommendedProductDTO.builder()
                         .productId(4L)
-                        .productName("인덱스 펀드")
+                        .productName("복잡한 예금")
                         .riskLevel(RiskLevel.MEDIUM)
                         .interestRate("연 6.0%")
-                        .productFeature("시장 지수를 따라가는 안정적인 펀드입니다.")
                         .build()
         );
 
@@ -96,9 +92,9 @@ class ProductRecommendationServiceTest {
 
         // Then
         assertEquals(2, actualProducts.size());
-        assertEquals("혼합형 펀드", actualProducts.get(0).getProductName());
+        assertEquals("복잡한 적금", actualProducts.get(0).getProductName());
         assertEquals(RiskLevel.MEDIUM, actualProducts.get(0).getRiskLevel());
-        assertEquals("인덱스 펀드", actualProducts.get(1).getProductName());
+        assertEquals("복잡한 예금", actualProducts.get(1).getProductName());
         assertEquals(RiskLevel.MEDIUM, actualProducts.get(1).getRiskLevel());
     }
 
@@ -111,17 +107,15 @@ class ProductRecommendationServiceTest {
         List<RecommendedProductDTO> expectedProducts = Arrays.asList(
                 RecommendedProductDTO.builder()
                         .productId(5L)
-                        .productName("성장형 주식펀드")
+                        .productName("개인 신용대출1")
                         .riskLevel(RiskLevel.HIGH)
                         .interestRate("연 10.0%")
-                        .productFeature("고성장 기업에 투자하는 펀드입니다.")
                         .build(),
                 RecommendedProductDTO.builder()
                         .productId(6L)
-                        .productName("해외 신흥국 펀드")
+                        .productName("개인 신용대출2")
                         .riskLevel(RiskLevel.HIGH)
                         .interestRate("연 12.0%")
-                        .productFeature("신흥국 시장에 투자하는 고수익 펀드입니다.")
                         .build()
         );
 
@@ -133,9 +127,9 @@ class ProductRecommendationServiceTest {
 
         // Then
         assertEquals(2, actualProducts.size());
-        assertEquals("성장형 주식펀드", actualProducts.get(0).getProductName());
+        assertEquals("개인 신용대출1", actualProducts.get(0).getProductName());
         assertEquals(RiskLevel.HIGH, actualProducts.get(0).getRiskLevel());
-        assertEquals("해외 신흥국 펀드", actualProducts.get(1).getProductName());
+        assertEquals("개인 신용대출2", actualProducts.get(1).getProductName());
         assertEquals(RiskLevel.HIGH, actualProducts.get(1).getRiskLevel());
     }
 
