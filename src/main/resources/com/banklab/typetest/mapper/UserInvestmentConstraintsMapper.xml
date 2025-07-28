@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.typetest.mapper.UserInvestmentConstraintsMapper">
+    
+    <select id="findActiveConstraintsByUserId" resultType="com.banklab.typetest.domain.UserInvestmentConstraints">
+        SELECT
+            id,
+            user_id AS userId,
+            constraint_type AS constraintType,
+            is_active AS isActive
+        FROM user_investment_constraints
+        WHERE user_id = #{userId} AND is_active = true
+    </select>
+    
+    <insert id="insertUserInvestmentConstraints" parameterType="com.banklab.typetest.domain.UserInvestmentConstraints">
+        INSERT INTO user_investment_constraints (
+            user_id,
+            constraint_type,
+            is_active
+        ) VALUES (
+            #{userId},
+            #{constraintType},
+            #{isActive}
+        )
+    </insert>
+    
+    <update id="deactivateAllConstraints">
+        UPDATE user_investment_constraints
+        SET is_active = false
+        WHERE user_id = #{userId}
+    </update>
+    
+</mapper>

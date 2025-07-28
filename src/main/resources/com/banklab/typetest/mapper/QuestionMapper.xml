@@ -9,8 +9,23 @@
             id,
             question_text AS questionText,
             choice_a_text AS choiceAText,
-            choice_b_text AS choiceBText
+            choice_b_text AS choiceBText,
+            question_type AS questionType,
+            is_blocking AS isBlocking
         FROM question
+        ORDER BY id
+    </select>
+    
+    <select id="findById" resultType="com.banklab.typetest.domain.Question">
+        SELECT
+            id,
+            question_text AS questionText,
+            choice_a_text AS choiceAText,
+            choice_b_text AS choiceBText,
+            question_type AS questionType,
+            is_blocking AS isBlocking
+        FROM question
+        WHERE id = #{id}
     </select>
 </mapper>
 

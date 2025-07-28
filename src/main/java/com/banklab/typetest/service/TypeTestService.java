@@ -29,4 +29,5 @@ public interface TypeTestService {
      * @return 테스트 결과 DTO
      */
     TypeTestResultDTO getTestResultByUserId(Long userId);
+    TypeTestResultDTO getAllProductsByType(Long userId);
 }
