@@ -13,6 +13,6 @@ import lombok.AllArgsConstructor;
 public class UserInvestmentConstraints {
     private Long id;
     private Long userId;
-    private ConstraintType constraintType;
+    private ConstraintType constraintType; //제약조건
     private Boolean isActive;
 }

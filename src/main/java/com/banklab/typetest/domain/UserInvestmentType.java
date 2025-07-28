@@ -8,6 +8,6 @@ import java.time.LocalDate;
 public class UserInvestmentType {
     private Long id;
     private Long userId;
-    private Long investmentTypeId;
-    private LocalDate evaluationDate;
+    private Long investmentTypeId; //투자 유형
+    private LocalDate evaluationDate; //평가일
 }

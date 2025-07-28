@@ -88,7 +88,7 @@ public class ProductRecommendationServiceImpl implements ProductRecommendationSe
     private List<ProductRiskRating> enrichProductMetadata(List<ProductRiskRating> riskRatings) {
         log.info("상품 메타데이터 보완 시작: {} 개", riskRatings.size());
         
-        // 모든 상품을 미리 조회해서 맵으로 만들기
+        // 모든 상품을 미리 조회해서 map으로 만들어 놓는다.
         Map<Long, DepositProduct> depositMap = depositProductMapper.findAllDepositProducts().stream()
                 .collect(Collectors.toMap(DepositProduct::getId, p -> p));
         Map<Long, SavingsProduct> savingsMap = savingsProductMapper.findAllSavingsProducts().stream()

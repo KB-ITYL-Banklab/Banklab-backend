@@ -41,29 +41,36 @@ public class TypeTestServiceImpl implements TypeTestService {
      * 사용자의 유형검사 결과 제출
      * @param payload 사용자의 답변 데이터
      * @param memberId JWT에서 추출한 회원 ID
-     * @return
+     * @return 유형검사 결과 DTO
      */
     @Override
     public TypeTestResultDTO submitAnswersWithMemberId(Map<String, Object> payload, Long memberId) {
         try {
+            // 사용자의 답변을 파싱하여 처리
             List<AnswerDTO> answers = parseAnswers(payload);
 
-            //답변을 기본검사, 제한검사, 상세검사, 선호검사로 나눈다
+            // 답변을 질문 타입별로 분류
             Map<QuestionType, List<AnswerDTO>> categorizedAnswers = categorizeAnswers(answers);
-            //사용자의 답변에 따른 제약조건을 추가한다(ex: 안정형 제한 질문은 추후에 공격형 질문에 답해도 안정형 질문만 나오게)
+
+            // 제약조건 분석
             List<ConstraintType> constraints = analyzeConstraints(categorizedAnswers.get(QuestionType.CONSTRAINT));
-            //투자 유형을 반환한다.
+
+            // 투자 유형 계산
             Long bestTypeId = calculateBestInvestmentTypeWithConstraints(
                 categorizedAnswers.get(QuestionType.PERSONALITY),
                 constraints
             );
-            // 개인 맞춤화 상품 추천을 위한 userProfile
+
+            // 사용자 프로필 생성
             UserInvestmentProfile userProfile = createUserProfile(
                 categorizedAnswers.get(QuestionType.DETAIL),
                 categorizedAnswers.get(QuestionType.PREFERENCE)
             );
 
+            // 사용자 데이터 저장
             saveUserData(memberId, bestTypeId, userProfile, constraints);
+
+            // 투자 유형 정보 반환
             InvestmentType investmentType = getInvestmentType(bestTypeId);
 
             return TypeTestResultDTO.builder()
@@ -80,29 +87,33 @@ public class TypeTestServiceImpl implements TypeTestService {
 
     /**
      * 사용자 투자 성향 결과가 있는지 판별
-     * 결과가 있다면, 해당 유저의 투자 성향과 AI로 추천된 상품 4개를 반환한다.
+     * 결과가 있다면, 해당 유저의 투자 성향과 추천된 상품 4개를 반환
      * @param userId 사용자 ID
-     * @return
+     * @return 유형검사 결과 DTO
      */
     @Override
     public TypeTestResultDTO getTestResultByUserId(Long userId) {
         try {
+            // 사용자 투자 유형 조회
             UserInvestmentType userInvestmentType = userInvestmentTypeMapper.findByUserId(userId);
             if (userInvestmentType == null) {
                 return createFailResult("해당 사용자의 투자성향 테스트 결과를 찾을 수 없습니다.");
             }
-            //투자유형 반환
+
+            // 투자 유형 정보 조회
             InvestmentType investmentType = getInvestmentType(userInvestmentType.getInvestmentTypeId());
 
-            //추천상품 반환
+            // 추천 상품 조회
             List<ConstraintType> constraints = getUserConstraints(userId);
             UserInvestmentProfile userProfile = userInvestmentProfileMapper.findByUserId(userId);
             List<RecommendedProductDTO> recommendedProducts = getFilteredRecommendedProducts(
                 userInvestmentType.getInvestmentTypeId(), constraints, userProfile);
 
+            // 추천 상품이 4개를 초과하면 4개로 제한
             if (recommendedProducts != null && recommendedProducts.size() > 4) {
                 recommendedProducts = recommendedProducts.subList(0, 4);
             }
+
             return createSuccessResult(userId, investmentType, recommendedProducts);
         } catch (Exception e) {
             log.error("사용자 테스트 결과 조회 중 오류 발생: userId={}", userId, e);
@@ -111,21 +122,27 @@ public class TypeTestServiceImpl implements TypeTestService {
     }
 
     /**
-     * 사용자의 투자 성향에 맞는 전체 상품 보기
-     * @param userId
-     * @return
+     * 사용자 투자 성향에 맞는 전체 상품 보기
+     * @param userId 사용자 ID
+     * @return 유형검사 결과 DTO
      */
     @Override
     public TypeTestResultDTO getAllProductsByType(Long userId) {
         try {
+            // 사용자 투자 유형 조회
             UserInvestmentType userInvestmentType = userInvestmentTypeMapper.findByUserId(userId);
             if (userInvestmentType == null) {
                 return createFailResult("해당 사용자의 투자성향 테스트 결과를 찾을 수 없습니다.");
             }
+
+            // 투자 유형 정보 조회
             InvestmentType investmentType = getInvestmentType(userInvestmentType.getInvestmentTypeId());
+
+            // 전체 추천 상품 조회
             List<RecommendedProductDTO> allProducts = productRecommendationService.getRecommendedProducts(
                 userInvestmentType.getInvestmentTypeId()
             );
+
             return TypeTestResultDTO.builder()
                 .userId(userId)
                 .investmentTypeId(investmentType.getId())
@@ -317,7 +334,7 @@ public class TypeTestServiceImpl implements TypeTestService {
     }
 
     /**
-     * 제약조건을 고려한 투자유형 계산 (새로운 메서드)
+     * 제약조건을 고려한 투자유형 계산
      */
     private Long calculateBestInvestmentTypeWithConstraints(List<AnswerDTO> personalityAnswers, List<ConstraintType> constraints) {
         log.info("제약조건을 고려한 투자유형 계산 시작 - 제약조건: {}", constraints);
