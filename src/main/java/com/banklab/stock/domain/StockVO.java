@@ -32,5 +32,5 @@ public class StockVO {
     private String resValuationPL;          // 평가손익
     private String resEarningsRate;         // 수익률
 
-    private Date createdAt;
+    private Date updatedAt;
 }

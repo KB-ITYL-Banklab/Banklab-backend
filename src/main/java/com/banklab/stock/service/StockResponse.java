@@ -31,6 +31,7 @@ public class StockResponse {
         bodyMap.put("add_password", "");
 
         String result = ApiRequest.request(urlPath, bodyMap);
+        log.info("CODEF API 응답 : {}", result);
 
         // Json Parsing
         JsonNode root = mapper.readTree(result);

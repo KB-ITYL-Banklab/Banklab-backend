@@ -40,7 +40,7 @@ public class StockDTO {
                 .resQuantity(resQuantity)
                 .resValuationAmt(resValuationAmt)
                 .resPurchaseAmount(resPurchaseAmount)
-                .resValuationPL(resEarningsRate)
+                .resValuationPL(resValuationPL)
                 .resEarningsRate(resEarningsRate)
                 .build();
     }
