@@ -7,17 +7,21 @@ import com.banklab.account.service.AccountResponse;
 import com.banklab.account.service.AccountService;
 import com.banklab.codef.service.RequestConnectedId;
 import com.banklab.security.util.JwtProcessor;
+import com.banklab.transaction.dto.response.TransactionDetailDTO;
 import com.banklab.transaction.service.TransactionResponse;
 import com.banklab.transaction.service.TransactionService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,10 +54,18 @@ public class AccountController {
         }
 
         try {
-            Long memberId = jwtProcessor.getMemberId(token);
             String username = jwtProcessor.getUsername(token);
+            Long memberId = jwtProcessor.getMemberId(token);
 
+            // memberId가 없는 경우 username으로 조회
             if (memberId == null) {
+                // TODO: username으로 memberId를 DB에서 조회하는 로직 추가
+                // 임시로 기본값 설정 (실제로는 DB 조회 필요)
+                log.warn("JWT 토큰에 memberId가 없습니다. username: {}", username);
+                throw new SecurityException("토큰에 사용자 ID 정보가 없습니다. 다시 로그인해주세요.");
+            }
+
+            if (username == null) {
                 throw new SecurityException("토큰에 사용자 정보가 없습니다. 다시 로그인해주세요.");
             }
 
@@ -269,6 +281,56 @@ public class AccountController {
             log.error("계좌 연동 해제 중 오류 발생", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(createErrorResponse("계좌 연동 해제 중 오류가 발생했습니다.", "INTERNAL_ERROR"));
+        }
+    }
+
+    /**
+     * 특정 계좌의 거래내역 상세 조회
+     */
+    @GetMapping("/{accountId}/transactions")
+    @ApiOperation(value = "계좌 거래내역 상세 조회", notes = "특정 계좌의 기간별 거래내역 상세 정보를 조회합니다.")
+    public ResponseEntity<Map<String, Object>> getAccountTransactions(
+            HttpServletRequest request,
+            @PathVariable Long accountId,
+            @RequestParam(value = "start", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+            @RequestParam(value = "end", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate
+    ) {
+        try {
+            Map<String, Object> authInfo = extractAuthInfo(request);
+            Long memberId = (Long) authInfo.get("memberId");
+
+            // 기본값 설정 (이번 달)
+            LocalDate now = LocalDate.now();
+            if (startDate == null) {
+                startDate = java.sql.Date.valueOf(now.withDayOfMonth(1));
+            }
+            if (endDate == null) {
+                endDate = java.sql.Date.valueOf(now.withDayOfMonth(now.lengthOfMonth()));
+            }
+
+            // 계좌 소유권 검증 및 거래내역 조회 (DTO 반환)
+            List<TransactionDetailDTO> transactions = transactionService.getTransactionDetailsByAccountId(memberId, accountId, startDate, endDate);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("accountId", accountId);
+            response.put("transactions", transactions);
+            response.put("count", transactions.size()); // 거래내역 수
+
+            // period를 HashMap으로 생성
+            Map<String, Object> period = new HashMap<>();
+            period.put("start", startDate);
+            period.put("end", endDate);
+            response.put("period", period);
+
+            return ResponseEntity.ok(createSuccessResponse("거래내역 조회 완료", response, authInfo));
+
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(createErrorResponse(e.getMessage(), "AUTHENTICATION_ERROR"));
+        } catch (Exception e) {
+            log.error("거래내역 조회 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(createErrorResponse("거래내역 조회 중 오류가 발생했습니다.", "INTERNAL_ERROR"));
         }
     }
 }
