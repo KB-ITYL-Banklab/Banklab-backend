@@ -6,10 +6,13 @@
 <configuration>
     <settings>
         <setting name="mapUnderscoreToCamelCase" value="true"/>
+        <setting name="defaultFetchSize" value="1000"/>
+        <setting name="defaultStatementTimeout" value="30"/>
     </settings>
     
     <typeAliases>
         <package name="com.banklab.security.account.domain"/>
+        <package name="com.banklab.financeContents.domain"/>
     </typeAliases>
 
     <typeHandlers>
