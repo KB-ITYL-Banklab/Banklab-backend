@@ -1,5 +1,6 @@
 package com.banklab.typetest.domain;
 
+import com.banklab.typetest.domain.enums.ChoiceType;
 import lombok.Data;
 
 @Data

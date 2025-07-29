@@ -38,7 +38,7 @@ public class ProductRecommendationServiceImpl implements ProductRecommendationSe
     public List<RecommendedProductDTO> getRecommendedProducts(Long investmentTypeId) {
         try {
             log.info("추천상품 조회 시작 - investmentTypeId: {}", investmentTypeId);
-            
+
             // 투자성향을 RiskLevel로 매핑
             RiskLevel riskLevel = mapInvestmentTypeToRiskLevel(investmentTypeId);
             log.info("매핑된 RiskLevel: {}", riskLevel);
@@ -46,19 +46,19 @@ public class ProductRecommendationServiceImpl implements ProductRecommendationSe
             // 해당 위험도의 상품들 조회
             List<ProductRiskRating> riskRatings = productRiskRatingMapper.selectByRiskLevel(riskLevel);
             log.info("조회된 상품 개수: {}", riskRatings.size());
-            
+
             // 각 상품의 실제 정보를 조회해서 메타데이터 보완
             List<ProductRiskRating> enrichedRatings = enrichProductMetadata(riskRatings);
-            
+
             // 배치로 모든 상품의 금리 정보 조회
             Map<String, ProductRateInfo> rateInfoMap = productRateService.getBatchProductRates(enrichedRatings);
             log.info("금리 정보 조회 완료: {} 개", rateInfoMap.size());
-            
+
             // ProductRiskRating을 RecommendedProductDTO로 변환
             List<RecommendedProductDTO> result = enrichedRatings.stream()
                     .map(rating -> convertToRecommendedProductDTO(rating, rateInfoMap))
                     .collect(Collectors.toList());
-            
+
             log.info("변환된 추천상품 개수: {}", result.size());
             return result;
                     
@@ -88,7 +88,7 @@ public class ProductRecommendationServiceImpl implements ProductRecommendationSe
     private List<ProductRiskRating> enrichProductMetadata(List<ProductRiskRating> riskRatings) {
         log.info("상품 메타데이터 보완 시작: {} 개", riskRatings.size());
         
-        // 모든 상품을 미리 조회해서 맵으로 만들기
+        // 모든 상품을 미리 조회해서 map으로 만들어 놓는다.
         Map<Long, DepositProduct> depositMap = depositProductMapper.findAllDepositProducts().stream()
                 .collect(Collectors.toMap(DepositProduct::getId, p -> p));
         Map<Long, SavingsProduct> savingsMap = savingsProductMapper.findAllSavingsProducts().stream()

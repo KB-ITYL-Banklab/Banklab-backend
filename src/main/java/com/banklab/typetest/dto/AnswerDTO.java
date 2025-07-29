@@ -1,6 +1,6 @@
 package com.banklab.typetest.dto;
 
-import com.banklab.typetest.domain.ChoiceType;
+import com.banklab.typetest.domain.enums.ChoiceType;
 import lombok.Builder;
 import lombok.Data;
 

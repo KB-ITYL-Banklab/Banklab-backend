@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.typetest.mapper.UserInvestmentConstraintsMapper">
+    <!--
+          사용자 ID로 활성화된 투자 제약 조건을 조회하는 SELECT 쿼리
+          반환 타입: com.banklab.typetest.domain.UserInvestmentConstraints
+      -->
+    <select id="findActiveConstraintsByUserId" resultType="com.banklab.typetest.domain.UserInvestmentConstraints">
+        SELECT
+            id,
+            user_id AS userId,
+            constraint_type AS constraintType,
+            is_active AS isActive
+        FROM user_investment_constraints
+        WHERE user_id = #{userId} AND is_active = true
+    </select>
+    
+    <!--
+        새로운 투자 제약 조건을 추가하는 INSERT 쿼리
+        파라미터 타입: com.banklab.typetest.domain.UserInvestmentConstraints
+    -->
+    <insert id="insertUserInvestmentConstraints" parameterType="com.banklab.typetest.domain.UserInvestmentConstraints">
+        INSERT INTO user_investment_constraints (
+            user_id,
+            constraint_type,
+            is_active
+        ) VALUES (
+            #{userId},
+            #{constraintType},
+            #{isActive}
+        )
+    </insert>
+    
+    <!--
+        특정 사용자의 모든 투자 제약 조건을 비활성화하는 UPDATE 쿼리
+        사용자의 투자 조건이 변경되거나 초기화되어야 할 때 기존의 모든 제약 조건을 비활성화하기 위해 사용
+    -->
+    <update id="deactivateAllConstraints">
+        UPDATE user_investment_constraints
+        SET is_active = false
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- 특정 사용자의 특정 제약조건 조회 -->
+    <select id="findByUserIdAndConstraintType" resultType="com.banklab.typetest.domain.UserInvestmentConstraints">
+        SELECT
+            id,
+            user_id AS userId,
+            constraint_type AS constraintType,
+            is_active AS isActive
+        FROM user_investment_constraints
+        WHERE user_id = #{userId} AND constraint_type = #{constraintType}
+    </select>
+
+    <!-- 특정 제약조건 활성화 -->
+    <update id="activateConstraint">
+        UPDATE user_investment_constraints
+        SET is_active = true
+        WHERE user_id = #{userId} AND constraint_type = #{constraintType}
+    </update>
+    
+</mapper>

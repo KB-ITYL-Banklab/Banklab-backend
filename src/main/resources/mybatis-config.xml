@@ -17,5 +17,11 @@
                      javaType="com.banklab.member.domain.Gender"/>
         <typeHandler handler="com.banklab.oauth.handler.OAuthProviderTypeHandler"
                     javaType="com.banklab.oauth.domain.OAuthProvider"/>
+        <typeHandler handler="com.banklab.product.handler.ProductTypeHandler"
+                     javaType="com.banklab.product.domain.ProductType"/>
+        <typeHandler handler="com.banklab.risk.handler.RiskLevelHandler"
+                     javaType="com.banklab.risk.domain.RiskLevel"/>
+
+
     </typeHandlers>
 </configuration>

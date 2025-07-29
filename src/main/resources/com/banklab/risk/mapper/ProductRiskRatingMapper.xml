@@ -6,9 +6,9 @@
     <!-- ResultMap 정의 -->
     <resultMap id="productRiskRatingMap" type="com.banklab.risk.domain.ProductRiskRating">
         <id property="id" column="id"/>
-        <result property="productType" column="product_type" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result property="productType" column="product_type"  typeHandler="com.banklab.product.handler.ProductTypeHandler"/>
         <result property="productId" column="product_id"/>
-        <result property="riskLevel" column="risk_level" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result property="riskLevel" column="risk_level" typeHandler="com.banklab.risk.handler.RiskLevelHandler"/>
         <result property="riskReason" column="risk_reason"/>
         <result property="evaluatedAt" column="evaluated_at"/>
         <result property="productName" column="product_name"/>

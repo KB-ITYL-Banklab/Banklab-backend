@@ -70,37 +70,28 @@ class TypeTestControllerTest {
     }
 
     @Test
-    @DisplayName("사용자가 유형검사를 제출했을 때 결과가 잘 뜨는지")
-    void 사용자가_유형검사를_제출했을_때_결과가_잘_뜨는지() {
+    @DisplayName("사용자가 유형검사를 제출했을 때 OK 메시지가 잘 뜨는지")
+    void 사용자가_유형검사를_제출했을_때_OK_메시지가_잘_뜨는지() {
         // Given
         String mockToken = "valid-jwt-token";
         Long memberId = 1L;
-        
+
         Map<String, Object> payload = new HashMap<>();
         payload.put("answers", Arrays.asList(1, 2, 3, 1, 2));
-        
-        TypeTestResultDTO expectedResult = TypeTestResultDTO.builder()
-                .investmentTypeId(2L)
-                .investmentTypeName("중립형")
-                .investmentTypeDesc("적당한 위험을 감수하며 안정적인 수익을 추구합니다.")
-                .build();
 
         try (MockedStatic<JwtTokenUtil> mockedJwtTokenUtil = mockStatic(JwtTokenUtil.class)) {
             mockedJwtTokenUtil.when(() -> JwtTokenUtil.extractToken(any(HttpServletRequest.class)))
                     .thenReturn(mockToken);
-            
+
             when(jwtProcessor.getMemberId(mockToken)).thenReturn(memberId);
-            when(typeTestService.submitAnswersWithMemberId(eq(payload), eq(memberId)))
-                    .thenReturn(expectedResult);
 
             // When
-            ResponseEntity<TypeTestResultDTO> response = typeTestController.submitAnswers(httpServletRequest, payload);
+            ResponseEntity<Map<String, String>> response = typeTestController.submitAnswers(httpServletRequest, payload);
 
             // Then
             assertEquals(200, response.getStatusCodeValue());
             assertNotNull(response.getBody());
-            assertEquals(Long.valueOf(2L), response.getBody().getInvestmentTypeId());
-            assertEquals("중립형", response.getBody().getInvestmentTypeName());
+            assertEquals("OK", response.getBody().get("message"));
 
             verify(jwtProcessor).getMemberId(mockToken);
             verify(typeTestService).submitAnswersWithMemberId(any(Map.class), eq(memberId));
@@ -123,12 +114,12 @@ class TypeTestControllerTest {
             when(jwtProcessor.getMemberId(invalidToken)).thenReturn(null);
 
             // When
-            ResponseEntity<TypeTestResultDTO> response = typeTestController.submitAnswers(httpServletRequest, payload);
+            ResponseEntity<Map<String, String>> response = typeTestController.submitAnswers(httpServletRequest, payload);
 
             // Then
             assertEquals(400, response.getStatusCodeValue());
             assertNotNull(response.getBody());
-            assertEquals("유효하지 않은 토큰입니다.", response.getBody().getMessage());
+            assertEquals("유효하지 않은 토큰입니다.", response.getBody().get("message"));
 
             verify(jwtProcessor).getMemberId(invalidToken);
             verify(typeTestService, never()).submitAnswersWithMemberId(any(), any());
@@ -261,12 +252,12 @@ class TypeTestControllerTest {
             when(jwtProcessor.getMemberId(token)).thenReturn(null);
 
             // When
-            ResponseEntity<TypeTestResultDTO> response = typeTestController.submitAnswers(httpServletRequest, payload);
+            ResponseEntity<Map<String, String>> response = typeTestController.submitAnswers(httpServletRequest, payload);
 
             // Then
             assertEquals(400, response.getStatusCodeValue());
             assertNotNull(response.getBody());
-            assertEquals("유효하지 않은 토큰입니다.", response.getBody().getMessage());
+            assertEquals("유효하지 않은 토큰입니다.", response.getBody().get("message"));
 
             verify(jwtProcessor).getMemberId(token);
             verify(typeTestService, never()).submitAnswersWithMemberId(any(), any());
