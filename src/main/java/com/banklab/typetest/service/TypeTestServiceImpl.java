@@ -253,7 +253,7 @@ public class TypeTestServiceImpl implements TypeTestService {
     private void saveUserData(Long userId, Long investmentTypeId, UserInvestmentProfile userProfile, List<ConstraintType> constraints) {
         // 1. 기존 투자유형 저장
         saveUserInvestmentType(userId, investmentTypeId);
-        
+
         // 2. 사용자 프로필 저장
         userProfile.setUserId(userId);
         UserInvestmentProfile existingProfile = userInvestmentProfileMapper.findByUserId(userId);
@@ -263,16 +263,29 @@ public class TypeTestServiceImpl implements TypeTestService {
             userProfile.setId(existingProfile.getId());
             userInvestmentProfileMapper.updateUserInvestmentProfile(userProfile);
         }
-        
+
         // 3. 제약조건 저장
-        userInvestmentConstraintsMapper.deactivateAllConstraints(userId); // 기존 제약조건 비활성화
+        // 3-1. 모든 기존 제약조건 비활성화
+        userInvestmentConstraintsMapper.deactivateAllConstraints(userId);
+        
+        // 3-2. 새로운 제약조건 처리
         for (ConstraintType constraintType : constraints) {
-            UserInvestmentConstraints constraint = UserInvestmentConstraints.builder()
-                .userId(userId)
-                .constraintType(constraintType)
-                .isActive(true)
-                .build();
-            userInvestmentConstraintsMapper.insertUserInvestmentConstraints(constraint);
+            // 기존 레코드가 있는지 확인
+            UserInvestmentConstraints existingConstraint = 
+                userInvestmentConstraintsMapper.findByUserIdAndConstraintType(userId, constraintType);
+                
+            if (existingConstraint != null) {
+                // 기존 레코드가 있으면 활성화
+                userInvestmentConstraintsMapper.activateConstraint(userId, constraintType);
+            } else {
+                // 기존 레코드가 없으면 새로 삽입
+                UserInvestmentConstraints constraint = UserInvestmentConstraints.builder()
+                    .userId(userId)
+                    .constraintType(constraintType)
+                    .isActive(true)
+                    .build();
+                userInvestmentConstraintsMapper.insertUserInvestmentConstraints(constraint);
+            }
         }
     }
     
@@ -356,24 +369,24 @@ public class TypeTestServiceImpl implements TypeTestService {
             if (constraints.contains(ConstraintType.HIGH_RISK_FORBIDDEN)) {
                 log.info("고위험 상품 금지 제약조건 적용 - 공격형 제거");
                 typeScores.remove(3L); // 공격형 완전 제거
-                typeScores.put(1L, typeScores.getOrDefault(1L, 0) + 100); // 안정형 강력 보너스
-                typeScores.put(2L, typeScores.getOrDefault(2L, 0) + 50);  // 중립형 보너스
+                typeScores.put(1L, typeScores.getOrDefault(1L, 0) + 30); // 안정형 강력 보너스
+                typeScores.put(2L, typeScores.getOrDefault(2L, 0) + 25);  // 중립형 보너스
             }
             
             // PRINCIPAL_GUARANTEE: 원금보장 필수 → 공격형 배제, 안정형 우선
             if (constraints.contains(ConstraintType.PRINCIPAL_GUARANTEE)) {
                 log.info("원금보장 필수 제약조건 적용 - 공격형 제거, 안정형 우선");
                 typeScores.remove(3L); // 공격형 완전 제거
-                typeScores.put(1L, typeScores.getOrDefault(1L, 0) + 150); // 안정형 최우선
-                typeScores.put(2L, typeScores.getOrDefault(2L, 0) + 30);  // 중립형 약간 보너스
+                typeScores.put(1L, typeScores.getOrDefault(1L, 0) + 30); // 안정형 최우선
+                typeScores.put(2L, typeScores.getOrDefault(2L, 0) + 25);  // 중립형 약간 보너스
             }
             
             // LIQUIDITY_REQUIRED: 유동성 필수 → 복잡한 상품 배제, 안정형/중립형 우선
             if (constraints.contains(ConstraintType.LIQUIDITY_REQUIRED)) {
                 log.info("유동성 필수 제약조건 적용 - 안정형/중립형 우선");
                 typeScores.put(3L, Math.max(0, typeScores.getOrDefault(3L, 0) - 50)); // 공격형 감점
-                typeScores.put(1L, typeScores.getOrDefault(1L, 0) + 80); // 안정형 보너스
-                typeScores.put(2L, typeScores.getOrDefault(2L, 0) + 70); // 중립형 보너스
+                typeScores.put(1L, typeScores.getOrDefault(1L, 0) + 30); // 안정형 보너스
+                typeScores.put(2L, typeScores.getOrDefault(2L, 0) + 50); // 중립형 보너스
             }
         }
         
