@@ -3,7 +3,8 @@ package com.banklab.transaction.service;
 import com.banklab.account.domain.AccountVO;
 import com.banklab.account.mapper.AccountMapper;
 import com.banklab.category.dto.CategoryExpenseDTO;
-import com.banklab.perplexity.service.PerplexityService;
+import com.banklab.category.kakaomap.service.KakaoMapService;
+import com.banklab.category.service.CategoryService;
 import com.banklab.transaction.domain.TransactionHistoryVO;
 import com.banklab.transaction.dto.request.TransactionDTO;
 import com.banklab.transaction.dto.request.TransactionRequestDto;
@@ -12,6 +13,7 @@ import com.banklab.transaction.mapper.TransactionMapper;
 import com.banklab.transaction.summary.service.SummaryBatchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,25 +24,37 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Log4j2
 @RequiredArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
     private final TransactionMapper transactionMapper;
-    private final AccountMapper accountMapper;
     private final SummaryBatchService summaryBatchService;
-    private final Map<String, Long> categoryMap;
-    private final PerplexityService perplexityService;
+    private final CategoryService categoryService;
 
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     @Override
-    public int saveTransactionList(List<TransactionHistoryVO> transactionVOList) {
-        if(transactionVOList.isEmpty()){return 0;}
-        return transactionMapper.saveTransactionList(transactionVOList);
+    @Transactional
+    public void saveTransactionList(Long memberId,AccountVO account, List<TransactionHistoryVO> transactions) {
+        if(transactions.isEmpty())  return;
+
+        log.info("[START] 거래 내역 db 저장 시작");
+        // 거래 내역 db 저장
+        transactionMapper.saveTransactionList(transactions);
+        log.info("[END] 거래 내역 db 저장 완료");
+        
+        // 상호명 -> 카테고리 분류 실행
+        categoryService.categorizeTransactions(transactions).join();
+
+
+        log.info("[START] 집계 내역 db 저장 시작");
+        // daily_expense 저장
+        summaryBatchService.initDailySummary(memberId,account);
+        log.info("[END] 집계 내역 db 저장 종료");
     }
 
     @Override
@@ -48,134 +62,11 @@ public class TransactionServiceImpl implements TransactionService {
         return transactionMapper.getLastTransactionDate(memberId, account);
     }
 
-    /**
-     * @param memberId 사용자 id
-     * @param request  거래 내역 조회를 위한 요청 파라미터
-     */
-    @Async
     @Transactional
-    public void getTransactions(long memberId, TransactionRequestDto request) {
-        log.info("[START] 거래 내역 불러오기 시작 : Thread: {}",Thread.currentThread().getName());
-        List<AccountVO> userAccounts=new ArrayList<>();
-
-        if(request==null||request.getResAccount().isBlank()){
-            userAccounts= accountMapper.selectAccountsByUserId(memberId);
-        }else{
-            AccountVO account = accountMapper.getAccountByAccountNumber(request.getResAccount());
-            userAccounts.add(account);
-        }
-
-        //2. 계좌별 거래 내역 조회 api 호출
-        for (AccountVO account : userAccounts) {
-
-            // 2-1. 해당 계좌의 거래 내역 존재 확인
-            checkIsPresent(memberId, account, request);
-
-            TransactionDTO dto = makeTransactionDTO(account, request);
-            List<TransactionHistoryVO> transactions;
-            try {
-                transactions = TransactionResponse.requestTransactions(memberId,dto);
-                int saved = saveTransactionList(transactions);
-            } catch (IOException | InterruptedException e) {
-                log.error("거래 내역 불러오는 중 오류 발생");
-                throw new RuntimeException(e);
-            }
-            log.info("[END] 거래 내역 불러오기 종료: Thread: {}",Thread.currentThread().getName());
-
-            // 3-1.비동기 카테고리 분류 처리
-            CompletableFuture<Object> categoryFuture = desTocategory(transactions);
-
-            // 3-2. 비동기 완료 대기
-            categoryFuture.join();
-
-            // 4. 카테고리 분류 완료 후 집계 수행
-            summaryBatchService.initDailySummary(memberId,account);
-        }
-    }
-
-    public void checkIsPresent(Long memberId, AccountVO account, TransactionRequestDto req){
-        LocalDate lastTransactionDate =
-                transactionMapper.getLastTransactionDate(memberId, account.getResAccount());
-
-        if(lastTransactionDate!=null){
-          if (req == null) req = new TransactionRequestDto();
-          req.setStartDate(lastTransactionDate.plusDays(1).format(formatter));
-        }
-    }
-
-    /**
-     *
-     * @param account 계좌 정보
-     * @param request 거래 내역 조회를 위한 요청 파라미터 (sDate, eDate, orderBy)
-     * @return  거래 내역 조회를 위한 요청 DTO
-     */
-    private TransactionDTO makeTransactionDTO(AccountVO account, TransactionRequestDto request){
-        if(request == null){
-            request = new TransactionRequestDto();
-            LocalDate endDate   = LocalDate.now();
-            LocalDate startDate = endDate.minusYears(2);
-
-            request.setStartDate(startDate.format(formatter)); // "20190601" 형식
-            request.setEndDate(endDate.format(formatter));     // 오늘 날짜 형식
-            request.setOrderBy("0");
-        }
-        else{
-            if (request.getStartDate() == null || request.getStartDate().isEmpty()) {
-                LocalDate defaultStartDate = LocalDate.now().minusYears(2);
-                request.setStartDate(defaultStartDate.format(formatter));
-            }
-            if (request.getEndDate() == null || request.getEndDate().isEmpty()) {
-                LocalDate defaultEndDate = LocalDate.now();
-                request.setEndDate(defaultEndDate.format(formatter));
-            }
-
-            if (request.getOrderBy() == null || request.getOrderBy().isEmpty()) {
-                request.setOrderBy("0");
-            }
-        }
-
-        return TransactionDTO.builder()
-                .account(account.getResAccount())
-                .organization(account.getOrganization())
-                .connectedId(account.getConnectedId())
-                .orderBy(request.getOrderBy())
-                .startDate(request.getStartDate())
-                .endDate(request.getEndDate())
-                .build();
-    }
-
-    /**
-     * api의 description (상호명)을 바탕으로 카테고리 추가
-     *
-     * @param transactions: 거래 내역 리스트
-     * @return 카테고리를 추가한 변환한 거래 내역 리스트
-     */
-    @Async
-    @Transactional
-    public CompletableFuture<Object> desTocategory(List<TransactionHistoryVO> transactions) {
-
-        log.info("[START] 카테고리 분류 시작 : Thread: {}",Thread.currentThread().getName());
-
-        List<String> desc = transactions.stream()
-                .map(TransactionHistoryVO::getDescription)
-                .collect(Collectors.toList());
-
-        List<String> categories = perplexityService.getCompletions(desc);
-        while(categories.size()<desc.size()) {
-            categories.add("기타");
-        }
-
-        for(int i = 0; i < transactions.size(); i++){
-            String categoryName = categories.get(i).trim();
-            Long categoryId = categoryMap.getOrDefault(categoryName, 8L); // Map에서 ID 조회
-            transactions.get(i).setCategory_id(categoryId);
-        }
-
+    public void updateCategories(List<TransactionHistoryVO> transactions){
         transactionMapper.updateCategories(transactions);
-        log.info("[END] 카테고리 분류 완료 : Thread: {}",Thread.currentThread().getName());
-
-        return CompletableFuture.completedFuture(null);
     }
+
 
     /**
      * @param memberId 사용자 id

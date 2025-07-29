@@ -6,6 +6,7 @@ import com.banklab.member.mapper.MemberMapper;
 import com.banklab.member.service.MemberService;
 import com.banklab.member.service.MemberServiceImpl;
 import com.banklab.transaction.dto.request.TransactionRequestDto;
+import com.banklab.transaction.service.AsyncTransactionService;
 import com.banklab.transaction.service.TransactionService;
 import com.banklab.transaction.service.TransactionServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -29,9 +31,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FetchTransactionTasklet implements Tasklet {
 
-    private final TransactionService transactionService;
     private final MemberMapper memberMapper;
     private final AccountService accountService;
+    private final TransactionService transactionService;
+    private final AsyncTransactionService asyncTransactionService;
 
     @Override
     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
@@ -59,7 +62,7 @@ public class FetchTransactionTasklet implements Tasklet {
 
 
                 // 3. 사용자의 모든 계좌 거래 내역 저장하기
-                transactionService.getTransactions(memberId,
+                asyncTransactionService.getTransactions(memberId,
                         TransactionRequestDto.builder()
                                 .startDate(startDate)
                                 .endDate(endDate)

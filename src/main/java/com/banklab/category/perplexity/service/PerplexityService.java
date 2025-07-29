@@ -1,7 +1,7 @@
-package com.banklab.perplexity.service;
+package com.banklab.category.perplexity.service;
 
-import com.banklab.perplexity.dto.PerplexityRequestDto;
-import com.banklab.perplexity.dto.PerplexityResponseDto;
+import com.banklab.category.perplexity.dto.PerplexityRequestDto;
+import com.banklab.category.perplexity.dto.PerplexityResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,7 +9,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 

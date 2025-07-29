@@ -14,12 +14,12 @@ import java.util.Date;
 import java.util.List;
 
 public interface TransactionService {
-    int saveTransactionList(List<TransactionHistoryVO> transactionVOList);
+    void saveTransactionList(Long memberId, AccountVO account,List<TransactionHistoryVO> transactionVOList);
 
     LocalDate getLastTransactionDay(Long memberId, String account);
 
+    void updateCategories(List<TransactionHistoryVO> transactions);
     //    TransactionDTO makeTransactionDTO(AccountVO account, TransactionRequestDto request);
-    void getTransactions(long memberId, TransactionRequestDto request);
 
 
     SummaryDTO getSummary(Long memberId, Date startDate, Date endDate);

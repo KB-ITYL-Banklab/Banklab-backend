@@ -6,6 +6,7 @@ import com.banklab.transaction.dto.request.TransactionRequestDto;
 import com.banklab.transaction.dto.response.DailyExpenseDTO;
 import com.banklab.transaction.dto.response.MonthlySummaryDTO;
 import com.banklab.transaction.dto.response.SummaryDTO;
+import com.banklab.transaction.service.AsyncTransactionService;
 import com.banklab.transaction.service.TransactionService;
 import com.banklab.transaction.service.TransactionServiceImpl;
 import io.swagger.annotations.Api;
@@ -32,6 +33,7 @@ import java.util.Map;
 public class TransactionApiController {
 
     private final JwtProcessor jwtProcessor;
+    private final AsyncTransactionService asyncTransactionService;
     private final TransactionService transactionService;
 
     /**
@@ -107,7 +109,7 @@ public class TransactionApiController {
             log.info("거래 내역 연동 시작 - username: {}, memberId: {}", username, memberId);
 
             // 2. 거래 내역 조회 및 DB 저장 - 비동기 처리
-            transactionService.getTransactions(memberId, dto);
+            asyncTransactionService.getTransactions(memberId, dto);
 
             return ResponseEntity.ok(createSuccessResponse("거래 내역 저장이 완료되었습니다.", response, authInfo));
         } catch (SecurityException e) {
