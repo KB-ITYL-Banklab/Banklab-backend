@@ -8,10 +8,7 @@ import com.banklab.verification.email.service.EmailVerificationService;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,17 +19,24 @@ public class EmailVerificationController {
     private final MemberService memberService;
 
     @PostMapping("/send")
-    @ApiOperation(value = "인증번호 전송")
+    @ApiOperation(value = "이메일 인증번호 전송")
     public ResponseEntity<StatusResponse> sendCode(@RequestBody EmailSendDTO request) {
-        if (memberService.checkDuplicate(request.getEmail())) {
-            return ResponseEntity.status(409).body(new StatusResponse(false,"이미 가입된 이메일입니다."));
+        // 용도 확인 (가입이면 이메일 존재X(중복X), 가입이 아니라 비밀번호 재설정이면 이메일 존재O)
+        if (request.getIsSignup()) {
+            if (memberService.existsByEmail(request.getEmail())) {
+                return ResponseEntity.status(409).body(new StatusResponse(false, "이미 가입된 이메일입니다."));
+            }
+        } else {
+            if (!memberService.existsByEmail(request.getEmail())) {
+                return ResponseEntity.status(404).body(new StatusResponse(false, "가입된 이메일이 없습니다."));
+            }
         }
         emailService.sendVerificationCode(request.getEmail());
         return ResponseEntity.ok(new StatusResponse(true,"이메일 전송 완료"));
     }
 
     @PostMapping("/verify")
-    @ApiOperation(value = "인증번호 검증")
+    @ApiOperation(value = "이메일 인증번호 검증")
     public ResponseEntity<StatusResponse> verifyCode(@RequestBody EmailVerifyDTO request){
         boolean success = emailService.verifyCode(request);
         return ResponseEntity.ok(new StatusResponse(success, success ? "인증 성공" : "인증 실패"));

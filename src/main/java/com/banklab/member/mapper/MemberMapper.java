@@ -14,6 +14,7 @@ public interface MemberMapper {
     int insertAuth(AuthVO auth);                      // 권한정보 저장
     List<Long> findAllMemberIds();
     int update(MemberVO member);
+    int updatePassword(@Param("email") String email, @Param("password") String password);
     MemberVO findByEmail(String email);
     MemberVO findByProviderAndProviderId(@Param("provider")OAuthProvider provider, @Param("providerId")Long providerId);
     MemberVO findByPhone(String phone);

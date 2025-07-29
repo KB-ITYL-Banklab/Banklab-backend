@@ -49,6 +49,9 @@
     <update id="update">
         UPDATE member SET name = #{name}, update_date = now() WHERE member_id = #{memberId}
     </update>
+    <update id="updatePassword">
+        UPDATE member SET password = #{password}, update_date = now() WHERE email = #{email}
+    </update>
     <!--  이메일 중복 체크용 조회  -->
     <select id="findByEmail" resultType="MemberVO">
         SELECT * FROM member WHERE email = #{email}

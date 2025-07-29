@@ -25,10 +25,10 @@ public class MemberController {
     }
 
     // ID(email) 중복 체크 API
-    @GetMapping("/checkusername/{username}")
-    @ApiOperation(value = "ID(이메일) 중복 체크")
-    public ResponseEntity<Boolean> checkUsername(@PathVariable String username) {
-        return ResponseEntity.ok().body(service.checkDuplicate(username));
+    @GetMapping("/exist/email/{email}")
+    @ApiOperation(value = "ID(이메일) 존재 여부 확인", notes = "회원가입, 비밀번호 찾기에서 사용")
+    public ResponseEntity<Boolean> checkEmailExist(@PathVariable String email) {
+        return ResponseEntity.ok().body(service.existsByEmail(email));
     }
 
     @PutMapping("")
@@ -41,6 +41,14 @@ public class MemberController {
 
         // 사용자 정보 수정
         return ResponseEntity.ok(service.update(memberId, request));
+    }
+
+    // 비밀번호 재설정
+    @PostMapping("/password/reset")
+    @ApiOperation(value = "비밀번호 찾기(재설정)", notes = "가입된 아이디와 인증 기반으로 비밀번호 재설정")
+    public ResponseEntity<?> resetPassword(@RequestBody PasswordResetDTO dto) {
+        service.resetPassword(dto);
+        return ResponseEntity.ok("비밀번호가 변경되었습니다.");
     }
 
     @PostMapping("/find/username")

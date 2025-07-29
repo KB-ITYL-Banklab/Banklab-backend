@@ -9,4 +9,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class EmailSendDTO {
     private String email;
+    private Boolean isSignup;
 }

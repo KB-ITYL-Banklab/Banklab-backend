@@ -4,14 +4,17 @@ import com.banklab.common.redis.RedisKeyUtil;
 import com.banklab.member.dto.*;
 import com.banklab.member.exception.PasswordMissmatchException;
 import com.banklab.member.mapper.MemberMapper;
+import com.banklab.oauth.domain.OAuthProvider;
 import com.banklab.security.account.domain.AuthVO;
 import com.banklab.security.account.domain.MemberVO;
 import com.banklab.common.redis.RedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.NoSuchElementException;
@@ -35,7 +38,6 @@ public class MemberServiceImpl implements MemberService {
     }
 
     // 회원 가입(선언적 트랜잭션 처리)
-    @Transactional  // 트랜잭션 처리 보장
     @Override
     public MemberDTO join(MemberJoinDTO dto) {
         String email = dto.getEmail();
@@ -57,6 +59,8 @@ public class MemberServiceImpl implements MemberService {
     }
 
     // 회원 등록
+    @Transactional // 트랜잭션 처리 보장
+    @Override
     public MemberDTO registerMember(MemberVO member) {
         mapper.insert(member);
 
@@ -86,7 +90,7 @@ public class MemberServiceImpl implements MemberService {
 
     // 이메일(아이디) 중복 여부
     @Override
-    public boolean checkDuplicate(String email) {
+    public boolean existsByEmail(String email) {
         MemberVO member = mapper.findByEmail(email);
         return member != null;
     }
@@ -101,6 +105,30 @@ public class MemberServiceImpl implements MemberService {
         }
         mapper.update(member.toVO(id));
         return get(id, null);
+    }
+
+    @Transactional
+    @Override
+    public void resetPassword(PasswordResetDTO dto) {
+        // 회원 조회
+        MemberVO vo = mapper.get(null, dto.getEmail());
+
+        // 소셜 로그인 계정 여부
+        if (!OAuthProvider.LOCAL.equals(vo.getProvider())) {
+            throw new IllegalStateException("소셜 로그인 계정은 비밀번호 변경을 할 수 없습니다.");
+        }
+
+        // 인증 여부 확인
+        String verifiedKey = dto.getEmailVerified() ? vo.getEmail() : vo.getPhone();
+        if (!redisService.isVerified(verifiedKey)) {
+            throw new IllegalStateException("인증을 먼저 완료하세요.");
+        }
+
+        // 비밀번호 변경
+        String encoded = passwordEncoder.encode(dto.getNewPassword());
+        mapper.updatePassword(vo.getEmail(), encoded);
+
+        redisService.delete(RedisKeyUtil.verified(verifiedKey));
     }
 
     // 아이디 찾기
