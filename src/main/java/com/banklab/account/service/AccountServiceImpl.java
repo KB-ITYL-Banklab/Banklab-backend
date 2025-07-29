@@ -46,6 +46,7 @@ public class AccountServiceImpl implements AccountService {
 
             AccountDTO accountDTO = new AccountDTO();
 
+            accountDTO.setId(accountVO.getId()); // ID 필드 추가
             accountDTO.setResAccount(accountVO.getResAccount());
             accountDTO.setResAccountName(accountVO.getResAccountName());
             accountDTO.setResAccountDisplay(accountVO.getResAccountDisplay());

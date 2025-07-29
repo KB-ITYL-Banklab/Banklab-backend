@@ -5,6 +5,7 @@ import lombok.Data;
 
 @Data
 public class AccountDTO {
+    public Long id;               // 계좌 테이블 기본키 ID 추가
     public String connectedId;    // 삭제 요청 시 필요
     public String organization;
     public String resAccount;
@@ -14,6 +15,7 @@ public class AccountDTO {
 
     public AccountVO toVO(Long memberId, String connectedId, String organization) {
         return AccountVO.builder()
+                .id(id)
                 .memberId(memberId)
                 .connectedId(connectedId)
                 .organization(organization)

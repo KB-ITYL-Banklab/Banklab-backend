@@ -54,10 +54,18 @@ public class AccountController {
         }
 
         try {
-            Long memberId = jwtProcessor.getMemberId(token);
             String username = jwtProcessor.getUsername(token);
+            Long memberId = jwtProcessor.getMemberId(token);
 
+            // memberId가 없는 경우 username으로 조회
             if (memberId == null) {
+                // TODO: username으로 memberId를 DB에서 조회하는 로직 추가
+                // 임시로 기본값 설정 (실제로는 DB 조회 필요)
+                log.warn("JWT 토큰에 memberId가 없습니다. username: {}", username);
+                throw new SecurityException("토큰에 사용자 ID 정보가 없습니다. 다시 로그인해주세요.");
+            }
+
+            if (username == null) {
                 throw new SecurityException("토큰에 사용자 정보가 없습니다. 다시 로그인해주세요.");
             }
 

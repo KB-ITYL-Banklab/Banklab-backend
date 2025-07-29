@@ -1,5 +1,6 @@
 package com.banklab.security.account.domain;
 
+import com.banklab.oauth.domain.OAuthProvider;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -20,7 +21,7 @@ public class CustomUser extends User {
     // MemberVO를 받는 생성자 - 실제로 주로 사용
     public CustomUser(MemberVO vo) {
         super(vo.getEmail(),           // 사용자 ID
-                vo.getPassword(),           // 암호화된 비밀번호
+                (vo.getProvider() == OAuthProvider.LOCAL) ? vo.getPassword() : "SOCIAL_USER",
                 vo.getAuthList());          // 권한 목록 (List<AuthVO>)
 
         this.member = vo;                 // 추가 사용자 정보 저장
