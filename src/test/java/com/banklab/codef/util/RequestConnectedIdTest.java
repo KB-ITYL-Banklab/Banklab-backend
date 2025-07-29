@@ -30,18 +30,18 @@ class RequestConnectedIdTest {
         log.info("SECRET_KEY: " + CommonConstant.SECRET_KEY);
         log.info("PUBLIC_KEY: " + CommonConstant.PUBLIC_KEY);
 
-        String id = "2657884"; // 은행 아이디
-        String password = "dbwls66^^"; // 은행 비밀번호
+        String id = ""; // 은행 아이디
+        String password = ""; // 은행 비밀번호
 
 
-        String connected_id = RequestConnectedId.createConnectedId(id, password, "0243", "BK");
+        String connected_id = RequestConnectedId.createConnectedId(id, password, "0243", "ST");
         log.info("Connected ID: " + connected_id);
 
     }
 
     @Test
     void 커넥티드_아이디_삭제() throws Exception {
-        String connected_id = "81NVpRPDQoy8jVmbx6HmP7"; // 커넥티드 아이디
+        String connected_id = ""; // 커넥티드 아이디
         String bankCode = "0004"; // 기관코드(은행코드 ex. 0004)
 
         RequestConnectedId.deleteConnectedId(connected_id, bankCode, "BK");
