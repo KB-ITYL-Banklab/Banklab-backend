@@ -1,8 +1,6 @@
 package com.banklab.member.service;
 
-import com.banklab.member.dto.MemberDTO;
-import com.banklab.member.dto.MemberJoinDTO;
-import com.banklab.member.dto.MemberUpdateDTO;
+import com.banklab.member.dto.*;
 import com.banklab.security.account.domain.MemberVO;
 
 public interface MemberService {
@@ -11,4 +9,5 @@ public interface MemberService {
     MemberDTO registerMember(MemberVO member);
     boolean checkDuplicate(String email);    // ID 중복 체크
     MemberDTO update(Long id, MemberUpdateDTO member);
+    FindResponseDTO findEmail(PersonalInfoDTO dto);
 }

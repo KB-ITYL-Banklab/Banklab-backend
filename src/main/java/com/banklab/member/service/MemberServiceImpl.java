@@ -1,9 +1,7 @@
 package com.banklab.member.service;
 
 import com.banklab.common.redis.RedisKeyUtil;
-import com.banklab.member.dto.MemberDTO;
-import com.banklab.member.dto.MemberJoinDTO;
-import com.banklab.member.dto.MemberUpdateDTO;
+import com.banklab.member.dto.*;
 import com.banklab.member.exception.PasswordMissmatchException;
 import com.banklab.member.mapper.MemberMapper;
 import com.banklab.security.account.domain.AuthVO;
@@ -15,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -57,6 +56,7 @@ public class MemberServiceImpl implements MemberService {
         return member;
     }
 
+    // 회원 등록
     public MemberDTO registerMember(MemberVO member) {
         mapper.insert(member);
 
@@ -78,11 +78,13 @@ public class MemberServiceImpl implements MemberService {
         }
     }
 
+    // 전화번호 존재 여부
     private boolean existsByPhone(String phone) {
         MemberVO member = mapper.findByPhone(phone);
         return member != null;
     }
 
+    // 이메일(아이디) 중복 여부
     @Override
     public boolean checkDuplicate(String email) {
         MemberVO member = mapper.findByEmail(email);
@@ -99,5 +101,22 @@ public class MemberServiceImpl implements MemberService {
         }
         mapper.update(member.toVO(id));
         return get(id, null);
+    }
+
+    // 아이디 찾기
+    @Override
+    public FindResponseDTO findEmail(PersonalInfoDTO dto) {
+        String phoneNum = dto.getPhone().replace("-", "");
+        MemberVO member = mapper.findByPersonalInfo(dto.getName(), LocalDate.parse(dto.getBirth()), phoneNum);
+        if (!redisService.isVerified(phoneNum)) {
+            throw new IllegalStateException("전화번호 인증을 먼저 완료하세요.");
+        }
+        if (member == null) {
+            throw new IllegalStateException("입력하신 정보와 일치하는 계정이 없습니다.");
+        }
+
+        redisService.delete(RedisKeyUtil.verified(phoneNum));
+
+        return FindResponseDTO.of(member);
     }
 }

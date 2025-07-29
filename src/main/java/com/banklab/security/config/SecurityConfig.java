@@ -126,8 +126,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // 회원 관련 공개 API (인증 불필요)
                 .antMatchers(HttpMethod.POST, "/api/member").permitAll()                    // 회원가입
                 .antMatchers(HttpMethod.GET, "/api/member/checkusername/**").permitAll()    // ID 중복 체크
-                .antMatchers(HttpMethod.POST, "/api/verification/**").permitAll()
-                .antMatchers(HttpMethod.GET, "/api/oauth/kakao/**").permitAll()
+                .antMatchers(HttpMethod.POST, "/api/verification/**").permitAll()           // 이메일/전화번호 인증
+                .antMatchers(HttpMethod.GET, "/api/oauth/kakao/**").permitAll()             // 카카오 소셜 로그인
+                .antMatchers(HttpMethod.POST, "/api/member/find/**").permitAll()            // 아이디 찾기
                 .anyRequest().authenticated(); // 모든 요청에 인증 필요
 
     }

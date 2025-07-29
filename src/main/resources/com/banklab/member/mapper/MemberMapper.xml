@@ -68,4 +68,11 @@
     <select id="findByPhone" resultType="MemberVO">
         SELECT * FROM member WHERE phone = #{phone}
     </select>
+    <select id="findByPersonalInfo" resultType="MemberVO">
+        SELECT email, reg_date, provider
+        FROM member
+        WHERE name = #{name}
+          AND birth_date = #{birth}
+          AND phone = #{phone}
+    </select>
 </mapper>

@@ -5,6 +5,7 @@ import com.banklab.security.account.domain.AuthVO;
 import com.banklab.security.account.domain.MemberVO;
 import org.apache.ibatis.annotations.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface MemberMapper {
@@ -16,4 +17,5 @@ public interface MemberMapper {
     MemberVO findByEmail(String email);
     MemberVO findByProviderAndProviderId(@Param("provider")OAuthProvider provider, @Param("providerId")Long providerId);
     MemberVO findByPhone(String phone);
+    MemberVO findByPersonalInfo(@Param("name") String name, @Param("birth") LocalDate birth, @Param("phone") String phone);
 }
