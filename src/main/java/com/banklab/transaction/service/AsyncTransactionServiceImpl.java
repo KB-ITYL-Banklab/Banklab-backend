@@ -3,6 +3,7 @@ package com.banklab.transaction.service;
 import com.banklab.account.domain.AccountVO;
 import com.banklab.account.mapper.AccountMapper;
 import com.banklab.category.kakaomap.service.KakaoMapService;
+import com.banklab.category.service.CategoryService;
 import com.banklab.transaction.domain.TransactionHistoryVO;
 import com.banklab.transaction.dto.request.TransactionDTO;
 import com.banklab.transaction.dto.request.TransactionRequestDto;
@@ -18,6 +19,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletionException;
 
 @Service
 @Log4j2
@@ -26,6 +28,8 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
     private final TransactionMapper transactionMapper;
     private final AccountMapper accountMapper;
     private final TransactionService transactionService;
+    private final CategoryService categoryService;
+    private final SummaryBatchService summaryBatchService;
 
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
@@ -53,13 +57,28 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
             List<TransactionHistoryVO> transactions;
 
             try {
-                // 3. CODEF API 호출
+                // 1. CODEF API 호출
                 transactions = TransactionResponse.requestTransactions(memberId,dto);
-                // 4. DB에 거래 내역 저장
+
+                log.info("[START] 거래 내역 db 저장 시작");
+                // 2. DB에 거래 내역 저장
                 transactionService.saveTransactionList(memberId,account, transactions );
+                log.info("[END] 거래 내역 db 저장 종료");
+
+                // 3. 상호명 -> 카테고리 분류 실행
+                categoryService.categorizeTransactions(transactions).join();
+
+                log.info("[START] 집계 내역 db 저장 시작");
+                // 4. 집계 업데이트
+                summaryBatchService.initDailySummary(memberId,account);
+                log.info("[END] 집계 내역 db 저장 종료");
+
             } catch (IOException | InterruptedException e) {
                 log.error("거래 내역 불러오는 중 오류 발생");
                 throw new RuntimeException(e);
+            }catch (CompletionException e){
+                log.error("카테고리 분류 비동기 처리 중 에러 발생");
+                throw e;
             }
             log.info("[END] 모든 함수 종료: Thread: {}",Thread.currentThread().getName());
         }

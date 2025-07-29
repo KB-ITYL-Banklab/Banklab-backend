@@ -60,24 +60,22 @@ public class CategoryService {
                     }, CompletableFuture.delayedExecutor(delay, TimeUnit.MILLISECONDS))
             );
         }
-        log.info("[END] 카테고리 분류 완료 : Thread: {}", Thread.currentThread().getName());
 
 
-        log.info("[START] 카테고리 저장 시작 : Thread: {}", Thread.currentThread().getName());
         CompletableFuture<Void> allDone = CompletableFuture.allOf(descMap.values().toArray(new CompletableFuture[0]));
-        allDone.thenApply(v -> {
-            for (TransactionHistoryVO tx : transactions) {
-                String desc = tx.getDescription();
-                tx.setCategory_id(descMap.get(desc).join());
-            }
-            // db 저장
-            transactionMapper.updateCategories(transactions);
-
-            log.info("[END] 카테고리 저장 완료 : Thread: {}", Thread.currentThread().getName());
-            return CompletableFuture.completedFuture(null);
-        });
-        return allDone;
+        return allDone.thenRun(() -> saveCategories(transactions, descMap));
     }
+
+    private void saveCategories(List<TransactionHistoryVO> transactions, Map<String, CompletableFuture<Long>> descMap) {
+        log.info("[START] 카테고리 저장 시작 : Thread: {}", Thread.currentThread().getName());
+        for (TransactionHistoryVO tx : transactions) {
+            String desc = tx.getDescription();
+            tx.setCategory_id(descMap.get(desc).join());
+        }
+        transactionMapper.updateCategories(transactions);
+        log.info("[END] 카테고리 저장 완료 : Thread: {}", Thread.currentThread().getName());
+    }
+
 
     public Long getCategoryWithCache(String keyword){
         String redisKey = "category::"+keyword;

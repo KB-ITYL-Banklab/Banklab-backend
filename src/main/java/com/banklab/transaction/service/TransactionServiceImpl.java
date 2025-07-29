@@ -16,6 +16,7 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
@@ -41,20 +42,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional
     public void saveTransactionList(Long memberId,AccountVO account, List<TransactionHistoryVO> transactions) {
         if(transactions.isEmpty())  return;
-
-        log.info("[START] 거래 내역 db 저장 시작");
-        // 거래 내역 db 저장
         transactionMapper.saveTransactionList(transactions);
-        log.info("[END] 거래 내역 db 저장 완료");
-        
-        // 상호명 -> 카테고리 분류 실행
-        categoryService.categorizeTransactions(transactions).join();
-
-
-        log.info("[START] 집계 내역 db 저장 시작");
-        // daily_expense 저장
-        summaryBatchService.initDailySummary(memberId,account);
-        log.info("[END] 집계 내역 db 저장 종료");
     }
 
     @Override
