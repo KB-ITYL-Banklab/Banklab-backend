@@ -20,7 +20,7 @@ public class RecommendedProductDTO {
     private String companyName;
     private RiskLevel riskLevel;
     private String riskReason;
-    
+
     // 실제 금리 정보
     private String interestRate;    // 실제 금리 정보 (예: "연 2.50~2.50%" 또는 "연 2.45~2.50%")
 

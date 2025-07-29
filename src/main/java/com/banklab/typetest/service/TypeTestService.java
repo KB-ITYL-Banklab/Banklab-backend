@@ -29,4 +29,11 @@ public interface TypeTestService {
      * @return 테스트 결과 DTO
      */
     TypeTestResultDTO getTestResultByUserId(Long userId);
+    /**
+     * 사용자 유형별로 모든 상품을 조회합니다.
+     *
+     * @param userId 사용자 ID
+     * @return 테스트 결과 DTO
+     */
+    TypeTestResultDTO getAllProductsByType(Long userId);
 }
