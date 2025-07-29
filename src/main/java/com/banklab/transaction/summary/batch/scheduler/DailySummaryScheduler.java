@@ -36,8 +36,8 @@ public class DailySummaryScheduler {
     /**
      * 전체 사용자 거래 내역 최신화 & 집계 테이블 최신화
      */
-    // 매일 새벽 1시 실행(작성 전)
-//    @Scheduled(cron = "* * 0 * * ?")
+    // 매일 새벽 1시 실행
+    @Scheduled(cron = "0 0 1 * * ?")
     public void runDailySummaryBatch(){
         try {
             log.info("=== 거래 내역 & 집계 최신화 시작 ===");

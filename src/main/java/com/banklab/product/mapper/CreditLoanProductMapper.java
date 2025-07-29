@@ -17,4 +17,9 @@ public interface CreditLoanProductMapper {
     CreditLoanProduct findByProductKey(@Param("dclsMonth") String dclsMonth,
                                        @Param("finCoNo") String finCoNo,
                                        @Param("finPrdtCd") String finPrdtCd);
+    
+    /**
+     * ID로 상품 조회
+     */
+    CreditLoanProduct findById(@Param("id") Long id);
 }
