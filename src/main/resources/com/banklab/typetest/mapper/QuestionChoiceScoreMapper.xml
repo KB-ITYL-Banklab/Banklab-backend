@@ -4,6 +4,11 @@
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.banklab.typetest.mapper.QuestionChoiceScoreMapper">
+    <!--
+     질문 ID와 선택지를 기준으로 QuestionChoiceScore 엔티티를 조회하는 쿼리
+     파라미터: questionId, choice
+     반환 타입: com.banklab.typetest.domain.QuestionChoiceScore
+ -->
     <select id="findByQuestionIdAndChoice" resultType="com.banklab.typetest.domain.QuestionChoiceScore">
         SELECT
             id,

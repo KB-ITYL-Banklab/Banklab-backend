@@ -21,8 +21,7 @@ import java.util.stream.Collectors;
 
 @Configuration
 @PropertySources({
-        @PropertySource("classpath:/application.properties"),
-        @PropertySource("classpath:/application-secret.properties")})
+        @PropertySource("classpath:/application.properties")})
 @MapperScan(basePackages = {
         "com.banklab.account.mapper",
         "com.banklab.member.mapper",

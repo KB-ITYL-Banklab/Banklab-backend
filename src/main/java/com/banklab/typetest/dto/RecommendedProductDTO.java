@@ -20,14 +20,12 @@ public class RecommendedProductDTO {
     private String companyName;
     private RiskLevel riskLevel;
     private String riskReason;
-    
-    // 상품 타입별 추가 정보
-    private String interestRate;    // 금리 정보
-    private String productFeature; // 상품 특징
-    private String targetCustomer; // 대상 고객
+
+    // 실제 금리 정보
+    private String interestRate;    // 실제 금리 정보 (예: "연 2.50~2.50%" 또는 "연 2.45~2.50%")
 
     //상품 조회용 필드
     private String dclsMonth;   // 공시월
     private String finCoNo;     // 금융회사 코드
-    private String finPrdtCd;
+    private String finPrdtCd;   // 금융상품 코드
 }

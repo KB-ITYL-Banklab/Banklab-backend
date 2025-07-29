@@ -47,11 +47,10 @@ class ProductRecommendationControllerTest {
         List<RecommendedProductDTO> expectedProducts = Arrays.asList(
                 RecommendedProductDTO.builder()
                         .productId(1L)
-                        .productName("안전한 정기예금")
                         .productType(ProductType.DEPOSIT)
+                        .productName("안전한 정기예금")
                         .riskLevel(RiskLevel.LOW)
                         .interestRate("연 2.5%")
-                        .productFeature("원금 보장되는 안전한 상품입니다.")
                         .build()
         );
 
@@ -78,11 +77,10 @@ class ProductRecommendationControllerTest {
         List<RecommendedProductDTO> expectedProducts = Arrays.asList(
                 RecommendedProductDTO.builder()
                         .productId(3L)
-                        .productName("혼합형 펀드")
+                        .productName("적금")
                         .productType(ProductType.SAVINGS)
                         .riskLevel(RiskLevel.MEDIUM)
                         .interestRate("연 5.0%")
-                        .productFeature("주식과 채권을 균형있게 투자하는 펀드입니다.")
                         .build()
         );
 
@@ -94,7 +92,7 @@ class ProductRecommendationControllerTest {
 
         // Then
         assertEquals(1, actualProducts.size());
-        assertEquals("혼합형 펀드", actualProducts.get(0).getProductName());
+        assertEquals("적금", actualProducts.get(0).getProductName());
         assertEquals(RiskLevel.MEDIUM, actualProducts.get(0).getRiskLevel());
         assertEquals(ProductType.SAVINGS, actualProducts.get(0).getProductType());
 
@@ -109,11 +107,10 @@ class ProductRecommendationControllerTest {
         List<RecommendedProductDTO> expectedProducts = Arrays.asList(
                 RecommendedProductDTO.builder()
                         .productId(5L)
-                        .productName("성장형 주식펀드")
+                        .productName("신용대출")
                         .productType(ProductType.LOAN)
                         .riskLevel(RiskLevel.HIGH)
                         .interestRate("연 10.0%")
-                        .productFeature("고성장 기업에 투자하는 펀드입니다.")
                         .build()
         );
 
@@ -125,7 +122,7 @@ class ProductRecommendationControllerTest {
 
         // Then
         assertEquals(1, actualProducts.size());
-        assertEquals("성장형 주식펀드", actualProducts.get(0).getProductName());
+        assertEquals("신용대출", actualProducts.get(0).getProductName());
         assertEquals(RiskLevel.HIGH, actualProducts.get(0).getRiskLevel());
         assertEquals(ProductType.LOAN, actualProducts.get(0).getProductType());
 
