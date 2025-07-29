@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @MapperScan(basePackages = {
         "com.banklab.account.mapper",
         "com.banklab.member.mapper",
-        "com.banklab.financeContents",
+        "com.banklab.financeContents.mapper",
         "com.banklab.typetest.mapper",
         "com.banklab.product.mapper",
         "com.banklab.risk.mapper",
@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
         "com.banklab.oauth.service",
         "com.banklab.oauth.client",
         "com.banklab.account.service",
-        "com.banklab.financeContents",
+        "com.banklab.financeContents.service",
         "com.banklab.typetest",
         "com.banklab.product",
         "com.banklab.risk",
