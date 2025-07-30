@@ -6,6 +6,8 @@ import com.banklab.account.dto.AccountRequestDTO;
 import com.banklab.account.service.AccountResponse;
 import com.banklab.account.service.AccountService;
 import com.banklab.codef.service.RequestConnectedId;
+import com.banklab.common.redis.RedisKeyUtil;
+import com.banklab.common.redis.RedisService;
 import com.banklab.security.util.JwtProcessor;
 import com.banklab.transaction.dto.response.TransactionDetailDTO;
 import com.banklab.transaction.dto.request.TransactionRequestDto;
@@ -40,6 +42,7 @@ public class AccountController {
     private final JwtProcessor jwtProcessor;
     private final AsyncTransactionService asyncTransactionService;
     private final TransactionService transactionService;
+    private final RedisService redisService;
 
     /**
      * HTTP 요청에서 JWT 토큰을 추출하고 검증한 후, 사용자 정보를 반환
@@ -137,12 +140,15 @@ public class AccountController {
             // 2. 커넥티드 아이디로 계좌 정보 조회 및 DB 저장
             List<AccountVO> accountList = AccountResponse.requestAccounts(memberId, accountRequest.getBankCode(), userConnectedId);
             int savedCount = accountService.saveAccounts(accountList);
+            redisService.set(RedisKeyUtil.transaction(memberId, accountList.get(0).getResAccount()), "FETCHING_TRANSACTIONS",10);
 
             // 3. 저장된 계좌 정보 조회하여 반환
             List<AccountDTO> accountDTOList = accountService.getUserAccounts(memberId);
             response.put("connectedId", userConnectedId);
             response.put("savedCount", savedCount);
             response.put("accounts", accountDTOList);
+
+
 
             asyncTransactionService.getTransactions(memberId,
                     TransactionRequestDto.builder()
