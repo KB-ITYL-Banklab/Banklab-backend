@@ -174,4 +174,22 @@
         ORDER BY totalExpense DESC
     </select>
 
+    <!-- 우진 추가 -->
+    <!-- 계좌 ID로 거래내역 상세 조회 (DTO 반환) -->
+    <select id="getTransactionDetailsByAccountId" resultType="com.banklab.transaction.dto.response.TransactionDetailDTO">
+        SELECT
+            th.member_id as memberId,
+            th.resAccount,
+            th.resAccountIn,
+            th.resAccountOut,
+            th.resAfterTranBalance,
+            DATE_FORMAT(th.transaction_date, '%Y-%m-%d') as resAccountTrDate,
+            TIME_FORMAT(th.transaction_time, '%H:%i:%s') as resAccountTrTime,
+            th.description as resAccountDesc3
+        FROM transaction_history th
+        WHERE th.member_id = #{memberId}
+          AND th.resAccount = #{resAccount}
+          AND th.transaction_date BETWEEN #{startDate} AND #{endDate}
+        ORDER BY th.transaction_date DESC, th.transaction_time DESC
+    </select>
 </mapper>

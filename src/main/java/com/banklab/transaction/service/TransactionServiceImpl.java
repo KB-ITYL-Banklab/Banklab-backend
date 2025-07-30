@@ -214,4 +214,17 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
 
+    @Override
+    public List<TransactionDetailDTO> getTransactionDetailsByAccountId(Long memberId, Long accountId, Date startDate, Date endDate) {
+        // 1. 계좌 소유권 검증 및 실제 계좌번호 조회
+        String resAccount = accountMapper.getResAccountById(accountId, memberId);
+
+        if (resAccount == null) {
+            throw new SecurityException("해당 계좌에 대한 권한이 없거나 존재하지 않는 계좌입니다.");
+        }
+
+        // 2. 실제 계좌번호로 거래내역 조회 (DTO 직접 반환)
+        return transactionMapper.getTransactionDetailsByAccountId(memberId, resAccount, startDate, endDate);
+    }
+
 }

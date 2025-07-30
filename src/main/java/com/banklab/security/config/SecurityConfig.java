@@ -123,12 +123,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.GET, "/api/upbit/**").permitAll() // 금융차트 가상화페 API 공개
                 .antMatchers(HttpMethod.GET, "/api/exchange/**").permitAll() // 금융차트 외환 API 공개
                 .antMatchers(HttpMethod.GET, "/api/health/**").permitAll() // 금융차트  API 연결여부 공개
+                .antMatchers(HttpMethod.GET, "/api/term/**").permitAll() // 경제용어  API  공개
+                .antMatchers(HttpMethod.GET, "/api/terms/**").permitAll() // 금융용어 API 공개
                 // 회원 관련 공개 API (인증 불필요)
                 .antMatchers(HttpMethod.POST, "/api/member").permitAll()                    // 회원가입
                 .antMatchers(HttpMethod.GET, "/api/member/checkusername/**").permitAll()    // ID 중복 체크
                 .antMatchers(HttpMethod.GET, "/api/oauth/kakao/**").permitAll()
                 .anyRequest().authenticated(); // 모든 요청에 인증 필요
-
     }
-
 }

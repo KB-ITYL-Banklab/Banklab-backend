@@ -100,7 +100,7 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
      * @param request 거래 내역 조회를 위한 요청 파라미터 (sDate, eDate, orderBy)
      * @return  거래 내역 조회를 위한 요청 DTO
      */
-    private TransactionDTO makeTransactionDTO(AccountVO account, TransactionRequestDto request){
+    public TransactionDTO makeTransactionDTO(AccountVO account, TransactionRequestDto request){
         if(request == null){
             request = new TransactionRequestDto();
             LocalDate endDate   = LocalDate.now();

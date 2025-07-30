@@ -3,7 +3,6 @@ package com.banklab.account.mapper;
 import com.banklab.account.domain.AccountVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.springframework.security.core.parameters.P;
 
 import java.util.List;
 
@@ -56,4 +55,22 @@ public interface AccountMapper {
     Long getMemberIdByUsername(@Param("username") String username);
 
     AccountVO getAccountByAccountNumber(@Param("account") String account);
+
+
+    /**
+     * 계좌 ID로 계좌 정보 조회 (소유권 검증용)
+     * @param accountId 계좌 ID (PK)
+     * @param memberId 회원 ID
+     * @return 계좌 정보 (소유자가 맞으면 반환, 아니면 null)
+     */
+    AccountVO selectAccountByIdAndMemberId(@Param("accountId") Long accountId, @Param("memberId") Long memberId);
+
+
+    /**
+     * 계좌 ID로 실제 계좌번호 조회
+     * @param accountId 계좌 ID (PK)
+     * @param memberId 회원 ID (소유권 검증용)
+     * @return 실제 계좌번호 (resAccount)
+     */
+    String getResAccountById(@Param("accountId") Long accountId, @Param("memberId") Long memberId);
 }
