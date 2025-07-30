@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
     private final TransactionMapper transactionMapper;
+    private final AccountMapper accountMapper;
     private final SummaryBatchService summaryBatchService;
     private final CategoryService categoryService;
 

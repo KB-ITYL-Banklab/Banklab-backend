@@ -39,6 +39,7 @@ public class AccountController {
     private final AccountService accountService;
     private final JwtProcessor jwtProcessor;
     private final AsyncTransactionService asyncTransactionService;
+    private final TransactionService transactionService;
 
     /**
      * HTTP 요청에서 JWT 토큰을 추출하고 검증한 후, 사용자 정보를 반환
