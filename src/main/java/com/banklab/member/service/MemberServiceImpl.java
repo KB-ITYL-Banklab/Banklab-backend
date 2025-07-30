@@ -1,6 +1,7 @@
 package com.banklab.member.service;
 
 import com.banklab.common.redis.RedisKeyUtil;
+import com.banklab.common.util.PasswordValidator;
 import com.banklab.member.dto.*;
 import com.banklab.member.exception.PasswordMissmatchException;
 import com.banklab.member.mapper.MemberMapper;
@@ -40,8 +41,11 @@ public class MemberServiceImpl implements MemberService {
     public MemberDTO join(MemberJoinDTO dto) {
         String email = dto.getEmail();
         String phoneNum = dto.getPhone().replace("-", "");
-        // 이메일 & 전화번호 인증 확인
+        // 이메일 & 전화번호 인증, 비밀번호 검증 확인
         validateVerification(email, phoneNum);
+        if (!PasswordValidator.isValid(dto.getPassword())) {
+            throw new IllegalArgumentException("비밀번호 형식이 유효하지 않습니다.");
+        }
         MemberDTO member = registerMember(dto.toVO(passwordEncoder));
 
         // 인증상태 삭제 (가입 성공 여부와 상관없이 1회용 인증)
@@ -120,6 +124,11 @@ public class MemberServiceImpl implements MemberService {
         String verifiedKey = dto.getEmailVerified() ? vo.getEmail() : vo.getPhone();
         if (!redisService.isVerified(verifiedKey)) {
             throw new IllegalStateException("인증을 먼저 완료하세요.");
+        }
+
+        // 비밀번호 검증
+        if (!PasswordValidator.isValid(dto.getNewPassword())) {
+            throw new IllegalArgumentException("비밀번호 형식이 유효하지 않습니다.");
         }
 
         // 비밀번호 변경
