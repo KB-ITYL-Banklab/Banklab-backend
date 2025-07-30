@@ -10,22 +10,17 @@ import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatche
 public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitializer {
     @Override
     protected Class<?>[] getRootConfigClasses() {
-        return new Class[] {
-                RootConfig.class,
-                SecurityConfig.class,
-                RedisConfig.class,
-                BatchConfig.class,
-                SchedulerConfig.class,
-                AsyncConfig.class};
+        return new Class[]{
+                RootConfig.class, SecurityConfig.class, RedisConfig.class, BatchConfig.class, SchedulerConfig.class, MailConfig.class, AsyncConfig.class};
     }
 
     @Override
     protected Class<?>[] getServletConfigClasses() {
-        return new Class[] { ServletConfig.class, SwaggerConfig.class };
+        return new Class[]{ServletConfig.class, SwaggerConfig.class};
     }
 
     @Override
     protected String[] getServletMappings() {
-        return new String[] { "/" };
+        return new String[]{"/"};
     }
 }

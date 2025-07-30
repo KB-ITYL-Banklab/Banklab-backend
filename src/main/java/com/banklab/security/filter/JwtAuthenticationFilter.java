@@ -1,6 +1,6 @@
 package com.banklab.security.filter;
 
-import com.banklab.security.service.RedisService;
+import com.banklab.common.redis.RedisService;
 import com.banklab.security.util.JwtProcessor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
