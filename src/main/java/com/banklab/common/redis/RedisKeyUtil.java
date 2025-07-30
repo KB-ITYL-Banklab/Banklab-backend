@@ -9,6 +9,8 @@ public class RedisKeyUtil {
         return "email:" + email;
     }
 
+    public static String transaction(Long memberId, String account){return "trhis-sync-status:"+memberId+":"+account;}
+
     public static String resend(String type) {
         return "resend:" + type;
     }

@@ -3,29 +3,18 @@ package com.banklab.transaction.service;
 import com.banklab.account.domain.AccountVO;
 import com.banklab.account.mapper.AccountMapper;
 import com.banklab.category.dto.CategoryExpenseDTO;
-import com.banklab.category.kakaomap.service.KakaoMapService;
-import com.banklab.category.service.CategoryService;
 import com.banklab.transaction.domain.TransactionHistoryVO;
-import com.banklab.transaction.dto.request.TransactionDTO;
-import com.banklab.transaction.dto.request.TransactionRequestDto;
 import com.banklab.transaction.dto.response.*;
 import com.banklab.transaction.mapper.TransactionMapper;
-import com.banklab.transaction.summary.service.SummaryBatchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.apache.ibatis.annotations.Param;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @Log4j2
@@ -33,11 +22,6 @@ import java.util.concurrent.TimeUnit;
 public class TransactionServiceImpl implements TransactionService {
     private final TransactionMapper transactionMapper;
     private final AccountMapper accountMapper;
-    private final SummaryBatchService summaryBatchService;
-    private final CategoryService categoryService;
-
-
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     @Override
     @Transactional

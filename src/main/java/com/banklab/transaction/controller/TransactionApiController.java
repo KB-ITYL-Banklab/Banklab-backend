@@ -1,6 +1,8 @@
 package com.banklab.transaction.controller;
 
 import com.banklab.category.dto.CategoryExpenseDTO;
+import com.banklab.common.redis.RedisKeyUtil;
+import com.banklab.common.redis.RedisService;
 import com.banklab.security.util.JwtProcessor;
 import com.banklab.transaction.dto.request.TransactionRequestDto;
 import com.banklab.transaction.dto.response.DailyExpenseDTO;
@@ -35,6 +37,7 @@ public class TransactionApiController {
     private final JwtProcessor jwtProcessor;
     private final AsyncTransactionService asyncTransactionService;
     private final TransactionService transactionService;
+    private final RedisService redisService;
 
     /**
      * HTTP 요청에서 JWT 토큰 추출 & 검증하여 사용자 정보 반환
@@ -123,6 +126,28 @@ public class TransactionApiController {
                     .body(createErrorResponse("거래 내역 저장 중 오류가 발생했습니다.", "INTERNAL_ERROR"));
         }
     }
+
+    @PostMapping("/summary/status")
+    public ResponseEntity<Map<String, Object>> checkLinkStatus(
+            @RequestBody Map<String, String> requestBody,
+            HttpServletRequest request
+    ) {
+        Map<String, Object> authInfo = extractAuthInfo(request);
+        Long memberId = (Long) authInfo.get("memberId");
+
+        String accountNumber = requestBody.get("accountNumber");
+        String key = RedisKeyUtil.transaction(memberId, accountNumber);
+
+        String status = redisService.get(key);
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", status != null ? status : "NOT_STARTED");
+
+
+        return ResponseEntity.ok(response);
+    }
+
+
+
 
     @GetMapping("/summary")
     @ApiOperation(value = "소비 분석 페이지 데이터 호출", notes = "사전 집계 테이블에서 data 호출하기")

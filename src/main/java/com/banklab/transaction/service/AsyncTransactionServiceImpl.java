@@ -2,8 +2,9 @@ package com.banklab.transaction.service;
 
 import com.banklab.account.domain.AccountVO;
 import com.banklab.account.mapper.AccountMapper;
-import com.banklab.category.kakaomap.service.KakaoMapService;
 import com.banklab.category.service.CategoryService;
+import com.banklab.common.redis.RedisKeyUtil;
+import com.banklab.common.redis.RedisService;
 import com.banklab.transaction.domain.TransactionHistoryVO;
 import com.banklab.transaction.dto.request.TransactionDTO;
 import com.banklab.transaction.dto.request.TransactionRequestDto;
@@ -30,12 +31,15 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
     private final TransactionService transactionService;
     private final CategoryService categoryService;
     private final SummaryBatchService summaryBatchService;
+    private final RedisService redisService;
+
 
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     @Async
     public void getTransactions(long memberId, TransactionRequestDto request){
+        String key = RedisKeyUtil.transaction(memberId,request.getResAccount());
         log.info("[START] 거래 내역 불러오기 시작 : Thread: {}",Thread.currentThread().getName());
         List<AccountVO> userAccounts=new ArrayList<>();
 
@@ -62,19 +66,24 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
 
                 log.info("[START] 거래 내역 db 저장 시작");
                 // 2. DB에 거래 내역 저장
+                redisService.setBySeconds(key, "FETCHING_TRANSACTIONS",15);
                 transactionService.saveTransactionList(memberId,account, transactions );
                 log.info("[END] 거래 내역 db 저장 종료");
 
                 // 3. 상호명 -> 카테고리 분류 실행
-                categoryService.categorizeTransactions(transactions).join();
+                categoryService.categorizeTransactions(transactions, key).join();
 
                 log.info("[START] 집계 내역 db 저장 시작");
                 // 4. 집계 업데이트
+                redisService.setBySeconds(key, "ANALYZING_DATA",20);
                 summaryBatchService.initDailySummary(memberId,account);
                 log.info("[END] 집계 내역 db 저장 종료");
+                redisService.setBySeconds(key, "DONE",20);
+
 
             } catch (IOException | InterruptedException e) {
                 log.error("거래 내역 불러오는 중 오류 발생");
+                redisService.set(key, "FAILED",1);
                 throw new RuntimeException(e);
             }catch (CompletionException e){
                 log.error("카테고리 분류 비동기 처리 중 에러 발생");
