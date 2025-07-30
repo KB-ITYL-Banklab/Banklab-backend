@@ -11,4 +11,5 @@ public interface MemberService {
     MemberDTO update(Long id, MemberUpdateDTO member);
     void resetPassword(PasswordResetDTO dto);
     FindResponseDTO findEmail(PersonalInfoDTO dto);
+    String getPhoneByEmail(String email);
 }

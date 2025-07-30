@@ -27,8 +27,7 @@ import java.util.List;
         "com.banklab.transaction.controller",
         "com.banklab.category.controller",
         "com.banklab.perplexity.controller",
-        "com.banklab.verification.sms.controller",
-        "com.banklab.verification.email.controller"
+        "com.banklab.verification.controller"
 })
 public class ServletConfig implements WebMvcConfigurer {
 

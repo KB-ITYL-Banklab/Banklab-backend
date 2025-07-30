@@ -1,8 +1,7 @@
-package com.banklab.verification.email.service;
+package com.banklab.verification.sender;
 
 import com.banklab.common.redis.RedisKeyUtil;
 import com.banklab.common.redis.RedisService;
-import com.banklab.verification.email.dto.EmailVerifyDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -11,13 +10,11 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class EmailVerificationServiceImpl implements EmailVerificationService {
-
-    @Value("mail.smtp.username")
+public class EmailVerificationSender implements VerificationSender {
+    @Value("${mail.smtp.username}")
     private String fromEmail;
 
     private final JavaMailSender mailSender;
-
     private final RedisService redisService;
 
     private String generateCode() {
@@ -34,32 +31,24 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
     }
 
     @Override
-    public void sendVerificationCode(String email) {
-        // 재전송 제한 체크 (DoS 공격 방지)
+    public void sendCode(String email) {
         if (redisService.exists(RedisKeyUtil.resend(email))) {
             throw new IllegalStateException("인증번호는 1분 뒤에 재전송 가능합니다.");
         }
-        // 랜던 인증번호 생성 (6자리)
+
         String code = generateCode();
-
-        // 인증번호 redis에 저장 (만료시간: 5분)
         redisService.set(RedisKeyUtil.email(email), code, 5);
-
-        // 재전송 제한 설정 (1분)
         redisService.set(RedisKeyUtil.resend(email), "true", 1);
 
-        SimpleMailMessage message = createMessage(email, code);
-        mailSender.send(message);
+        mailSender.send(createMessage(email, code));
     }
 
     @Override
-    public boolean verifyCode(EmailVerifyDTO dto) {
-        String email = dto.getEmail();
-        String inputCode = dto.getCode();
+    public boolean verifyCode(String email, String inputCode) {
         boolean success = redisService.verify(RedisKeyUtil.email(email), inputCode);
         if (success) {
             redisService.set(RedisKeyUtil.verified(email), "true", 10);
-            redisService.delete(RedisKeyUtil.email(email)); // 인증번호 삭제
+            redisService.delete(RedisKeyUtil.email(email));
         }
         return success;
     }

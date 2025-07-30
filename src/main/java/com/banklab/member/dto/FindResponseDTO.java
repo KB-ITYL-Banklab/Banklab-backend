@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.text.SimpleDateFormat;
 
 @Data
 @NoArgsConstructor
@@ -15,13 +15,14 @@ import java.util.Date;
 @Builder
 public class FindResponseDTO {
     private String email;
-    private Date regDate;
+    private String regDate;
     private OAuthProvider provider;
 
     public static FindResponseDTO of(MemberVO m) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         return FindResponseDTO.builder()
                 .email(m.getEmail())
-                .regDate(m.getRegDate())
+                .regDate(sdf.format(m.getRegDate()))
                 .provider(m.getProvider())
                 .build();
     }

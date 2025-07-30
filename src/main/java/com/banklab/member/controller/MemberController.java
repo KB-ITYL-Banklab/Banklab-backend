@@ -51,7 +51,7 @@ public class MemberController {
         return ResponseEntity.ok("비밀번호가 변경되었습니다.");
     }
 
-    @PostMapping("/find/username")
+    @PostMapping("/find/email")
     @ApiOperation(value = "ID(이메일) 찾기", notes = "개인 정보와 인증 기반으로 아이디 찾기")
     public ResponseEntity<FindResponseDTO> findUsername(@RequestBody PersonalInfoDTO request) {
         return ResponseEntity.ok().body(service.findEmail(request));

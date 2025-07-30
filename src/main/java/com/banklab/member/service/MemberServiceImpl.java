@@ -10,11 +10,9 @@ import com.banklab.security.account.domain.MemberVO;
 import com.banklab.common.redis.RedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.NoSuchElementException;
@@ -38,6 +36,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     // 회원 가입(선언적 트랜잭션 처리)
+    @Transactional
     @Override
     public MemberDTO join(MemberJoinDTO dto) {
         String email = dto.getEmail();
@@ -146,5 +145,14 @@ public class MemberServiceImpl implements MemberService {
         redisService.delete(RedisKeyUtil.verified(phoneNum));
 
         return FindResponseDTO.of(member);
+    }
+
+    @Override
+    public String getPhoneByEmail(String email) {
+        MemberVO member = mapper.findByEmail(email);
+        if (member == null) {
+            throw new IllegalArgumentException("해당 이메일로 가입된 회원이 없습니다.");
+        }
+        return member.getPhone();
     }
 }
