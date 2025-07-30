@@ -26,7 +26,6 @@ public class MemberServiceImpl implements MemberService {
     private final PasswordEncoder passwordEncoder;
     private final RedisService redisService;
 
-
     // 회원 정보 조회
     @Override
     public MemberDTO get(Long id, String email) {
@@ -41,12 +40,8 @@ public class MemberServiceImpl implements MemberService {
     public MemberDTO join(MemberJoinDTO dto) {
         String email = dto.getEmail();
         String phoneNum = dto.getPhone().replace("-", "");
-        // 이메일 & 전화번호 인증되었는지 확인
+        // 이메일 & 전화번호 인증 확인
         validateVerification(email, phoneNum);
-        if (existsByPhone(phoneNum)) {
-            throw new IllegalStateException("이미 가입된 전화번호입니다.");
-            //이미 가입된 계정이 있습니다. 로그인 화면으로 이동합니다.
-        }
         MemberDTO member = registerMember(dto.toVO(passwordEncoder));
 
         // 인증상태 삭제 (가입 성공 여부와 상관없이 1회용 인증)
@@ -71,13 +66,17 @@ public class MemberServiceImpl implements MemberService {
         return get(null, member.getEmail());
     }
 
-    // 이메일 & 전화번호 인증되었는지 확인
+    // 이메일 & 전화번호 인증 확인
     private void validateVerification(String email, String phone) {
         if (!redisService.isVerified(email)) {
             throw new IllegalStateException("이메일 인증을 먼저 완료하세요.");
         }
         if (!redisService.isVerified(phone)) {
             throw new IllegalStateException("전화번호 인증을 먼저 완료하세요.");
+        }
+        if (existsByPhone(phone)) {
+            throw new IllegalStateException("이미 가입된 전화번호입니다.");
+            //이미 가입된 계정이 있습니다. 로그인 화면으로 이동합니다.
         }
     }
 

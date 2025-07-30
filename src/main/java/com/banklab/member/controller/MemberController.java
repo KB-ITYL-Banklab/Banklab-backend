@@ -2,7 +2,7 @@ package com.banklab.member.controller;
 
 import com.banklab.member.dto.*;
 import com.banklab.member.service.MemberService;
-import com.banklab.security.util.JwtProcessor;
+import com.banklab.security.service.LoginUserProvider;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,8 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/member")
 public class MemberController {
     private final MemberService service;
-
-    private final JwtProcessor jwtProcessor;
+    private final LoginUserProvider loginUserProvider;
 
     @PostMapping("")
     @ApiOperation(value = "회원가입")
@@ -33,13 +32,8 @@ public class MemberController {
 
     @PutMapping("")
     @ApiOperation(value = "회원 정보 업데이트")
-    public ResponseEntity<MemberDTO> update(@RequestHeader("Authorization") String authorizationHeader,
-                                            @RequestBody MemberUpdateDTO request) {
-        // JWT 토큰에서 사용자 ID 추출
-        String token = authorizationHeader.replace("Bearer ", "");
-        Long memberId = jwtProcessor.getMemberId(token);  // JWT에서 memberId 추출
-
-        // 사용자 정보 수정
+    public ResponseEntity<MemberDTO> update(@RequestBody MemberUpdateDTO request) {
+        Long memberId = loginUserProvider.getLoginMemberId(); // 로그인된 사용자 ID
         return ResponseEntity.ok(service.update(memberId, request));
     }
 
