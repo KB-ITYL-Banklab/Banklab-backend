@@ -2,8 +2,8 @@ package com.banklab.transaction.service;
 
 import com.banklab.account.domain.AccountVO;
 import com.banklab.account.mapper.AccountMapper;
-import com.banklab.category.kakaomap.service.KakaoMapService;
 import com.banklab.category.service.CategoryService;
+import com.banklab.common.redis.RedisService;
 import com.banklab.transaction.domain.TransactionHistoryVO;
 import com.banklab.transaction.dto.request.TransactionDTO;
 import com.banklab.transaction.dto.request.TransactionRequestDto;
@@ -30,6 +30,7 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
     private final TransactionService transactionService;
     private final CategoryService categoryService;
     private final SummaryBatchService summaryBatchService;
+    private final RedisService redisService;
 
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");

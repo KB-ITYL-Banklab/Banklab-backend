@@ -20,7 +20,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Configuration
-@PropertySource("classpath:/application.properties")
+@PropertySources({
+        @PropertySource("classpath:/application.properties")})
 @MapperScan(basePackages = {
         "com.banklab.account.mapper",
         "com.banklab.member.mapper",
@@ -45,6 +46,9 @@ import java.util.stream.Collectors;
         "com.banklab.transaction.service",
         "com.banklab.transaction",
         "com.banklab.category",
+        "com.banklab.verification.sender",
+        "com.banklab.verification.service",
+        "com.banklab.common.redis",
         "com.banklab.category.perplexity",
         "com.banklab.category.kakaomap"
 })

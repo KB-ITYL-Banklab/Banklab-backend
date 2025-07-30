@@ -2,21 +2,18 @@ package com.banklab.category.kakaomap.service;
 
 import com.banklab.category.kakaomap.client.KakaoMapClient;
 import com.banklab.category.kakaomap.dto.KakaoMapSearchResponseDto;
+import com.banklab.common.redis.RedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 @Log4j2
 @Service
 @RequiredArgsConstructor
 public class KakaoMapService {
     private final KakaoMapClient kakaoMapClient;
-    private final RedisTemplate<String, String> redisTemplate;
+    private final RedisService redisService;
 
     private static final long CACHE_TTL_SECONDS = 60 * 60 * 6; // 6시간
 
@@ -52,15 +49,12 @@ public class KakaoMapService {
     }
 
     public void storeInRedis(String redisKey, String categoryId) {
-        redisTemplate.opsForValue().set(
-                redisKey,
-                categoryId,
-                CACHE_TTL_SECONDS,
-                TimeUnit.SECONDS);
+        redisService.set(redisKey, categoryId,30);
     }
 
     public Long isStoredInRedis(String redisKey) {
-        String cachedCategory = redisTemplate.opsForValue().get(redisKey);
+
+        String cachedCategory =redisService.get(redisKey);
         if (cachedCategory != null) {
             try {
                 return Long.parseLong(cachedCategory);

@@ -26,7 +26,7 @@ public class MemberJoinDTO {
                 .email(email)
                 .password(encoder.encode(password))
                 .name(name)
-                .phone(phone)
+                .phone(phone.replace("-", ""))
                 .gender(gender)
                 .birth(LocalDate.parse(birth))
                 .provider(OAuthProvider.LOCAL)
