@@ -88,8 +88,8 @@ public class RequestConnectedId {
 
         HashMap<String, Object> accountMap = new HashMap<String, Object>();
         accountMap.put("countryCode",	"KR");
-        accountMap.put("businessType",	"BK");
-        accountMap.put("clientType",  	"P");
+        accountMap.put("businessType",	businessType);
+        accountMap.put("clientType",  	"A");
         accountMap.put("organization",	organization);
         accountMap.put("loginType",  	"1");
         list.add(accountMap);

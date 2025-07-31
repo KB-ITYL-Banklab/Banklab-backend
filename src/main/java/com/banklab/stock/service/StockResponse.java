@@ -17,10 +17,9 @@ public class StockResponse {
 
 
     public static List<StockVO> requestStocks(Long memberId, String stockCode, String connectedId, String account) throws Exception {
-        log.info("계좌 정보 조회 요청 시작 - memberId: {}, 은행코드: {}, conn     " +
-                "ectedId: {}", memberId, stockCode, connectedId);
+        log.info("계좌 정보 조회 요청 시작 - memberId: {}, 은행코드: {}, connectedId: {}", memberId, stockCode, connectedId);
 
-        String urlPath = CommonConstant.TEST_DOMAIN + CommonConstant.KR_ST_1_P_001;
+        String urlPath = CommonConstant.TEST_DOMAIN + CommonConstant.KR_ST_1_P_004;
 
         HashMap<String, Object> bodyMap = new HashMap<>();
         bodyMap.put("organization", stockCode);
