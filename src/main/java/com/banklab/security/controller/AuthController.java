@@ -1,6 +1,6 @@
 package com.banklab.security.controller;
 
-import com.banklab.security.service.RedisService;
+import com.banklab.common.redis.RedisService;
 import com.banklab.security.util.JwtProcessor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

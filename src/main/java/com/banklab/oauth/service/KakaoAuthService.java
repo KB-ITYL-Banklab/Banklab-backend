@@ -31,7 +31,7 @@ public class KakaoAuthService {
         // 회원이 없으면 → 최초 로그인
         if (member == null) {
             member = userInfo.toVO();
-            member = memberService.join(member).toVO();
+            member = memberService.registerMember(member).toVO();
         } else {
             // 기존 회원이라도 → 전화번호 등이 바뀌었을 수 있음
             // → 필요하면 업데이트
