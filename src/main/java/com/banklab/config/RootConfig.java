@@ -31,7 +31,8 @@ import java.util.stream.Collectors;
         "com.banklab.risk.mapper",
         "com.banklab.transaction.mapper",
         "com.banklab.category.mapper",
-        "com.banklab.transaction.summary.mapper"
+        "com.banklab.transaction.summary.mapper",
+        "com.banklab.stock.mapper"
 })
 @ComponentScan(basePackages = {
         "com.banklab.member.service",
@@ -46,7 +47,8 @@ import java.util.stream.Collectors;
         "com.banklab.transaction.service",
         "com.banklab.transaction",
         "com.banklab.category",
-        "com.banklab.perplexity"
+        "com.banklab.perplexity",
+        "com.banklab.stock.service"
 })
 @EnableTransactionManagement
 public class RootConfig {

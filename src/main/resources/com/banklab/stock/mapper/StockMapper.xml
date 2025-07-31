@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.stock.mapper.StockMapper">
+
+    <!-- Result Map: StockVO 매핑 -->
+    <resultMap id="stockResultMap" type="com.banklab.stock.domain.StockVO">
+        <id property="id" column="id"/>
+        <result property="memberId" column="member_id"/>
+        <result property="connectedId" column="connected_id"/>
+        <result property="organization" column="organization"/>
+        <result property="resAccount" column="res_account"/>
+        <result property="resDepositReceived" column="res_deposit_received"/>
+        <result property="resItemName" column="res_item_name"/>
+        <result property="resItemCode" column="res_item_code"/>
+        <result property="resQuantity" column="res_quantity"/>
+        <result property="resValuationAmt" column="res_valuation_amt"/>
+        <result property="resPurchaseAmount" column="res_purchase_amount"/>
+        <result property="resValuationPL" column="res_valuation_pl"/>
+        <result property="resEarningsRate" column="res_earnings_rate"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- Insert: 여러 보유종목을 한 번에 삽입 -->
+    <insert id="insertStockList" parameterType="list">
+        INSERT INTO stock (
+        member_id,
+        connected_id,
+        organization,
+        res_account,
+        res_deposit_received,
+        res_item_name,
+        res_item_code,
+        res_quantity,
+        res_valuation_amt,
+        res_purchase_amount,
+        res_valuation_pl,
+        res_earnings_rate,
+        updated_at
+        ) VALUES
+        <foreach collection="stockList" item="stock" separator=",">
+            (
+            #{stock.memberId},
+            #{stock.connectedId},
+            #{stock.organization},
+            #{stock.resAccount},
+            #{stock.resDepositReceived},
+            #{stock.resItemName},
+            #{stock.resItemCode},
+            #{stock.resQuantity},
+            #{stock.resValuationAmt},
+            #{stock.resPurchaseAmount},
+            #{stock.resValuationPL},
+            #{stock.resEarningsRate},
+            NOW()
+            )
+        </foreach>
+    </insert>
+
+    <!-- Select: 사용자의 모든 보유종목 조회 -->
+    <select id="getStocksByMemberId" parameterType="long" resultMap="stockResultMap">
+        SELECT
+            id,
+            member_id,
+            connected_id,
+            organization,
+            res_account,
+            res_deposit_received,
+            res_item_name,
+            res_item_code,
+            res_quantity,
+            res_valuation_amt,
+            res_purchase_amount,
+            res_valuation_pl,
+            res_earnings_rate,
+            updated_at
+        FROM stock
+        WHERE member_id = #{memberId}
+        ORDER BY updated_at DESC, res_item_name ASC
+    </select>
+
+    <!-- Delete: 특정 connectedId의 모든 보유종목 삭제 -->
+    <delete id="deleteStocksByConnectedId">
+        DELETE FROM stock
+        WHERE member_id = #{memberId}
+          AND connected_id = #{connectedId}
+    </delete>
+
+    <!-- 추가 유용한 쿼리들 -->
+
+    <!-- Select: 특정 계좌의 보유종목만 조회 -->
+    <select id="getStocksByConnectedId" resultMap="stockResultMap">
+        SELECT
+            id,
+            member_id,
+            connected_id,
+            organization,
+            res_account,
+            res_deposit_received,
+            res_item_name,
+            res_item_code,
+            res_quantity,
+            res_valuation_amt,
+            res_purchase_amount,
+            res_valuation_pl,
+            res_earnings_rate,
+            updated_at
+        FROM stock
+        WHERE member_id = #{memberId}
+          AND connected_id = #{connectedId}
+        ORDER BY res_item_name ASC
+    </select>
+
+    <!-- Select: 사용자의 증권사별 보유종목 통계 -->
+    <select id="getStockSummaryByMember" parameterType="long" resultType="map">
+        SELECT
+            organization,
+            res_account,
+            COUNT(*) as stock_count,
+            SUM(CAST(res_valuation_amt AS DECIMAL(15,0))) as total_valuation,
+            SUM(CAST(res_purchase_amount AS DECIMAL(15,0))) as total_purchase,
+            SUM(CAST(res_valuation_pl AS DECIMAL(15,0))) as total_pl,
+            MAX(updated_at) as last_updated
+        FROM stock
+        WHERE member_id = #{memberId}
+        GROUP BY organization, res_account
+        ORDER BY total_valuation DESC
+    </select>
+
+    <!-- Delete: 사용자의 모든 주식 데이터 삭제 (회원 탈퇴시) -->
+    <delete id="deleteAllStocksByMemberId" parameterType="long">
+        DELETE FROM stock
+        WHERE member_id = #{memberId}
+    </delete>
+
+    <!-- Update: 특정 종목의 정보 업데이트 (개별 종목 갱신시) -->
+    <update id="updateStock" parameterType="com.banklab.stock.domain.StockVO">
+        UPDATE stock SET
+                         res_quantity = #{resQuantity},
+                         res_valuation_amt = #{resValuationAmt},
+                         res_purchase_amount = #{resPurchaseAmount},
+                         res_valuation_pl = #{resValuationPL},
+                         res_earnings_rate = #{resEarningsRate},
+                         updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

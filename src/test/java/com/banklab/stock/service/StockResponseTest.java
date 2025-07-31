@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import static com.banklab.stock.service.StockResponse.requestStocks;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
@@ -18,8 +19,11 @@ import static org.junit.jupiter.api.Assertions.*;
 class StockResponseTest {
 
     @Test
-    void 증권계좌_불러오기_테스트() {
-        String connectedId = "";
+    void 증권계좌_불러오기_테스트() throws Exception {
+        String connectedId = "dh-zFZ2x4F38AyN-Y2Wtps";
+        String account = "7164752822-01";
+
+        requestStocks(1L, "0240", connectedId, account);
 
 
     }

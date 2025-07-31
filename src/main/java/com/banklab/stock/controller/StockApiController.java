@@ -24,7 +24,7 @@ import java.util.Map;
 @RequestMapping("/api/stock")
 @RequiredArgsConstructor
 @Api(tags = "증권 관리 API")
-public class StockController {
+public class StockApiController {
 
     private final StockService stockService;
     private final JwtProcessor jwtProcessor;
@@ -113,7 +113,8 @@ public class StockController {
                     stockRequest.getStockId(),
                     stockRequest.getStockPassword(),
                     stockRequest.getStockCode(),
-                    "ST");
+                    "ST",
+                    "A");
 
             // 2. 커넥티드 아이디로 보유종목 정보 조회 및 DB 저장
             List<StockVO> stockList = StockResponse.requestStocks(
@@ -141,7 +142,7 @@ public class StockController {
     }
 
     /**
-     * 사용자 보유종목 목록 조회
+     * 사용자 종합자산 보유종목 목록 조회
      */
     @GetMapping("/list")
     @ApiOperation(value = "보유종목 목록 조회", notes = "사용자의 연동된 증권계좌 보유종목을 조회.")

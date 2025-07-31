@@ -23,13 +23,16 @@ public class RequestConnectedId {
     /**
      * 커넥티드 아이디 발급
      *
-     * @param id : 은행 id
-     * @param password : 은행 password
+     * @param id : 은행/증권 id
+     * @param password : 은행/증권 password
+     * @param organization : 기관코드
+     * @param businessType : BK : 은행, ST : 주식, CD : 카드
+     * @param clientType : 개인 : P, 법인 : B, 통합 : A (증권은 통합임)
      * @implNote bodyMap :  실제 json으로 변환할 해시테이블 <"accountList" : [accountMap]>
      * @implNote accountMap: 데이터를 담은 해시테이블 <"countryCode" : "KR" ...>
      * @throws Exception the exception
      */
-    public static String createConnectedId(String id, String password, String organization, String businessType) throws Exception {
+    public static String createConnectedId(String id, String password, String organization, String businessType, String clientType) throws Exception {
         log.info("🏦 커넥티드 아이디 발급 요청 시작 - 은행코드: {}, ID: {}", organization, id);
 
         String urlPath = CommonConstant.TEST_DOMAIN + CommonConstant.CREATE_ACCOUNT;
@@ -40,7 +43,7 @@ public class RequestConnectedId {
         HashMap<String, Object> accountMap = new HashMap<String, Object>();
         accountMap.put("countryCode", "KR");
         accountMap.put("businessType", businessType);
-        accountMap.put("clientType", "P");
+        accountMap.put("clientType", clientType);
         accountMap.put("organization", organization);
         accountMap.put("loginType", "1");
         accountMap.put("id", id);
@@ -51,25 +54,19 @@ public class RequestConnectedId {
 
         String result = ApiRequest.request(urlPath, bodyMap);
         //System.out.println(result);
-        log.info("🔍 CODEF API 전체 응답: " + result);
 
         JsonNode root = mapper.readTree(result);
-        log.info("🔍 파싱된 JSON: " + root.toString());
 
         JsonNode connectedIdNode = root.path("data").path("connectedId");
-        String connectedId = connectedIdNode.asText();
-        log.info("🔍 추출된 connectedId: " + connectedId);
-        return connectedId;
-        //if (connectedIdNode != null && !connectedIdNode.isNull()) {
-        //    String connectedId = connectedIdNode.asText();
-        //    log.info("🔍 추출된 connectedId: " + connectedId);
-        //    //log.info("커넥티드 아이디 발급 완료: {}", connectedId);
-        //    return connectedId;  // connectedId 반환
-        //}
-        //else {
-        //    log.error("connectedId를 응답에서 찾을 수 없습니다.");
-        //    throw new RuntimeException("connectedId를 응답에서 찾을 수 없습니다.");
-        //}
+        if (connectedIdNode != null && !connectedIdNode.isNull()) {
+            String connectedId = connectedIdNode.asText();
+            log.info("커넥티드 아이디 발급 완료: {}", connectedId);
+            return connectedId;  // connectedId 반환
+        }
+        else {
+            log.error("connectedId를 응답에서 찾을 수 없습니다.");
+            throw new RuntimeException("connectedId를 응답에서 찾을 수 없습니다.");
+        }
     }
 
     /**
@@ -89,7 +86,7 @@ public class RequestConnectedId {
         HashMap<String, Object> accountMap = new HashMap<String, Object>();
         accountMap.put("countryCode",	"KR");
         accountMap.put("businessType",	businessType);
-        accountMap.put("clientType",  	"P");
+        accountMap.put("clientType",  	"A");
         accountMap.put("organization",	organization);
         accountMap.put("loginType",  	"1");
         list.add(accountMap);
