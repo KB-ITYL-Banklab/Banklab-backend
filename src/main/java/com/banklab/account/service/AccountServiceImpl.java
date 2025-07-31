@@ -3,6 +3,8 @@ package com.banklab.account.service;
 import com.banklab.account.domain.AccountVO;
 import com.banklab.account.dto.AccountDTO;
 import com.banklab.account.mapper.AccountMapper;
+import com.banklab.common.redis.RedisKeyUtil;
+import com.banklab.common.redis.RedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -23,7 +25,6 @@ public class AccountServiceImpl implements AccountService {
     @Override
     @Transactional
     public int saveAccounts(List<AccountVO> accountVOList) {
-
         int count = 0;
         for (AccountVO accountVO : accountVOList) {
             // DB 저장

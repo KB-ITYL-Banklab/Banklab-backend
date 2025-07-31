@@ -41,5 +41,6 @@ public interface TransactionService {
      * @param endDate   조회 종료일
      * @return 거래내역 상세 DTO 리스트
      */
-    public List<TransactionDetailDTO> getTransactionDetailsByAccountId(Long memberId, Long accountId, Date startDate, Date endDate);
+    List<TransactionDetailDTO> getTransactionDetailsByAccountId(Long memberId, Long accountId, Date startDate, Date endDate);
+    List<TransactionDetailDTO> getTransactionDetailsByCategoryId(Long memberId, Long categoryId, Date startDate, Date endDate);
 }

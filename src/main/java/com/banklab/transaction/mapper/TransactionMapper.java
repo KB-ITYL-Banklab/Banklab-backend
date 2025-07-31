@@ -35,17 +35,23 @@ public interface TransactionMapper {
             @Param("startDate") Date startDate,
             @Param("endDate") Date endDate);
 
-
-//    MonthlySummaryDTO getMonthlySummary(@Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("resAccount") String resAccount);
-//    List<DailyExpenseDTO> getDailyExpense(@Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("resAccount") String resAccount);
-//    List<CategoryExpenseDTO> getExpensesByCategory(@Param("startDate") Date startDate, @Param("endDate") Date endDate,@Param("resAccount") String resAccount);
-
     /**
      * 계좌 ID로 거래내역 상세 조회 (DTO 반환)
      */
     List<TransactionDetailDTO> getTransactionDetailsByAccountId(
             @Param("memberId") Long memberId,
             @Param("resAccount") String resAccount,
+            @Param("startDate") Date startDate,
+            @Param("endDate") Date endDate
+    );
+
+
+    /**
+     * 계좌 ID로 거래내역 상세 조회 (DTO 반환)
+     */
+    List<TransactionDetailDTO> getTransactionDetailsByCategoryId(
+            @Param("memberId") Long memberId,
+            @Param("categoryId") Long categoryId,
             @Param("startDate") Date startDate,
             @Param("endDate") Date endDate
     );

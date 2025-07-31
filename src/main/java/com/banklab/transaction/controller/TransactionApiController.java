@@ -1,11 +1,14 @@
 package com.banklab.transaction.controller;
 
 import com.banklab.category.dto.CategoryExpenseDTO;
+import com.banklab.common.redis.RedisKeyUtil;
+import com.banklab.common.redis.RedisService;
 import com.banklab.security.util.JwtProcessor;
 import com.banklab.transaction.dto.request.TransactionRequestDto;
 import com.banklab.transaction.dto.response.DailyExpenseDTO;
 import com.banklab.transaction.dto.response.MonthlySummaryDTO;
 import com.banklab.transaction.dto.response.SummaryDTO;
+import com.banklab.transaction.dto.response.TransactionDetailDTO;
 import com.banklab.transaction.service.AsyncTransactionService;
 import com.banklab.transaction.service.TransactionService;
 import com.banklab.transaction.service.TransactionServiceImpl;
@@ -35,6 +38,7 @@ public class TransactionApiController {
     private final JwtProcessor jwtProcessor;
     private final AsyncTransactionService asyncTransactionService;
     private final TransactionService transactionService;
+    private final RedisService redisService;
 
     /**
      * HTTP 요청에서 JWT 토큰 추출 & 검증하여 사용자 정보 반환
@@ -124,6 +128,26 @@ public class TransactionApiController {
         }
     }
 
+    @PostMapping("/summary/status")
+    public ResponseEntity<Map<String, Object>> checkLinkStatus(
+            @RequestBody Map<String, String> requestBody,
+            HttpServletRequest request
+    ) {
+        Map<String, Object> authInfo = extractAuthInfo(request);
+        Long memberId = (Long) authInfo.get("memberId");
+
+        String accountNumber = requestBody.get("accountNumber");
+        String key = RedisKeyUtil.transaction(memberId, accountNumber);
+
+        String status = redisService.get(key);
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", status != null ? status : "NOT_STARTED");
+
+
+        return ResponseEntity.ok(response);
+    }
+
+
     @GetMapping("/summary")
     @ApiOperation(value = "소비 분석 페이지 데이터 호출", notes = "사전 집계 테이블에서 data 호출하기")
     public ResponseEntity<Map<String, Object>> getSummary(
@@ -158,40 +182,32 @@ public class TransactionApiController {
         }
     }
 
-    /** getSumamry 통합 전 코드
-     @GetMapping("/monthly-summary") public ResponseEntity<MonthlySummaryDTO> getMonthlySummary(
-     @RequestParam("start") @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
-     @RequestParam("end") @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
-     ) {
-     return ResponseEntity.ok(transactionService.getMonthlySummary(startDate,endDate, account));
-     }
+    @GetMapping("/summary/category/{categoryId}")
+    public ResponseEntity<Map<String, Object>> getTrhisByCategoryId(
+            HttpServletRequest request,
+            @PathVariable("categoryId") long categoryId,
+            @RequestParam(value = "start", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+            @RequestParam(value = "end", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate
+    ){
+        Map<String, Object> response = new HashMap<>();
 
-     @GetMapping("/daily-summary") public ResponseEntity<List<DailyExpenseDTO>> getDailySummary(
-     @RequestParam("start") @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
-     @RequestParam("end") @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
-     @RequestParam("account") String account
-     ) {
-     return ResponseEntity.ok(transactionService.getDailyExpense(startDate,endDate, account));
-     }
+        // JWT 토큰에서 빼오기
+        Map<String, Object> authInfo = extractAuthInfo(request);
+        Long memberId = (Long) authInfo.get("memberId");
 
-     @GetMapping("/category") public List<CategoryExpenseDTO> getCategoryExpenses(
-     @RequestParam(value = "start", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
-     @RequestParam(value = "end", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
-     @RequestParam("account") String account
-     ) {
-
-     // 기본값 설정: 오늘이 포함된 달의 시작일과 종료일
-     LocalDate now = LocalDate.now();
-     if (startDate == null) {
-     startDate = java.sql.Date.valueOf(now.withDayOfMonth(1));
-     }
-     if (endDate == null) {
-     endDate = java.sql.Date.valueOf(now.withDayOfMonth(now.lengthOfMonth()));
-     }
-
-     return transactionService.getCategoryExpense(startDate, endDate,account);
-     }
-     */
-
+        try{
+            List<TransactionDetailDTO> results = transactionService.getTransactionDetailsByCategoryId(memberId, categoryId, startDate, endDate);
+            response.put("transactions",results);
+            return ResponseEntity.ok(createSuccessResponse("카테고리별 거래 내역 조회에 성공했습니다.", response, authInfo));
+        }catch (SecurityException e) {
+            log.error("인증 오류: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(createErrorResponse(e.getMessage(), "AUTHENTICATION_ERROR"));
+        } catch (Exception e) {
+            log.error("집계 테이블 조회 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(createErrorResponse("거래 내역 저장 중 오류가 발생했습니다.", "INTERNAL_ERROR"));
+        }
+    }
 
 }

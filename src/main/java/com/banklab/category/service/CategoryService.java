@@ -4,6 +4,7 @@ import com.banklab.category.domain.CategoryVO;
 import com.banklab.category.dto.CategoryDTO;
 import com.banklab.category.kakaomap.service.KakaoMapService;
 import com.banklab.category.mapper.CategoryMapper;
+import com.banklab.common.redis.RedisService;
 import com.banklab.transaction.domain.TransactionHistoryVO;
 import com.banklab.transaction.mapper.TransactionMapper;
 import com.banklab.transaction.summary.service.SummaryBatchService;
@@ -27,11 +28,10 @@ public class CategoryService {
     private final CategoryMapper categoryMapper;
     private final TransactionMapper transactionMapper;
     private final KakaoMapService kakaoMapService;
-    private final SummaryBatchService summaryBatchService;
-
+    private final RedisService redisService;
 
     @Async
-    public  CompletableFuture<Void> categorizeTransactions(List<TransactionHistoryVO> transactions) {
+    public  CompletableFuture<Void> categorizeTransactions(List<TransactionHistoryVO> transactions, String key) {
         List<String> descriptions = transactions.stream()
                 .map(TransactionHistoryVO::getDescription)
                 .distinct()
@@ -42,6 +42,7 @@ public class CategoryService {
         log.info("[START] 카테고리 분류 시작:  Thread: {}", Thread.currentThread().getName());
 
         // 순차적으로 요청 보내기
+        redisService.setBySeconds(key, "CLASSIFYING_CATEGORIES",20);
         RateLimiter rateLimiter = RateLimiter.create(1.2);
 
         for (int i = 0; i < descriptions.size(); i++) {
@@ -66,6 +67,11 @@ public class CategoryService {
         return allDone.thenRun(() -> saveCategories(transactions, descMap));
     }
 
+    /**
+     *
+     * @param transactions CODEF에서 받아온 거래 내역
+     * @param descMap   KEY: 상호명, VALUE: 카테고리
+     */
     private void saveCategories(List<TransactionHistoryVO> transactions, Map<String, CompletableFuture<Long>> descMap) {
         log.info("[START] 카테고리 저장 시작 : Thread: {}", Thread.currentThread().getName());
         for (TransactionHistoryVO tx : transactions) {
@@ -77,6 +83,11 @@ public class CategoryService {
     }
 
 
+    /**
+     * 
+     * @param keyword 해당 상호명 Redis 저장 확인
+     * @return  저장된 경우 Redis 값 반환, 아니면 상호면 분류
+     */
     public Long getCategoryWithCache(String keyword){
         String redisKey = "category::"+keyword;
 
