@@ -1,4 +1,4 @@
-package com.banklab.perplexity.dto;
+package com.banklab.category.perplexity.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

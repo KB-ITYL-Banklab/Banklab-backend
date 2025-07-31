@@ -1,12 +1,12 @@
 package com.banklab.transaction.dto.request;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TransactionDTO {
     private String connectedId; // 유저가 발급한 커넥티드 아이디
     private String organization; // 기관 코드
