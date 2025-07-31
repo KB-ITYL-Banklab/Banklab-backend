@@ -13,9 +13,11 @@ import java.util.List;
 
 public interface TransactionMapper {
     int saveTransaction(TransactionHistoryVO transaction);
-    int saveTransactionList(List<TransactionHistoryVO> list);
-    LocalDate getLastTransactionDate(@Param("memberId") Long memberId);
 
+    int saveTransactionList(List<TransactionHistoryVO> list);
+
+    LocalDate getLastTransactionDate(@Param("memberId") Long memberId, @Param("resAccount") String resAccount);
+    void updateCategories(@Param("list")List<TransactionHistoryVO> transactions);
 
     MonthlySummaryDTO getMonthlySummary(
             @Param("memberId") Long memberId,

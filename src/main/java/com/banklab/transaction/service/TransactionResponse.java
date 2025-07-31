@@ -55,7 +55,8 @@ public class TransactionResponse {
             TransactionHistoryVO vo = mapper.treeToValue(item, TransactionHistoryVO.class);
             vo.setResAccount(dataNode.path("resAccount").asText());
             vo.setMemberId(memberId);
-            transactions.add(vo);
+            vo.setCategory_id(8L);
+            transactions.add(vo) ;
         }
 
         return transactions;

@@ -1,8 +1,6 @@
-package com.banklab.perplexity.controller;
+package com.banklab.category.perplexity.controller;
 
-import com.banklab.perplexity.dto.PerplexityRequestDto;
-import com.banklab.perplexity.dto.PerplexityResponseDto;
-import com.banklab.perplexity.service.PerplexityService;
+import com.banklab.category.perplexity.service.PerplexityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

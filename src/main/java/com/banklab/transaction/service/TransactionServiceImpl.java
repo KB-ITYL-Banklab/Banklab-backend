@@ -3,25 +3,18 @@ package com.banklab.transaction.service;
 import com.banklab.account.domain.AccountVO;
 import com.banklab.account.mapper.AccountMapper;
 import com.banklab.category.dto.CategoryExpenseDTO;
-import com.banklab.perplexity.service.PerplexityService;
 import com.banklab.transaction.domain.TransactionHistoryVO;
-import com.banklab.transaction.dto.request.TransactionDTO;
-import com.banklab.transaction.dto.request.TransactionRequestDto;
 import com.banklab.transaction.dto.response.*;
 import com.banklab.transaction.mapper.TransactionMapper;
-import com.banklab.transaction.summary.service.SummaryBatchService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Log4j2
@@ -29,118 +22,24 @@ import java.util.stream.Collectors;
 public class TransactionServiceImpl implements TransactionService {
     private final TransactionMapper transactionMapper;
     private final AccountMapper accountMapper;
-    private final SummaryBatchService summaryBatchService;
-    private final Map<String, Long> categoryMap;
-    private final PerplexityService perplexityService;
-
 
     @Override
-    public int saveTransaction(TransactionHistoryVO transaction) {
-        return transactionMapper.saveTransaction(transaction);
+    @Transactional
+    public void saveTransactionList(Long memberId,AccountVO account, List<TransactionHistoryVO> transactions) {
+        if(transactions.isEmpty())  return;
+        transactionMapper.saveTransactionList(transactions);
     }
 
     @Override
-    public int saveTransactionList(List<TransactionHistoryVO> transactionVOList) {
-        if(transactionVOList.isEmpty()){return 0;}
-        try {
-            log.info("샘플 거래 내역: {}", new ObjectMapper().writeValueAsString(transactionVOList.get(0)));
-        } catch (JsonProcessingException e) {
-            log.error("Json Processing Exception", e);
-        }
-        return transactionMapper.saveTransactionList(transactionVOList);
+    public LocalDate getLastTransactionDay(Long memberId, String account) {
+        return transactionMapper.getLastTransactionDate(memberId, account);
     }
 
-    @Override
-    public LocalDate getLastTransactionDay(Long memberId) {
-        return transactionMapper.getLastTransactionDate(memberId);
+    @Transactional
+    public void updateCategories(List<TransactionHistoryVO> transactions){
+        transactionMapper.updateCategories(transactions);
     }
 
-    /**
-     * 
-     * @param memberId 사용자 id
-     * @param request  거래 내역 조회를 위한 요청 파라미터
-     * @return  저장된 전체 거래 내역 개수
-     */
-    public int getTransactions(long memberId, TransactionRequestDto request) {
-        int row = 0;
-        // 1. 사용자의 전체 계좌 목록 가져오기
-        List<AccountVO> userAccounts = accountMapper.selectAccountsByUserId(memberId);
-
-        //2. 계좌별 거래 내역 조회 api 호출
-        for (AccountVO account : userAccounts) {
-            TransactionDTO dto = makeTransactionDTO(account, request);
-            List<TransactionHistoryVO> transactions;
-            try {
-                transactions = TransactionResponse.requestTransactions(memberId,dto);
-                transactions = desTocategory(transactions);
-            } catch (IOException | InterruptedException e) {
-                log.error("거래 내역 불러오는 중 오류 발생");
-                throw new RuntimeException(e);
-            }
-
-            // 3. db에 거래 내역 저장
-            row += saveTransactionList(transactions);
-
-            // 4. 집계 테이블에 집계 정보 저장
-            summaryBatchService.initDailySummary(memberId);
-        }
-        return row;
-    }
-
-    /**
-     *
-     * @param account 계좌 정보
-     * @param request 거래 내역 조회를 위한 요청 파라미터 (sDate, eDate, orderBy)
-     * @return  거래 내역 조회를 위한 요청 DTO
-     */
-    public TransactionDTO makeTransactionDTO(AccountVO account, TransactionRequestDto request){
-        if(request == null){
-            request = new TransactionRequestDto();
-            LocalDate endDate   = LocalDate.now();
-            LocalDate startDate = endDate.minusYears(2);
-
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-
-            request.setStartDate(startDate.format(formatter)); // "20190601" 형식
-            request.setEndDate(endDate.format(formatter));     // 오늘 날짜 형식
-            request.setOrderBy("0");
-        }
-
-        return TransactionDTO.builder()
-                .account(account.getResAccount())
-                .organization(account.getOrganization())
-                .connectedId(account.getConnectedId())
-                .orderBy(request.getOrderBy())
-                .startDate(request.getStartDate())
-                .endDate(request.getEndDate())
-                .build();
-    }
-
-    /**
-     * api의 description (상호명)을 바탕으로 카테고리 추가
-     * @param transactions: 거래 내역 리스트
-     * @return 카테고리를 추가한 변환한 거래 내역 리스트
-     */
-    public List<TransactionHistoryVO> desTocategory(List<TransactionHistoryVO> transactions) {
-
-        log.info("카테고리 분류");
-        List<String> desc = transactions.stream()
-                .map(TransactionHistoryVO::getDescription)
-                .collect(Collectors.toList());
-
-        List<String> categories = perplexityService.getCompletions(desc);
-        while(categories.size()<desc.size()) {
-            categories.add("기타");
-        }
-
-        for(int i = 0; i < transactions.size(); i++){
-            String categoryName = categories.get(i).trim();
-            Long categoryId = categoryMap.getOrDefault(categoryName, 8L); // Map에서 ID 조회
-            transactions.get(i).setCategory_id(categoryId);
-        }
-
-        return transactions;
-    }
 
     /**
      * @param memberId 사용자 id
@@ -150,6 +49,13 @@ public class TransactionServiceImpl implements TransactionService {
      */
     @Override
     public SummaryDTO getSummary(Long memberId, Date startDate, Date endDate) {
+        LocalDate now = LocalDate.now();
+        if (startDate == null) {
+            startDate = java.sql.Date.valueOf(now.withDayOfMonth(1));
+        }
+        if (endDate == null) {
+            endDate = java.sql.Date.valueOf(now.withDayOfMonth(now.lengthOfMonth()));
+        }
 
         MonthlySummaryDTO monthlySummary = getMonthlySummary(memberId, startDate, endDate);
         List<DailyExpenseDTO> dailyExpense = getDailyExpense(memberId, startDate, endDate);

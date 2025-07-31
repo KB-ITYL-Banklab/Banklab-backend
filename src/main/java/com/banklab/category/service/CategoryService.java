@@ -2,22 +2,93 @@ package com.banklab.category.service;
 
 import com.banklab.category.domain.CategoryVO;
 import com.banklab.category.dto.CategoryDTO;
-import com.banklab.category.dto.CategoryExpenseDTO;
+import com.banklab.category.kakaomap.service.KakaoMapService;
 import com.banklab.category.mapper.CategoryMapper;
+import com.banklab.transaction.domain.TransactionHistoryVO;
+import com.banklab.transaction.mapper.TransactionMapper;
+import com.banklab.transaction.summary.service.SummaryBatchService;
+import com.google.common.util.concurrent.RateLimiter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Log4j2
 public class CategoryService {
 
     private final CategoryMapper categoryMapper;
+    private final TransactionMapper transactionMapper;
+    private final KakaoMapService kakaoMapService;
+    private final SummaryBatchService summaryBatchService;
+
+
+    @Async
+    public  CompletableFuture<Void> categorizeTransactions(List<TransactionHistoryVO> transactions) {
+        List<String> descriptions = transactions.stream()
+                .map(TransactionHistoryVO::getDescription)
+                .distinct()
+                .toList();
+
+        Map<String, CompletableFuture<Long>> descMap = new HashMap<>();
+
+        log.info("[START] 카테고리 분류 시작:  Thread: {}", Thread.currentThread().getName());
+
+        // 순차적으로 요청 보내기
+        RateLimiter rateLimiter = RateLimiter.create(1.2);
+
+        for (int i = 0; i < descriptions.size(); i++) {
+            String desc = descriptions.get(i);
+            long delay = 800L * i; // 0ms, 700ms, 1400ms, ...
+
+            descMap.put(desc,
+                    CompletableFuture.supplyAsync(() -> {
+                        rateLimiter.acquire();  // Blocking으로 호출 간격 조절
+                        try {
+                            return getCategoryWithCache(desc);
+                        } catch (Exception e) {
+                            log.error("카테고리 분류 api 호출 중 에러 발생", e);
+                            throw new RuntimeException(e);
+                        }
+                    }, CompletableFuture.delayedExecutor(delay, TimeUnit.MILLISECONDS))
+            );
+        }
+
+
+        CompletableFuture<Void> allDone = CompletableFuture.allOf(descMap.values().toArray(new CompletableFuture[0]));
+        return allDone.thenRun(() -> saveCategories(transactions, descMap));
+    }
+
+    private void saveCategories(List<TransactionHistoryVO> transactions, Map<String, CompletableFuture<Long>> descMap) {
+        log.info("[START] 카테고리 저장 시작 : Thread: {}", Thread.currentThread().getName());
+        for (TransactionHistoryVO tx : transactions) {
+            String desc = tx.getDescription();
+            tx.setCategory_id(descMap.get(desc).join());
+        }
+        transactionMapper.updateCategories(transactions);
+        log.info("[END] 카테고리 저장 완료 : Thread: {}", Thread.currentThread().getName());
+    }
+
+
+    public Long getCategoryWithCache(String keyword){
+        String redisKey = "category::"+keyword;
+
+        // 1. Redis 캐시 확인
+        Long categoryId = kakaoMapService.isStoredInRedis(redisKey);
+        if (categoryId!=null){
+            return categoryId;
+        }
+
+        categoryId = kakaoMapService.getCategoryByDesc(redisKey, keyword);
+        return categoryId;
+    }
 
     public List<CategoryDTO> findAll() {
         return categoryMapper.findAll().stream()
@@ -26,9 +97,8 @@ public class CategoryService {
     }
 
     /**
-     * 
      * @param id 카테고리 아이디
-     * @return  해당 카테고리 아이디를 가진 카테고리
+     * @return 해당 카테고리 아이디를 가진 카테고리
      */
     public CategoryDTO getCategoryById(Long id) {
         return Optional.ofNullable(CategoryDTO.of(categoryMapper.getCategoryById(id)))
@@ -36,7 +106,6 @@ public class CategoryService {
     }
 
     /**
-     * 
      * @param name 카테고리 이름
      * @return 해당 카테고리 이름을 가진 카테고리
      */
@@ -49,7 +118,7 @@ public class CategoryService {
     public CategoryDTO createCategory(String name) {
         try {
             return getCategoryByName(name);
-        }catch (NoSuchElementException e){
+        } catch (NoSuchElementException e) {
             CategoryVO vo = CategoryVO.builder().name(name).build();
 
             categoryMapper.createCategory(vo);
@@ -59,12 +128,12 @@ public class CategoryService {
 
     public CategoryDTO updateCategory(CategoryDTO dto) {
         CategoryDTO category = getCategoryByName(dto.getName());
-        
+
         // 업데하려는 카테고리 이름이 없는 경우 null 반환
-        if(category == null) {
+        if (category == null) {
             return null;
         }
-        
+
         CategoryVO categoryVO = dto.toVO();
         categoryMapper.updateCategory(categoryVO);
 

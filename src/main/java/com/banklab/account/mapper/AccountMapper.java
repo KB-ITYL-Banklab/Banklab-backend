@@ -54,6 +54,8 @@ public interface AccountMapper {
      */
     Long getMemberIdByUsername(@Param("username") String username);
 
+    AccountVO getAccountByAccountNumber(@Param("account") String account);
+
 
     /**
      * 계좌 ID로 계좌 정보 조회 (소유권 검증용)

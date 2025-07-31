@@ -8,6 +8,8 @@ import com.banklab.account.service.AccountService;
 import com.banklab.codef.service.RequestConnectedId;
 import com.banklab.security.util.JwtProcessor;
 import com.banklab.transaction.dto.response.TransactionDetailDTO;
+import com.banklab.transaction.dto.request.TransactionRequestDto;
+import com.banklab.transaction.service.AsyncTransactionService;
 import com.banklab.transaction.service.TransactionResponse;
 import com.banklab.transaction.service.TransactionService;
 import io.swagger.annotations.Api;
@@ -35,8 +37,9 @@ import java.util.Map;
 public class AccountController {
 
     private final AccountService accountService;
-    private final TransactionService transactionService;
     private final JwtProcessor jwtProcessor;
+    private final AsyncTransactionService asyncTransactionService;
+    private final TransactionService transactionService;
 
     /**
      * HTTP 요청에서 JWT 토큰을 추출하고 검증한 후, 사용자 정보를 반환
@@ -141,8 +144,10 @@ public class AccountController {
             response.put("savedCount", savedCount);
             response.put("accounts", accountDTOList);
 
-            transactionService.getTransactions(memberId, null);
-
+            asyncTransactionService.getTransactions(memberId,
+                    TransactionRequestDto.builder()
+                            .resAccount(accountDTOList.get(0).getResAccount())
+                            .build());
 
             return ResponseEntity.ok(createSuccessResponse("계좌 연동이 완료되었습니다.", response, authInfo));
 

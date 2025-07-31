@@ -1,7 +1,7 @@
-package com.banklab.perplexity.service;
+package com.banklab.category.perplexity.service;
 
-import com.banklab.perplexity.dto.PerplexityRequestDto;
-import com.banklab.perplexity.dto.PerplexityResponseDto;
+import com.banklab.category.perplexity.dto.PerplexityRequestDto;
+import com.banklab.category.perplexity.dto.PerplexityResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,7 +48,7 @@ public class PerplexityService {
                 웹 검색을 통해 해당 상호가 어떤 업종인지 파악한 후 정확하게 분류하라.
                 '기타' 카테고리로 분류되는 개수는 전체 상호명의 30%를 넘으면 안 된다.
                 
-                결과는 쉼표로 구분된 카테고리 이름 리스트로만 반환하며, 반드시 입력된 상호명 수와 동일한 개수의 카테고리만 쉼표로 구분해서 반환.               
+                결과는 쉼표로 구분된 카테고리 이름 리스트로만 반환하며, 반드시 입력된 상호명 수와 동일한 개수의 카테고리만 쉼표로 구분해서 반환.
                 그 외의 설명이나 문장은 절대 포함하지 마.카테고리는 반드시 다음 8개의 항목 중에서 하나만 선택해야 하며, 중복 선택은 불가:
                 
                 카페/간식
@@ -68,7 +68,7 @@ public class PerplexityService {
                 쇼핑: 의류, 전자기기, 잡화, 화장품, 생활용품, 온라인 쇼핑몰
                 문화/여가: 영화관, 서점, 전시회, 공연장, 게임, 콘서트, OTT 서비스
                 이체: 사람 이름, 송금, 계좌이체, 금융기관 이체 관련
-                기타: 검색했음에도 불구하고 위의 분류 어디에도 명확히 속하지 않는 경우                              
+                기타: 검색했음에도 불구하고 위의 분류 어디에도 명확히 속하지 않는 경우
                 
                 예시:
                 입력: 씨유, 이디야, 배달의민족, 홍길동, 교보문고, 쿠팡, SKT
