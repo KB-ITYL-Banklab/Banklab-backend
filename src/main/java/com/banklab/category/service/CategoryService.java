@@ -67,6 +67,11 @@ public class CategoryService {
         return allDone.thenRun(() -> saveCategories(transactions, descMap));
     }
 
+    /**
+     *
+     * @param transactions CODEF에서 받아온 거래 내역
+     * @param descMap   KEY: 상호명, VALUE: 카테고리
+     */
     private void saveCategories(List<TransactionHistoryVO> transactions, Map<String, CompletableFuture<Long>> descMap) {
         log.info("[START] 카테고리 저장 시작 : Thread: {}", Thread.currentThread().getName());
         for (TransactionHistoryVO tx : transactions) {
@@ -78,6 +83,11 @@ public class CategoryService {
     }
 
 
+    /**
+     * 
+     * @param keyword 해당 상호명 Redis 저장 확인
+     * @return  저장된 경우 Redis 값 반환, 아니면 상호면 분류
+     */
     public Long getCategoryWithCache(String keyword){
         String redisKey = "category::"+keyword;
 

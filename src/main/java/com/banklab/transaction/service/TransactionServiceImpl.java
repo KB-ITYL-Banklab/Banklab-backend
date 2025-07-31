@@ -212,4 +212,9 @@ public class TransactionServiceImpl implements TransactionService {
         return transactionMapper.getTransactionDetailsByAccountId(memberId, resAccount, startDate, endDate);
     }
 
+    @Override
+    public List<TransactionDetailDTO> getTransactionDetailsByCategoryId(Long memberId, Long categoryId, Date startDate, Date endDate) {
+        return transactionMapper.getTransactionDetailsByCategoryId(memberId, categoryId, startDate, endDate);
+    }
+
 }
