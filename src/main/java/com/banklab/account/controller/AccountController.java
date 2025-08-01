@@ -6,9 +6,12 @@ import com.banklab.account.dto.AccountRequestDTO;
 import com.banklab.account.service.AccountResponse;
 import com.banklab.account.service.AccountService;
 import com.banklab.codef.service.RequestConnectedId;
-import com.banklab.security.util.JwtProcessor;
+import com.banklab.common.redis.RedisKeyUtil;
+import com.banklab.common.redis.RedisService;
+import com.banklab.security.service.LoginUserProvider;
 import com.banklab.transaction.dto.response.TransactionDetailDTO;
-import com.banklab.transaction.service.TransactionResponse;
+import com.banklab.transaction.dto.request.TransactionRequestDto;
+import com.banklab.transaction.service.AsyncTransactionService;
 import com.banklab.transaction.service.TransactionService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -35,51 +38,28 @@ import java.util.Map;
 public class AccountController {
 
     private final AccountService accountService;
+    private final LoginUserProvider loginUserProvider;
+    private final AsyncTransactionService asyncTransactionService;
     private final TransactionService transactionService;
-    private final JwtProcessor jwtProcessor;
+    private final RedisService redisService;
 
     /**
-     * HTTP 요청에서 JWT 토큰을 추출하고 검증한 후, 사용자 정보를 반환
+     * 로그인한 사용자 정보 추출 및 검증
      */
-    private Map<String, Object> extractAuthInfo(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (bearerToken == null || !bearerToken.startsWith("Bearer ")) {
-            throw new SecurityException("인증이 필요합니다.");
+    private Map<String, Object> extractAuthInfo() {
+        Long memberId = loginUserProvider.getLoginMemberId();
+        String email = loginUserProvider.getLoginEmail();
+
+
+        if (memberId == null || email == null) {
+            throw new SecurityException("인증이 필요합니다. 로그인 후 다시 시도해주세요.");
         }
 
-        String token = bearerToken.substring(7);
-
-        if (!jwtProcessor.validateToken(token)) {
-            throw new SecurityException("유효하지 않은 토큰입니다.");
-        }
-
-        try {
-            String username = jwtProcessor.getUsername(token);
-            Long memberId = jwtProcessor.getMemberId(token);
-
-            // memberId가 없는 경우 username으로 조회
-            if (memberId == null) {
-                // TODO: username으로 memberId를 DB에서 조회하는 로직 추가
-                // 임시로 기본값 설정 (실제로는 DB 조회 필요)
-                log.warn("JWT 토큰에 memberId가 없습니다. username: {}", username);
-                throw new SecurityException("토큰에 사용자 ID 정보가 없습니다. 다시 로그인해주세요.");
-            }
-
-            if (username == null) {
-                throw new SecurityException("토큰에 사용자 정보가 없습니다. 다시 로그인해주세요.");
-            }
-
-            Map<String, Object> authInfo = new HashMap<>();
-            authInfo.put("memberId", memberId);
-            authInfo.put("username", username);
-            return authInfo;
-
-        } catch (Exception e) {
-            log.error("토큰 처리 중 오류 발생: {}", e.getMessage());
-            throw new SecurityException("인증 처리 중 오류가 발생했습니다.");
-        }
+        Map<String, Object> authInfo = new HashMap<>();
+        authInfo.put("memberId", memberId);
+        authInfo.put("email", email);
+        return authInfo;
     }
-
 
     /**
      * 표준화된 성공 응답 생성
@@ -90,7 +70,7 @@ public class AccountController {
         response.put("message", message);
         response.put("data", data);
         response.put("memberId", authInfo.get("memberId"));
-        response.put("username", authInfo.get("username"));
+        response.put("email", authInfo.get("email"));
         return response;
     }
 
@@ -111,7 +91,6 @@ public class AccountController {
     @PostMapping("/link")
     @ApiOperation(value = "은행 계좌 연동", notes = "은행 로그인 정보로 계좌를 연동하고 DB에 저장.")
     public ResponseEntity<Map<String, Object>> linkAccount(
-            HttpServletRequest request,
             @RequestBody AccountRequestDTO accountRequest
     ) {
 
@@ -119,11 +98,11 @@ public class AccountController {
 
         try {
             // JWT 토큰에서 인증 정보 추출
-            Map<String, Object> authInfo = extractAuthInfo(request);
+            Map<String, Object> authInfo = extractAuthInfo();
             Long memberId = (Long) authInfo.get("memberId");
-            String username = (String) authInfo.get("username");
+            String email = (String) authInfo.get("email");
 
-            log.info("계좌 연동 시작 - username: {}, memberId: {}, bankCode: {}", username, memberId, accountRequest.getBankCode());
+            log.info("계좌 연동 시작 - email: {}, memberId: {}, bankCode: {}", email, memberId, accountRequest.getBankCode());
 
             // 1. 커넥티드 아이디 발급
             String userConnectedId = RequestConnectedId.createConnectedId(
@@ -134,6 +113,7 @@ public class AccountController {
             // 2. 커넥티드 아이디로 계좌 정보 조회 및 DB 저장
             List<AccountVO> accountList = AccountResponse.requestAccounts(memberId, accountRequest.getBankCode(), userConnectedId);
             int savedCount = accountService.saveAccounts(accountList);
+            redisService.set(RedisKeyUtil.transaction(memberId, accountList.get(0).getResAccount()), "FETCHING_TRANSACTIONS",10);
 
             // 3. 저장된 계좌 정보 조회하여 반환
             List<AccountDTO> accountDTOList = accountService.getUserAccounts(memberId);
@@ -141,8 +121,11 @@ public class AccountController {
             response.put("savedCount", savedCount);
             response.put("accounts", accountDTOList);
 
-            transactionService.getTransactions(memberId, null);
 
+            asyncTransactionService.getTransactions(memberId,
+                    TransactionRequestDto.builder()
+                            .resAccount(accountDTOList.get(0).getResAccount())
+                            .build());
 
             return ResponseEntity.ok(createSuccessResponse("계좌 연동이 완료되었습니다.", response, authInfo));
 
@@ -163,13 +146,13 @@ public class AccountController {
      */
     @GetMapping("/list")
     @ApiOperation(value = "계좌 목록 조회", notes = "사용자의 연동된 계좌 목록을 조회.")
-    public ResponseEntity<Map<String, Object>> getUserAccounts(HttpServletRequest request) {
+    public ResponseEntity<Map<String, Object>> getUserAccounts() {
         try {
-            Map<String, Object> authInfo = extractAuthInfo(request);
+            Map<String, Object> authInfo = extractAuthInfo();
             Long memberId = (Long) authInfo.get("memberId");
-            String username = (String) authInfo.get("username");
+            String email = (String) authInfo.get("email");
 
-            log.info("계좌 목록 조회 - username: {}, memberId: {}", username, memberId);
+            log.info("계좌 목록 조회 - email: {}, memberId: {}", email, memberId);
 
             List<AccountDTO> accountList = accountService.getUserAccounts(memberId);
 
@@ -197,16 +180,15 @@ public class AccountController {
     @PutMapping("/refresh")
     @ApiOperation(value = "계좌 잔액 새로고침", notes = "커넥티드 아이디로 계좌 잔액을 새로고침.")
     public ResponseEntity<Map<String, Object>> refreshAccountBalance(
-            HttpServletRequest request,
             @RequestBody AccountRequestDTO accountRequest
     ) {
         try {
-            Map<String, Object> authInfo = extractAuthInfo(request);
+            Map<String, Object> authInfo = extractAuthInfo();
             Long memberId = (Long) authInfo.get("memberId");
-            String username = (String) authInfo.get("username");
+            String email = (String) authInfo.get("email");
 
-            log.info("계좌 잔액 새로고침 - username: {}, memberId: {}, bankCode: {}",
-                    username, memberId, accountRequest.getBankCode());
+            log.info("계좌 잔액 새로고침 - email: {}, memberId: {}, bankCode: {}",
+                    email, memberId, accountRequest.getBankCode());
 
             // 권한 검증
             if (!accountService.isConnectedIdOwner(memberId, accountRequest.getConnectedId())) {
@@ -245,12 +227,12 @@ public class AccountController {
             @RequestBody AccountRequestDTO accountRequest
     ) {
         try {
-            Map<String, Object> authInfo = extractAuthInfo(request);
+            Map<String, Object> authInfo = extractAuthInfo();
             Long memberId = (Long) authInfo.get("memberId");
-            String username = (String) authInfo.get("username");
+            String email = (String) authInfo.get("email");
 
-            log.info("계좌 연동 해제 - username: {}, memberId: {}, bankCode: {}",
-                    username, memberId, accountRequest.getBankCode());
+            log.info("계좌 연동 해제 - email: {}, memberId: {}, bankCode: {}",
+                    email, memberId, accountRequest.getBankCode());
 
             // 권한 검증
             if (!accountService.isConnectedIdOwner(memberId, accountRequest.getConnectedId())) {
@@ -296,7 +278,7 @@ public class AccountController {
             @RequestParam(value = "end", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate
     ) {
         try {
-            Map<String, Object> authInfo = extractAuthInfo(request);
+            Map<String, Object> authInfo = extractAuthInfo();
             Long memberId = (Long) authInfo.get("memberId");
 
             // 기본값 설정 (이번 달)

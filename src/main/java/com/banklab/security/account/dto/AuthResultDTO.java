@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AuthResultDTO {
-    private String token;        // JWT 인증 토큰
+    private String accessToken;   // JWT access 토큰
     private UserInfoDTO user;    // 사용자 기본 정보
 }

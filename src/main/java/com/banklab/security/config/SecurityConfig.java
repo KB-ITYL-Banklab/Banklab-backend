@@ -123,12 +123,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.GET, "/api/upbit/**").permitAll() // 금융차트 가상화페 API 공개
                 .antMatchers(HttpMethod.GET, "/api/exchange/**").permitAll() // 금융차트 외환 API 공개
                 .antMatchers(HttpMethod.GET, "/api/health/**").permitAll() // 금융차트  API 연결여부 공개
-                .antMatchers(HttpMethod.GET, "/api/term/**").permitAll() // 경제용어  API  공개
-                .antMatchers(HttpMethod.GET, "/api/terms/**").permitAll() // 금융용어 API 공개
+                .antMatchers(HttpMethod.GET, "/api/terms/**").permitAll() // 금융용어  API  공개
+//                .antMatchers(HttpMethod.GET, "/api/quiz/**").permitAll() // 경제퀴즈 API 공개
+//                .antMatchers(HttpMethod.POST, "/api/quiz/**").permitAll() // 경제퀴즈 POST API 공개
                 // 회원 관련 공개 API (인증 불필요)
                 .antMatchers(HttpMethod.POST, "/api/member").permitAll()                    // 회원가입
-                .antMatchers(HttpMethod.GET, "/api/member/checkusername/**").permitAll()    // ID 중복 체크
-                .antMatchers(HttpMethod.GET, "/api/oauth/kakao/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/member/exist/email/**").permitAll()    // ID 중복 체크
+                .antMatchers(HttpMethod.POST, "/api/verification/**").permitAll()           // 이메일/전화번호 인증
+                .antMatchers(HttpMethod.GET, "/api/oauth/kakao/**").permitAll()             // 카카오 소셜 로그인
+                .antMatchers(HttpMethod.POST, "/api/member/find/**").permitAll()            // 아이디 찾기
+                .antMatchers(HttpMethod.POST, "/api/member/password/reset").permitAll()     // 비밀번호 재설정
+                .antMatchers(HttpMethod.POST, "/api/auth/reissue").permitAll()              // 토큰 재발급
                 .anyRequest().authenticated(); // 모든 요청에 인증 필요
     }
 }

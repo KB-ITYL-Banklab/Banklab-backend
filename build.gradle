@@ -48,6 +48,9 @@ dependencies {
   implementation 'org.springframework.batch:spring-batch-infrastructure:4.3.10'
 
 
+  // RateLimit -> kakao api 호출 제한 설정
+  implementation 'com.google.guava:guava:33.1.0-jre'
+
 
 
   // 보안
@@ -77,6 +80,12 @@ dependencies {
   implementation 'org.springframework.data:spring-data-redis:2.7.5'
   implementation 'io.lettuce:lettuce-core:6.1.8.RELEASE'
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.2'
+
+  // coolsms api (전화번호 인증)
+  implementation 'net.nurigo:sdk:4.3.0'
+
+  // Google SMTP api 관련
+  implementation 'javax.mail:mail:1.4.7'
 
   // AOP
   implementation 'org.aspectj:aspectjrt:1.9.20'

@@ -28,7 +28,7 @@
               )
     </insert>
 
-    <insert id="saveTransactionList"  parameterType="java.util.List">
+    <insert id="saveTransactionList"  parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO transaction_history (
         member_id,
         resAccount,
@@ -56,7 +56,22 @@
         </foreach>
     </insert>
 
-<!--    <select id="getMonthlySummary" resultType="com.banklab.transaction.dto.response.MonthlySummaryDTO">-->
+
+    <update id="updateCategories" parameterType="list">
+        UPDATE transaction_history
+        SET category_id = CASE id
+        <foreach collection="list" item="item" separator=" ">
+            WHEN #{item.id} THEN #{item.category_id}
+        </foreach>
+        END
+        WHERE id IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item.id}
+        </foreach>
+    </update>
+
+
+    <!--    <select id="getMonthlySummary" resultType="com.banklab.transaction.dto.response.MonthlySummaryDTO">-->
 <!--        SELECT-->
 <!--            #{startDate} AS startDate,-->
 <!--            #{endDate} AS endDate,-->
@@ -111,7 +126,7 @@
 
     <select id="getLastTransactionDate" resultType="java.time.LocalDate">
         SELECT max(transaction_date) from transaction_history
-        WHERE member_id = #{memberId}
+        WHERE member_id = #{memberId} and resAccount=#{resAccount}
     </select>
 
 
@@ -174,6 +189,23 @@
         FROM transaction_history th
         WHERE th.member_id = #{memberId}
           AND th.resAccount = #{resAccount}
+          AND th.transaction_date BETWEEN #{startDate} AND #{endDate}
+        ORDER BY th.transaction_date DESC, th.transaction_time DESC
+    </select>
+    <select id="getTransactionDetailsByCategoryId"
+            resultType="com.banklab.transaction.dto.response.TransactionDetailDTO">
+        SELECT
+            th.member_id as memberId,
+            th.resAccount,
+            th.resAccountIn,
+            th.resAccountOut,
+            th.resAfterTranBalance,
+            DATE_FORMAT(th.transaction_date, '%Y-%m-%d') as resAccountTrDate,
+            TIME_FORMAT(th.transaction_time, '%H:%i:%s') as resAccountTrTime,
+            th.description as resAccountDesc3
+        FROM transaction_history th
+        WHERE th.member_id = #{memberId}
+          AND th.category_id = #{categoryId}
           AND th.transaction_date BETWEEN #{startDate} AND #{endDate}
         ORDER BY th.transaction_date DESC, th.transaction_time DESC
     </select>

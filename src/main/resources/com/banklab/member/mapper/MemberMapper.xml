@@ -49,6 +49,9 @@
     <update id="update">
         UPDATE member SET name = #{name}, update_date = now() WHERE member_id = #{memberId}
     </update>
+    <update id="updatePassword">
+        UPDATE member SET password = #{password}, update_date = now() WHERE email = #{email}
+    </update>
     <!--  이메일 중복 체크용 조회  -->
     <select id="findByEmail" resultType="MemberVO">
         SELECT * FROM member WHERE email = #{email}
@@ -64,5 +67,20 @@
     </select>
     <select id="findAllMemberIds" resultType="java.lang.Long">
         select member_id from member;
+    </select>
+    <select id="findByPhone" resultType="MemberVO">
+        SELECT * FROM member WHERE phone = #{phone}
+    </select>
+    <select id="findByPersonalInfo" resultType="MemberVO">
+        SELECT email, reg_date, provider
+        FROM member
+        WHERE name = #{name}
+          AND birth_date = #{birth}
+          AND phone = #{phone}
+    </select>
+    <select id="findEmailByMemberId" resultType="java.lang.String">
+        SELECT email
+        FROM member
+        WHERE member_id = #{id}
     </select>
 </mapper>

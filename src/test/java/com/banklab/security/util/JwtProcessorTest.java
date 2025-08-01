@@ -28,7 +28,7 @@ class JwtProcessorTest {
         String username = "user0";
 
         // username을 이용해 JWT 토큰 생성
-        String token = jwtProcessor.generateToken(username);
+        String token = jwtProcessor.generateToken(username, 1000L*60*60*5);
 
         log.info("생성된 토큰: {}", token);
         assertNotNull(token);
@@ -45,13 +45,13 @@ class JwtProcessorTest {
     @DisplayName("사용자명 추출 테스트")
     @Test
     void getUsername() {
-        String username = "user0";
-        String token = jwtProcessor.generateToken(username);
+        Long memberId = 5L;
+        String token = jwtProcessor.generateRefreshToken(memberId);
 
         // JWT Subject(username) 추출
-        String extracted = jwtProcessor.getUsername(token);
+        Long extracted = jwtProcessor.getMemberId(token);
 
-        assertEquals(username, extracted);
+        assertEquals(memberId, extracted);
     }
 
 
@@ -59,34 +59,34 @@ class JwtProcessorTest {
     @DisplayName("사용자명, 권한 추출 테스트")
     @Test
     void generateTokenWithRole() {
-        String username = "testUser";
+        long memberId = 3L;
         String role = "ROLE_ADMIN";
-        String token = jwtProcessor.generateTokenWithRole(username, role);
+        String token = jwtProcessor.generateTokenWithRole(Long.toString(memberId), role);
 
-        String extractedUsername = jwtProcessor.getUsername(token);
+        Long extractedId = jwtProcessor.getMemberId(token);
         String extractedRole = jwtProcessor.getRole(token);
-        log.info("새로 생성한 토큰에서 추출한 : {}", extractedUsername);
+        log.info("새로 생성한 토큰에서 추출한 : {}", extractedId);
         log.info("새로 생성한 토큰에서 추출한 권한: {}", extractedRole);
 
         // Then
-        assertEquals(username, extractedUsername);
+        assertEquals(memberId, extractedId);
         assertEquals(role, extractedRole);
     }
 
     @DisplayName("사용자명, 권한 추출 테스트")
     @Test
     void generateTokenWithId() {
-        String username = "testUser";
+        String email = "testUser@exampl.com";
         Long id = 1L;
-        String token = jwtProcessor.generateTokenWithId(username, id);
+        String token = jwtProcessor.generateAccessToken(id, email);
 
-        String extractedUsername = jwtProcessor.getUsername(token);
+        String extractedUsername = jwtProcessor.getEmail(token);
         Long extractedId = jwtProcessor.getMemberId(token);
         log.info("새로 생성한 토큰에서 추출한 : {}", extractedUsername);
         log.info("새로 생성한 토큰에서 추출한 member_id: {}", extractedId);
 
         // Then
-        assertEquals(username, extractedUsername);
+        assertEquals(email, extractedUsername);
         assertEquals(id, extractedId);
     }
 
@@ -94,10 +94,10 @@ class JwtProcessorTest {
     @Test
     void validateToken_Valid() {
         // 새로 생성한 유효한 토큰
-        String token = jwtProcessor.generateToken("testUser");
+        String token = jwtProcessor.generateRefreshToken(1L);
 
         // JWT 검증 (유효 기간 및 서명 검증)
-        boolean isValid = jwtProcessor.validateToken(token);
+        boolean isValid = jwtProcessor.validateRefreshToken(token);
 
         assertTrue(isValid, "새로 생성한 토큰은 유효해야 합니다.");
     }
@@ -109,11 +109,11 @@ class JwtProcessorTest {
 
 
         assertThrows(ExpiredJwtException.class, () -> {
-            jwtProcessor.getUsername(expiredToken);  // 만료된 토큰 사용 시 예외 발생
+            jwtProcessor.getEmail(expiredToken);  // 만료된 토큰 사용 시 예외 발생
         });
 
         // 검증 메서드는 예외를 잡아서 false 반환
-        boolean isValid = jwtProcessor.validateToken(expiredToken);
+        boolean isValid = jwtProcessor.validateAccessToken(expiredToken);
         assertFalse(isValid, "만료된 토큰은 무효해야 합니다.");
     }
 
@@ -122,7 +122,7 @@ class JwtProcessorTest {
     void validateToken_Invalid() {
         String invalidToken = "invalid.jwt.token";
 
-        boolean isValid = jwtProcessor.validateToken(invalidToken);
+        boolean isValid = jwtProcessor.validateAccessToken(invalidToken);
 
         assertFalse(isValid, "잘못된 형식의 토큰은 무효해야 합니다.");
     }
@@ -132,15 +132,15 @@ class JwtProcessorTest {
     void tokenExpiration_Simulation() throws InterruptedException {
         // Given - 매우 짧은 유효기간의 토큰 생성 (1초)
         // 실제로는 JwtProcessor에 테스트용 메서드 추가 필요
-        String shortLivedToken = jwtProcessor.generateTokenWithExpiry("testUser", 2000L);
+        String shortLivedToken = jwtProcessor.generateToken("testUser", 2000L);
 
         // When - 토큰 생성 직후에는 유효
-        assertTrue(jwtProcessor.validateToken(shortLivedToken));
+        assertTrue(jwtProcessor.validateAccessToken(shortLivedToken));
 
         // 3초 대기
         Thread.sleep(3000);
 
         // Then - 만료 후에는 무효
-        assertFalse(jwtProcessor.validateToken(shortLivedToken));
+        assertFalse(jwtProcessor.validateAccessToken(shortLivedToken));
     }
 }
