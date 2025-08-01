@@ -50,6 +50,7 @@ public class AccountController {
         Long memberId = loginUserProvider.getLoginMemberId();
         String email = loginUserProvider.getLoginEmail();
 
+
         if (memberId == null || email == null) {
             throw new SecurityException("인증이 필요합니다. 로그인 후 다시 시도해주세요.");
         }

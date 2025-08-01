@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.financeContents.mapper.UserQuizResultMapper">
+
+    <!-- 결과 매핑 -->
+    <resultMap id="UserQuizResultMap" type="com.banklab.financeContents.domain.UserQuizResultVO">
+        <id property="id" column="id"/>
+        <result property="memberId" column="member_id"/>
+        <result property="userAnswer" column="user_answer"/>
+        <result property="problem" column="problem"/>
+        <result property="accumulatedPoints" column="accumulated_points"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 사용자 퀴즈 결과 저장 (created_at, updated_at은 DB에서 자동 처리) -->
+    <insert id="insertUserQuizResult" parameterType="com.banklab.financeContents.domain.UserQuizResultVO">
+        INSERT INTO user_quiz_results (
+            member_id, 
+            user_answer, 
+            problem, 
+            accumulated_points
+        ) VALUES (
+            #{memberId}, 
+            #{userAnswer}, 
+            #{problem}, 
+            #{accumulatedPoints}
+        )
+    </insert>
+
+    <!-- 사용자 최신 누적 포인트 조회 -->
+    <select id="getLatestAccumulatedPoints" parameterType="Long" resultType="Integer">
+        SELECT accumulated_points 
+        FROM user_quiz_results 
+        WHERE member_id = #{memberId} 
+        ORDER BY created_at DESC, id DESC 
+        LIMIT 1
+    </select>
+
+    <!-- 사용자 총 문제 풀이 수 조회 -->
+    <select id="getTotalProblemCount" parameterType="Long" resultType="Integer">
+        SELECT COALESCE(MAX(problem), 0) 
+        FROM user_quiz_results 
+        WHERE member_id = #{memberId}
+    </select>
+
+    <!-- 사용자 퀴즈 결과 업데이트 (updated_at은 DB에서 자동 처리) -->
+    <update id="updateUserQuizResult" parameterType="com.banklab.financeContents.domain.UserQuizResultVO">
+        UPDATE user_quiz_results 
+        SET user_answer = #{userAnswer},
+            problem = #{problem},
+            accumulated_points = #{accumulatedPoints}
+        WHERE id = #{id}
+    </update>
+
+</mapper>

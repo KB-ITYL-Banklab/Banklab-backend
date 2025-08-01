@@ -25,12 +25,12 @@ public class RequestConnectedId {
      *
      * @param id : 은행 id
      * @param password : 은행 password
-     * @implNote bodyMap :  실제 json으로 변환할 해시테이블 <"accountList" : [accountMap]>
-     * @implNote accountMap: 데이터를 담은 해시테이블 <"countryCode" : "KR" ...>
+     * @Variable bodyMap :  실제 json으로 변환할 해시테이블 <"accountList" : [accountMap]>
+     * @Variable accountMap: 데이터를 담은 해시테이블 <"countryCode" : "KR" ...>
      * @throws Exception the exception
      */
-    public static String createConnectedId(String id, String password, String bankCode) throws Exception {
-        log.info("🏦 커넥티드 아이디 발급 요청 시작 - 은행코드: {}, ID: {}", bankCode, id);
+    public static String createConnectedId(String id, String password, String organization, String businessType) throws Exception {
+        log.info("커넥티드 아이디 발급 요청 시작 - 은행코드: {}, ID: {}", organization, id);
 
         String urlPath = CommonConstant.TEST_DOMAIN + CommonConstant.CREATE_ACCOUNT;
 
@@ -39,9 +39,9 @@ public class RequestConnectedId {
 
         HashMap<String, Object> accountMap = new HashMap<String, Object>();
         accountMap.put("countryCode", "KR");
-        accountMap.put("businessType", "BK");
+        accountMap.put("businessType", businessType);
         accountMap.put("clientType", "P");
-        accountMap.put("organization", bankCode);
+        accountMap.put("organization", organization);
         accountMap.put("loginType", "1");
         accountMap.put("id", id);
         accountMap.put("password", RSAUtil.encryptRSA(password, CommonConstant.PUBLIC_KEY));
@@ -76,11 +76,11 @@ public class RequestConnectedId {
      * 커넥티드 아이디 삭제
      *
      * @param connectedId : 삭제하고자 하는 커넥티드 아이디
-     * @param bankCode : 기관코드
+     * @param organization : 기관코드
      * @return T/F
      * @throws Exception the exception
      */
-    public static boolean deleteConnectedId(String connectedId, String bankCode) throws Exception {
+    public static boolean deleteConnectedId(String connectedId, String organization) throws Exception {
         String urlPath = CommonConstant.TEST_DOMAIN + CommonConstant.DELETE_ACCOUNT;
 
         HashMap<String, Object> bodyMap = new HashMap<String, Object>();
@@ -90,7 +90,7 @@ public class RequestConnectedId {
         accountMap.put("countryCode",	"KR");
         accountMap.put("businessType",	"BK");
         accountMap.put("clientType",  	"P");
-        accountMap.put("organization",	bankCode);
+        accountMap.put("organization",	organization);
         accountMap.put("loginType",  	"1");
         list.add(accountMap);
 
