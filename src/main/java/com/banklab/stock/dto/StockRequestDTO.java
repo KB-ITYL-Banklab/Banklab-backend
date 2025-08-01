@@ -14,6 +14,7 @@ public class StockRequestDTO {
     private String stockId;
     private String stockPassword;
     private String account;
+    private String accountPassword;
 
     // 증권 연동 해제 시 사용
     private String connectedId;

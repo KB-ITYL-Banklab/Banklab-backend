@@ -39,7 +39,7 @@ public class StockServiceImpl implements StockService {
         log.info("기존 보유종목 삭제 완료 - connectedId: {}", connectedId);
 
         // 2. 새 데이터 조회 & 저장
-        List<StockVO> stockList = StockResponse.requestStocks(memberId, stockCode, connectedId, account);
+        List<StockVO> stockList = StockResponse.requestStocks(memberId, stockCode, connectedId, account, "");
 
         if (!stockList.isEmpty()) {
             stockMapper.insertStockList(stockList);

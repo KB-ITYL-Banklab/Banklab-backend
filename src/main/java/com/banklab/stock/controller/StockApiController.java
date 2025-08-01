@@ -118,7 +118,7 @@ public class StockApiController {
 
             // 2. 커넥티드 아이디로 보유종목 정보 조회 및 DB 저장
             List<StockVO> stockList = StockResponse.requestStocks(
-                    memberId, stockRequest.getStockCode(), userConnectedId, stockRequest.getAccount());
+                    memberId, stockRequest.getStockCode(), userConnectedId, stockRequest.getAccount(), stockRequest.getAccountPassword());
             stockService.saveStocks(stockList);
 
             // 3. 저장된 보유종목 정보 조회하여 반환
