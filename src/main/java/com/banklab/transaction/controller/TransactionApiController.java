@@ -1,17 +1,13 @@
 package com.banklab.transaction.controller;
 
-import com.banklab.category.dto.CategoryExpenseDTO;
 import com.banklab.common.redis.RedisKeyUtil;
 import com.banklab.common.redis.RedisService;
-import com.banklab.security.util.JwtProcessor;
+import com.banklab.security.service.LoginUserProvider;
 import com.banklab.transaction.dto.request.TransactionRequestDto;
-import com.banklab.transaction.dto.response.DailyExpenseDTO;
-import com.banklab.transaction.dto.response.MonthlySummaryDTO;
 import com.banklab.transaction.dto.response.SummaryDTO;
 import com.banklab.transaction.dto.response.TransactionDetailDTO;
 import com.banklab.transaction.service.AsyncTransactionService;
 import com.banklab.transaction.service.TransactionService;
-import com.banklab.transaction.service.TransactionServiceImpl;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +18,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.time.LocalDate;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -35,42 +30,29 @@ import java.util.Map;
 @Api(tags = "거래 내역 API")
 public class TransactionApiController {
 
-    private final JwtProcessor jwtProcessor;
+    private final LoginUserProvider loginUserProvider;
     private final AsyncTransactionService asyncTransactionService;
     private final TransactionService transactionService;
     private final RedisService redisService;
 
+
     /**
-     * HTTP 요청에서 JWT 토큰 추출 & 검증하여 사용자 정보 반환
+     * 로그인한 사용자 정보 추출 및 검증
      */
-    private Map<String, Object> extractAuthInfo(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (bearerToken == null || !bearerToken.startsWith("Bearer ")) {
-            throw new SecurityException("인증이 필요합니다.");
-        }
-        String token = bearerToken.substring(7);
-        if (!jwtProcessor.validateAccessToken(token)) {
-            throw new SecurityException("유효하지 않은 토큰입니다.");
+    private Map<String, Object> extractAuthInfo() {
+        Long memberId = loginUserProvider.getLoginMemberId();
+        String email = loginUserProvider.getLoginEmail();
+
+        if (memberId == null || email == null) {
+            throw new SecurityException("인증이 필요합니다. 로그인 후 다시 시도해주세요.");
         }
 
-        try {
-            Long memberId = jwtProcessor.getMemberId(token);
-            String username = jwtProcessor.getEmail(token);
-
-            if (memberId == null) {
-                throw new SecurityException("토큰에 사용자 정보가 없습니다. 다시 로그인해주세요.");
-            }
-
-            Map<String, Object> authInfo = new HashMap<>();
-            authInfo.put("memberId", memberId);
-            authInfo.put("username", username);
-            return authInfo;
-
-        } catch (Exception e) {
-            log.error("토큰 처리 중 오류 발생: {}", e.getMessage());
-            throw new SecurityException("인증 처리 중 오류가 발생했습니다.");
-        }
+        Map<String, Object> authInfo = new HashMap<>();
+        authInfo.put("memberId", memberId);
+        authInfo.put("email", email);
+        return authInfo;
     }
+
 
     /**
      * 표준화된 성공 응답 생성
@@ -81,7 +63,7 @@ public class TransactionApiController {
         response.put("message", message);
         response.put("data", data);
         response.put("memberId", authInfo.get("memberId"));
-        response.put("username", authInfo.get("username"));
+        response.put("email", authInfo.get("email"));
         return response;
     }
 
@@ -100,17 +82,16 @@ public class TransactionApiController {
     @PostMapping("/transaction-list")
     @ApiOperation(value = "CODEF 수시입출금 내역 API 호출", notes = "사용자와 연동된 계좌 거래 내역 조회")
     public ResponseEntity<Map<String, Object>> getTransactionList(
-            HttpServletRequest request,
             @RequestBody(required = false) TransactionRequestDto dto) {
         Map<String, Object> response = new HashMap<>();
 
         try {
             // 1. JWT 토큰에서 인증 정보 추출
-            Map<String, Object> authInfo = extractAuthInfo(request);
+            Map<String, Object> authInfo = extractAuthInfo();
             Long memberId = (Long) authInfo.get("memberId");
-            String username = (String) authInfo.get("username");
+            String email = (String) authInfo.get("email");
 
-            log.info("거래 내역 연동 시작 - username: {}, memberId: {}", username, memberId);
+            log.info("거래 내역 연동 시작 - email: {}, memberId: {}", email, memberId);
 
             // 2. 거래 내역 조회 및 DB 저장 - 비동기 처리
             asyncTransactionService.getTransactions(memberId, dto);
@@ -133,7 +114,7 @@ public class TransactionApiController {
             @RequestBody Map<String, String> requestBody,
             HttpServletRequest request
     ) {
-        Map<String, Object> authInfo = extractAuthInfo(request);
+        Map<String, Object> authInfo = extractAuthInfo();
         Long memberId = (Long) authInfo.get("memberId");
 
         String accountNumber = requestBody.get("accountNumber");
@@ -151,18 +132,17 @@ public class TransactionApiController {
     @GetMapping("/summary")
     @ApiOperation(value = "소비 분석 페이지 데이터 호출", notes = "사전 집계 테이블에서 data 호출하기")
     public ResponseEntity<Map<String, Object>> getSummary(
-            HttpServletRequest request,
             @RequestParam(value = "start", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
             @RequestParam(value = "end", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
         Map<String, Object> response = new HashMap<>();
 
         try {
             // 1. JWT 토큰에서 인증 정보 추출
-            Map<String, Object> authInfo = extractAuthInfo(request);
+            Map<String, Object> authInfo = extractAuthInfo();
             Long memberId = (Long) authInfo.get("memberId");
-            String username = (String) authInfo.get("username");
+            String email = (String) authInfo.get("email");
 
-            log.info("집계 테이블 GET 시작 - username: {}, memberId: {}", username, memberId);
+            log.info("집계 테이블 GET 시작 - email: {}, memberId: {}", email, memberId);
 
             log.info("start - end {}-{}",startDate, endDate);
             // 2. 집계 테이블에 소비 분석 데이터 조회
@@ -183,8 +163,7 @@ public class TransactionApiController {
     }
 
     @GetMapping("/summary/category/{categoryId}")
-    public ResponseEntity<Map<String, Object>> getTrhisByCategoryId(
-            HttpServletRequest request,
+    public ResponseEntity<Map<String, Object>> getThisByCategoryId(
             @PathVariable("categoryId") long categoryId,
             @RequestParam(value = "start", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
             @RequestParam(value = "end", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate
@@ -192,7 +171,7 @@ public class TransactionApiController {
         Map<String, Object> response = new HashMap<>();
 
         // JWT 토큰에서 빼오기
-        Map<String, Object> authInfo = extractAuthInfo(request);
+        Map<String, Object> authInfo = extractAuthInfo();
         Long memberId = (Long) authInfo.get("memberId");
 
         try{
