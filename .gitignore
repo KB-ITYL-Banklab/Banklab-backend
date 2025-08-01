@@ -3,6 +3,7 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+src/main/resources/application.properties
 
 ### IntelliJ IDEA ###
 .idea/
@@ -41,3 +42,8 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### Claude AI ###
+.claude
+/src/main/resources/application-secret.properties
+.env

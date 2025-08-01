@@ -6,5 +6,25 @@
 <configuration>
     <settings>
         <setting name="mapUnderscoreToCamelCase" value="true"/>
+        <setting name="defaultFetchSize" value="1000"/>
+        <setting name="defaultStatementTimeout" value="30"/>
     </settings>
+    
+    <typeAliases>
+        <package name="com.banklab.security.account.domain"/>
+        <package name="com.banklab.financeContents.domain"/>
+    </typeAliases>
+
+    <typeHandlers>
+        <typeHandler handler="com.banklab.member.handler.GenderTypeHandler"
+                     javaType="com.banklab.member.domain.Gender"/>
+        <typeHandler handler="com.banklab.oauth.handler.OAuthProviderTypeHandler"
+                    javaType="com.banklab.oauth.domain.OAuthProvider"/>
+        <typeHandler handler="com.banklab.product.handler.ProductTypeHandler"
+                     javaType="com.banklab.product.domain.ProductType"/>
+        <typeHandler handler="com.banklab.risk.handler.RiskLevelHandler"
+                     javaType="com.banklab.risk.domain.RiskLevel"/>
+
+
+    </typeHandlers>
 </configuration>

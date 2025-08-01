@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.transaction.mapper.TransactionMapper">
+
+    <insert id="saveTransaction" parameterType="com.banklab.transaction.domain.TransactionHistoryVO">
+        INSERT INTO transaction_history (
+            resAccount,
+            transaction_date,
+            transaction_time,
+            resAccountOut,
+            resAccountIn,
+            resAfterTranBalance,
+            description,
+            category_id
+        )
+        VALUES(
+               #{resAccount},
+               STR_TO_DATE(#{transactionDate}, '%Y%m%d'),
+               TIME_FORMAT(#{transactionTime}, '%H%i%s'),
+               #{resAccountOut},
+               #{resAccountIn},
+               #{resAfterTranBalance},
+               #{description},
+               #{category_id}
+              )
+    </insert>
+
+    <insert id="saveTransactionList"  parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO transaction_history (
+        member_id,
+        resAccount,
+        transaction_date,
+        transaction_time,
+        resAccountOut,
+        resAccountIn,
+        resAfterTranBalance,
+        description,
+        category_id
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.memberId},
+            #{item.resAccount},
+            STR_TO_DATE(#{item.transactionDate}, '%Y%m%d'),
+            TIME_FORMAT(#{item.transactionTime}, '%H%i%s'),
+            #{item.resAccountOut},
+            #{item.resAccountIn},
+            #{item.resAfterTranBalance},
+            #{item.description},
+            #{item.category_id}
+            )
+        </foreach>
+    </insert>
+
+
+    <update id="updateCategories" parameterType="list">
+        UPDATE transaction_history
+        SET category_id = CASE id
+        <foreach collection="list" item="item" separator=" ">
+            WHEN #{item.id} THEN #{item.category_id}
+        </foreach>
+        END
+        WHERE id IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item.id}
+        </foreach>
+    </update>
+
+
+    <!--    <select id="getMonthlySummary" resultType="com.banklab.transaction.dto.response.MonthlySummaryDTO">-->
+<!--        SELECT-->
+<!--            #{startDate} AS startDate,-->
+<!--            #{endDate} AS endDate,-->
+<!--            IFNULL(SUM(CASE WHEN resAccountIn > 0 THEN resAccountIn ELSE 0 END), 0) AS totalIncome,-->
+<!--            IFNULL(SUM(CASE WHEN resAccountOut > 0 THEN resAccountOut ELSE 0 END), 0) AS totalExpense-->
+<!--        FROM transaction_history-->
+<!--        WHERE transaction_date BETWEEN #{startDate} AND #{endDate}-->
+<!--          AND resAccount = #{resAccount}-->
+<!--    </select>-->
+
+<!--    <select id="getDailyExpense" resultType="com.banklab.transaction.dto.response.DailyExpenseDTO">-->
+<!--        <![CDATA[-->
+<!--        WITH RECURSIVE dates AS (-->
+<!--            SELECT #{startDate} AS date-->
+<!--            UNION ALL-->
+<!--            SELECT DATE_ADD(date, INTERVAL 1 DAY)-->
+<!--            FROM dates-->
+<!--            WHERE date < #{endDate}-->
+<!--        )-->
+
+<!--        SELECT-->
+<!--            d.date,-->
+<!--            DATE_FORMAT(d.date, '%Y-%m') AS yearMonth,  &#45;&#45; ← 월 정보 추가-->
+<!--            IFNULL(SUM(CASE WHEN th.resAccountOut > 0 THEN th.resAccountOut ELSE 0 END), 0) AS totalExpense-->
+<!--        FROM-->
+<!--            dates d-->
+<!--                LEFT JOIN-->
+<!--            transaction_history th-->
+<!--            ON th.transaction_date = d.date-->
+<!--                AND th.resAccount = #{resAccount}-->
+<!--        GROUP BY-->
+<!--            d.date-->
+<!--        ORDER BY-->
+<!--            d.date-->
+<!--        ]]>-->
+<!--    </select>-->
+
+<!--    <select id="getExpensesByCategory" resultType="com.banklab.category.dto.CategoryExpenseDTO">-->
+<!--        SELECT-->
+<!--            c.id AS categoryId,-->
+<!--            c.name AS categoryName,-->
+<!--            SUM(t.resAccountout) AS totalExpense-->
+<!--        FROM transaction_history t-->
+<!--                 JOIN category c ON t.category_id = c.id-->
+<!--        WHERE t.resAccount=#{resAccount}-->
+<!--          AND t.resAccountOut > 0 &#45;&#45; 지출만-->
+<!--          AND t.transaction_date BETWEEN #{startDate} AND #{endDate}-->
+
+<!--        GROUP BY c.id, c.name-->
+<!--        ORDER BY totalExpense DESC-->
+<!--    </select>-->
+
+    <select id="getLastTransactionDate" resultType="java.time.LocalDate">
+        SELECT max(transaction_date) from transaction_history
+        WHERE member_id = #{memberId} and resAccount=#{resAccount}
+    </select>
+
+
+
+    <select id="getMonthlySummary" resultType="com.banklab.transaction.dto.response.MonthlySummaryDTO">
+        SELECT SUM(total_expense) as totalExpense,
+               SUM(total_Income) as totalIncome
+        FROM daily_user_expense_summary
+        WHERE  member_id = #{memberId}
+           AND date BETWEEN #{startDate} AND #{endDate}
+    </select>
+
+    <select id="getDailyExpense" resultType="com.banklab.transaction.dto.response.DailyExpenseDTO">
+    <![CDATA[
+            WITH RECURSIVE dates AS (
+                SELECT #{startDate} AS date
+            UNION ALL
+            SELECT DATE_ADD(date, INTERVAL 1 DAY)
+            FROM dates
+            WHERE date < #{endDate}
+                )
+
+            SELECT
+                d.date,
+                IFNULL(SUM(s.total_expense), 0) AS totalExpense
+            FROM dates d
+                LEFT JOIN daily_user_expense_summary s
+                    ON DATE(s.date) = d.date
+                    AND s.member_id = #{memberId}
+            GROUP BY d.date
+            ORDER BY d.date
+            ]]>
+    </select>
+
+    <select id="getExpensesByCategory" resultType="com.banklab.category.dto.CategoryExpenseDTO">
+        SELECT
+            s.category_id,
+            name as categoryName,
+            SUM(total_expense) AS totalExpense
+        FROM daily_user_expense_summary s
+        JOIN category ON s.category_id = category.id
+        WHERE member_id = #{memberId}
+          AND date BETWEEN #{startDate} AND #{endDate}
+        GROUP BY category_id
+        ORDER BY totalExpense DESC
+    </select>
+
+    <!-- 우진 추가 -->
+    <!-- 계좌 ID로 거래내역 상세 조회 (DTO 반환) -->
+    <select id="getTransactionDetailsByAccountId" resultType="com.banklab.transaction.dto.response.TransactionDetailDTO">
+        SELECT
+            th.member_id as memberId,
+            th.resAccount,
+            th.resAccountIn,
+            th.resAccountOut,
+            th.resAfterTranBalance,
+            DATE_FORMAT(th.transaction_date, '%Y-%m-%d') as resAccountTrDate,
+            TIME_FORMAT(th.transaction_time, '%H:%i:%s') as resAccountTrTime,
+            th.description as resAccountDesc3
+        FROM transaction_history th
+        WHERE th.member_id = #{memberId}
+          AND th.resAccount = #{resAccount}
+          AND th.transaction_date BETWEEN #{startDate} AND #{endDate}
+        ORDER BY th.transaction_date DESC, th.transaction_time DESC
+    </select>
+    <select id="getTransactionDetailsByCategoryId"
+            resultType="com.banklab.transaction.dto.response.TransactionDetailDTO">
+        SELECT
+            th.member_id as memberId,
+            th.resAccount,
+            th.resAccountIn,
+            th.resAccountOut,
+            th.resAfterTranBalance,
+            DATE_FORMAT(th.transaction_date, '%Y-%m-%d') as resAccountTrDate,
+            TIME_FORMAT(th.transaction_time, '%H:%i:%s') as resAccountTrTime,
+            th.description as resAccountDesc3
+        FROM transaction_history th
+        WHERE th.member_id = #{memberId}
+          AND th.category_id = #{categoryId}
+          AND th.transaction_date BETWEEN #{startDate} AND #{endDate}
+        ORDER BY th.transaction_date DESC, th.transaction_time DESC
+    </select>
+</mapper>

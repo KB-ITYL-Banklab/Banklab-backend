@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.member.mapper.MemberMapper">
+    <resultMap id="authMap" type="AuthVO">
+        <result property="memberId" column="member_id" />
+        <result property="auth" column="auth" />
+    </resultMap>
+    <resultMap id="memberMap" type="MemberVO">
+        <id property="memberId" column="member_id" />
+        <result property="email" column="email" />
+        <result property="password" column="password" />
+        <result property="name" column="name" />
+        <result property="phone" column="phone" />
+        <result property="gender" column="gender" />
+        <result property="birth" column="birth_date" />
+        <result property="provider" column="provider"/>
+        <result property="providerId" column="provider_id"/>
+        <result property="regDate" column="reg_date" />
+        <result property="updateDate" column="update_date" />
+        <collection property="authList" resultMap="authMap" />
+    </resultMap>
+    <!-- 회원 정보 조회 (LEFT JOIN으로 권한 정보 포함) -->
+    <select id="get" resultMap="memberMap">
+        SELECT m.member_id, email, password, name, phone, gender, birth_date, provider, reg_date, update_date, auth
+        FROM
+            member m
+                LEFT OUTER JOIN member_auth a
+                                ON m.member_id = a.member_id
+        WHERE m.member_id = #{id} OR m.email = #{email}
+        LIMIT 1
+    </select>
+    <!-- 회원 정보 저장 -->
+    <insert id="insert">
+        INSERT INTO member (email, password, name, phone, gender, birth_date, provider, provider_id, reg_date, update_date)
+        VALUES(#{email}, #{password}, #{name}, #{phone}, #{gender}, #{birth}, #{provider}, #{providerId}, now(), now())
+        <selectKey resultType="Long" keyProperty="memberId" keyColumn="member_id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+    </insert>
+    <!-- 권한 정보 저장 -->
+    <insert id="insertAuth">
+        INSERT INTO member_auth(member_id, auth)
+        VALUES(#{memberId}, #{auth})
+    </insert>
+    <!--  회원 정보 수정  -->
+    <update id="update">
+        UPDATE member SET name = #{name}, update_date = now() WHERE member_id = #{memberId}
+    </update>
+    <update id="updatePassword">
+        UPDATE member SET password = #{password}, update_date = now() WHERE email = #{email}
+    </update>
+    <!--  이메일 중복 체크용 조회  -->
+    <select id="findByEmail" resultType="MemberVO">
+        SELECT * FROM member WHERE email = #{email}
+    </select>
+    <select id="findByProviderAndProviderId" resultMap="memberMap">
+        SELECT m.member_id, email, password, name, phone, gender, birth_date, reg_date, update_date, auth
+        FROM
+            member m
+                LEFT OUTER JOIN member_auth a
+                                ON m.member_id = a.member_id
+        WHERE provider = #{provider}
+          AND provider_id = #{providerId}
+    </select>
+    <select id="findAllMemberIds" resultType="java.lang.Long">
+        select member_id from member;
+    </select>
+    <select id="findByPhone" resultType="MemberVO">
+        SELECT * FROM member WHERE phone = #{phone}
+    </select>
+    <select id="findByPersonalInfo" resultType="MemberVO">
+        SELECT email, reg_date, provider
+        FROM member
+        WHERE name = #{name}
+          AND birth_date = #{birth}
+          AND phone = #{phone}
+    </select>
+    <select id="findEmailByMemberId" resultType="java.lang.String">
+        SELECT email
+        FROM member
+        WHERE member_id = #{id}
+    </select>
+</mapper>
