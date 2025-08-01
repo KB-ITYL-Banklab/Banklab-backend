@@ -97,6 +97,11 @@ public class MemberServiceImpl implements MemberService {
         return member != null;
     }
 
+    @Override
+    public String findEmailByMemberId(Long id) {
+        return mapper.findEmailByMemberId(id);
+    }
+
     @Transactional
     @Override
     public MemberDTO update(Long id, MemberUpdateDTO member) {

@@ -1,15 +1,19 @@
 package com.banklab.security.filter;
 
 import com.banklab.common.redis.RedisService;
+import com.banklab.security.util.JsonResponse;
 import com.banklab.security.util.JwtProcessor;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -22,38 +26,41 @@ import java.io.IOException;
 @Slf4j
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    public static final String AUTHORIZATION_HEADER = "Authorization";
-    public static final String BEARER_PREFIX = "Bearer "; // 끝에 공백 있음
 
     private final JwtProcessor jwtProcessor;
     private final UserDetailsService userDetailsService;
     private final RedisService redisService;
 
-    private Authentication getAuthentication(String token) {
-        String username = jwtProcessor.getUsername(token);
-        UserDetails princiapl = userDetailsService.loadUserByUsername(username);
-        return new UsernamePasswordAuthenticationToken(princiapl, null, princiapl.getAuthorities());
+    private Authentication getAuthentication(String accessToken) {
+        String username = jwtProcessor.getEmail(accessToken);
+        UserDetails principal = userDetailsService.loadUserByUsername(username);
+        return new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
+        String accessToken = jwtProcessor.extractAccessToken(request);
 
-        if (bearerToken != null && bearerToken.startsWith(BEARER_PREFIX)) {
-            String token = bearerToken.substring(BEARER_PREFIX.length());
-
-            // ✅ 로그아웃(차단)된 토큰인지 Redis에서 검사
-            if (redisService.isBlacklisted(token)) {
-                log.warn("요청에 포함된 토큰은 로그아웃된 토큰입니다. 요청 차단.");
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.setContentType("application/json;charset=UTF-8");
-                response.getWriter().write("{\"error\": \"로그아웃된 토큰입니다.\"}");
+        if (StringUtils.hasText(accessToken)) {
+            // 로그아웃(차단)된 토큰인지 Redis에서 검사
+            if (redisService.isBlacklisted(accessToken)) {
+                JsonResponse.sendError(response, HttpStatus.UNAUTHORIZED, "BLACKLISTED_TOKEN");
                 return;
             }
 
-            // 토큰에서 사용자 정보 추출 및 Authentication 객체 구성 후 SecurityContext에 저장
-            Authentication authentication = getAuthentication(token);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            try {
+                // 토큰에서 사용자 정보 추출 및 Authentication 객체 구성 후 SecurityContext에 저장
+                Authentication authentication = getAuthentication(accessToken);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            } catch (ExpiredJwtException e) {
+                log.warn("Access Token 만료: {}", e.getMessage());
+                JsonResponse.sendError(response, HttpStatus.UNAUTHORIZED, "ACCESS_TOKEN_EXPIRED");
+                return;
+            } catch (Exception e) {
+                log.error("JWT 인증 실패: {}", e.getMessage());
+                JsonResponse.sendError(response, HttpStatus.UNAUTHORIZED, "INVALID_ACCESS_TOKEN");
+                return;
+            }
         }
         super.doFilter(request, response, filterChain);
     }
