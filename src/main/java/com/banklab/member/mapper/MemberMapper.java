@@ -15,6 +15,7 @@ public interface MemberMapper {
     List<Long> findAllMemberIds();
     int update(MemberVO member);
     int updatePassword(@Param("email") String email, @Param("password") String password);
+    String findEmailByMemberId(Long id);
     MemberVO findByEmail(String email);
     MemberVO findByProviderAndProviderId(@Param("provider")OAuthProvider provider, @Param("providerId")Long providerId);
     MemberVO findByPhone(String phone);

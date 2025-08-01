@@ -19,7 +19,11 @@ public class RedisKeyUtil {
         return "verified:" + type;
     }
 
-    public static String failCount(String phone) {
-        return "fail:" + phone;
+    public static String failCount(String type) {
+        return "fail:" + type;
+    }
+
+    public static String refreshToken(Long memberId) {
+        return "RT:" + memberId;
     }
 }
