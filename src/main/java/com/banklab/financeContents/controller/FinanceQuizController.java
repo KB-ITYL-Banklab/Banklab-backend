@@ -120,7 +120,6 @@ public class FinanceQuizController {
         try {
             System.out.println("=== POST /api/quiz/daily-result 호출됨 ===");
             System.out.println("Received request: " + request);
-            System.out.println("Member ID: " + request.getMemberId());
             System.out.println("User Answer: " + request.getUserAnswer());
             System.out.println("User Answer Length: " + (request.getUserAnswer() != null ? request.getUserAnswer().length() : "null"));
             

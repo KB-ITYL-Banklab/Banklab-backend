@@ -55,12 +55,12 @@ public class AccountController {
 
         String token = bearerToken.substring(7);
 
-        if (!jwtProcessor.validateToken(token)) {
+        if (!jwtProcessor.validateAccessToken(token)) {
             throw new SecurityException("유효하지 않은 토큰입니다.");
         }
 
         try {
-            String username = jwtProcessor.getUsername(token);
+            String username = jwtProcessor.getEmail(token);
             Long memberId = jwtProcessor.getMemberId(token);
 
             // memberId가 없는 경우 username으로 조회

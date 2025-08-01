@@ -15,14 +15,5 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class DailyQuizRequestDTO {
-    private Long memberId;
     private String userAnswer; // 3문제의 답안을 하나의 문자열로 (예: "1O2")
-
-    @Override
-    public String toString() {
-        return "DailyQuizRequestDTO{" +
-                "memberId=" + memberId +
-                ", userAnswer='" + userAnswer + '\'' +
-                '}';
-    }
 }

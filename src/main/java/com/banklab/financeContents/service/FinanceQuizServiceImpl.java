@@ -5,6 +5,8 @@ import com.banklab.financeContents.domain.UserQuizResultVO;
 import com.banklab.financeContents.dto.*;
 import com.banklab.financeContents.mapper.FinanceQuizMapper;
 import com.banklab.financeContents.mapper.UserQuizResultMapper;
+import com.banklab.security.service.LoginUserProvider;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,10 +19,13 @@ import java.util.stream.Collectors;
 
 // 경제 퀴즈 서비스 구현체
 @Service
+@RequiredArgsConstructor
 public class FinanceQuizServiceImpl implements FinanceQuizService {
 
     @Autowired
     private FinanceQuizMapper financeQuizMapper;
+
+    private final LoginUserProvider loginUserProvider;
     
     @Autowired
     private UserQuizResultMapper userQuizResultMapper;
@@ -117,12 +122,13 @@ public class FinanceQuizServiceImpl implements FinanceQuizService {
     public DailyQuizResultDTO processDailyQuizResults(DailyQuizRequestDTO request) {
         System.out.println("=== processDailyQuizResults 시작 ===");
         System.out.println("Request: " + request);
+        Long memberId = loginUserProvider.getLoginMemberId();
         
         // 입력 검증
         if (request == null) {
             throw new IllegalArgumentException("요청 데이터가 null입니다.");
         }
-        if (request.getMemberId() == null) {
+        if (memberId == null) {
             throw new IllegalArgumentException("memberId가 null입니다.");
         }
         if (request.getUserAnswer() == null) {
@@ -174,12 +180,12 @@ public class FinanceQuizServiceImpl implements FinanceQuizService {
         }
         
         // 4. 기존 데이터 조회
-        Integer previousPoints = userQuizResultMapper.getLatestAccumulatedPoints(request.getMemberId());
+        Integer previousPoints = userQuizResultMapper.getLatestAccumulatedPoints(memberId);
         if (previousPoints == null) {
             previousPoints = 0;
         }
         
-        Integer currentProblemCount = userQuizResultMapper.getTotalProblemCount(request.getMemberId());
+        Integer currentProblemCount = userQuizResultMapper.getTotalProblemCount(memberId);
         if (currentProblemCount == null) {
             currentProblemCount = 0;
         }
@@ -190,7 +196,7 @@ public class FinanceQuizServiceImpl implements FinanceQuizService {
         
         // 6. DB에 결과 저장 (created_at, updated_at은 DB에서 자동 처리)
         UserQuizResultVO userQuizResult = new UserQuizResultVO();
-        userQuizResult.setMemberId(request.getMemberId());
+        userQuizResult.setMemberId(memberId);
         userQuizResult.setUserAnswer(userAnswers); // "3O1" 형태로 저장
         userQuizResult.setProblem(newProblemCount);
         userQuizResult.setAccumulatedPoints(totalAccumulatedPoints);
@@ -279,6 +285,7 @@ public class FinanceQuizServiceImpl implements FinanceQuizService {
         return (int) index;
     }
 
+    /**
     /**
      * 연속 3문제 조회
      */

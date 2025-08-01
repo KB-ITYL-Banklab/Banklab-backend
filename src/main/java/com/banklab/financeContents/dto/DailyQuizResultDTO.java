@@ -8,7 +8,7 @@ import java.util.List;
 public class DailyQuizResultDTO {
     private int correctCount;        // 맞힌 문제 수
     private int totalQuestions;      // 전체 문제 수
-    private int earnedPoints;        // 이번에 획득한 포인트
+    private int earnedPoints;       // 이번에 획득한 포인트
     private int totalAccumulatedPoints; // 총 누적 포인트
     private List<QuizResultDTO> detailResults; // 문제별 상세 결과
 
