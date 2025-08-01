@@ -17,6 +17,13 @@ import java.util.Map;
 public class UserProfileServiceImpl implements UserProfileService {
     
     private final UserProfileMapper userProfileMapper;
+
+    private static final long DEFAULT_AMOUNT = 3_000_000L;
+    private static final long OVER_500_AMOUNT = 5_000_000L;
+    private static final long UNDER_500_AMOUNT = 1_000_000L;
+    private static final int DEFAULT_TERM_MONTHS = 12;
+    private static final int SHORT_TERM_MONTHS = 6;
+    private static final int LONG_TERM_MONTHS = 24;
     
     @Override
     public UserInvestmentProfileResponse getUserInvestmentProfile(Long userId) {
@@ -52,15 +59,15 @@ public class UserProfileServiceImpl implements UserProfileService {
      */
     private Long convertToDefaultAmount(String dbValue) {
         if (dbValue == null) {
-            return 1000000L; // 기본값: 100만원
+            return DEFAULT_AMOUNT; // 기본값: 100만원
         }
         
         switch (dbValue.toUpperCase()) {
             case "OVER_500":
-                return 5000000L; // 500만원
+                return OVER_500_AMOUNT; // 500만원
             case "UNDER_500":
             default:
-                return 1000000L; // 100만원
+                return UNDER_500_AMOUNT; // 100만원
         }
     }
     
@@ -71,15 +78,15 @@ public class UserProfileServiceImpl implements UserProfileService {
      */
     private Integer convertToDefaultTermMonths(String dbValue) {
         if (dbValue == null) {
-            return 6; // 기본값: 6개월
+            return DEFAULT_TERM_MONTHS; // 기본값: 6개월
         }
         
         switch (dbValue.toUpperCase()) {
             case "LONG_TERM":
-                return 24; // 24개월 (2년)
+                return LONG_TERM_MONTHS; // 24개월 (2년)
             case "SHORT_TERM":
             default:
-                return 6;  // 6개월
+                return SHORT_TERM_MONTHS; // 6개월
         }
     }
 }
