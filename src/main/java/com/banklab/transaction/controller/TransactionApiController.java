@@ -49,13 +49,13 @@ public class TransactionApiController {
             throw new SecurityException("인증이 필요합니다.");
         }
         String token = bearerToken.substring(7);
-        if (!jwtProcessor.validateToken(token)) {
+        if (!jwtProcessor.validateAccessToken(token)) {
             throw new SecurityException("유효하지 않은 토큰입니다.");
         }
 
         try {
             Long memberId = jwtProcessor.getMemberId(token);
-            String username = jwtProcessor.getUsername(token);
+            String username = jwtProcessor.getEmail(token);
 
             if (memberId == null) {
                 throw new SecurityException("토큰에 사용자 정보가 없습니다. 다시 로그인해주세요.");
