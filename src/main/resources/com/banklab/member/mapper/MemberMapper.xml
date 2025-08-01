@@ -78,4 +78,9 @@
           AND birth_date = #{birth}
           AND phone = #{phone}
     </select>
+    <select id="findEmailByMemberId" resultType="java.lang.String">
+        SELECT email
+        FROM member
+        WHERE member_id = #{id}
+    </select>
 </mapper>

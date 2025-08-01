@@ -37,8 +37,8 @@ public class KakaoAuthService {
             // → 필요하면 업데이트
         }
 
-        String token = jwtProcessor.generateTokenWithId(member.getEmail(), member.getMemberId());
-
+        // 일단은 access만 발급 (추후 수정)
+        String token = jwtProcessor.generateAccessToken(member.getMemberId(), member.getEmail());
         return new AuthResultDTO(token, UserInfoDTO.of(member));
     }
 }
