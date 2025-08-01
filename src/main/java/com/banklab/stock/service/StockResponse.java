@@ -16,16 +16,18 @@ public class StockResponse {
     private static final ObjectMapper mapper = new ObjectMapper();
 
 
-    public static List<StockVO> requestStocks(Long memberId, String stockCode, String connectedId, String account) throws Exception {
+    public static List<StockVO> requestStocks(Long memberId, String stockCode, String connectedId, String account, String accountPassword) throws Exception {
         log.info("계좌 정보 조회 요청 시작 - memberId: {}, 은행코드: {}, connectedId: {}", memberId, stockCode, connectedId);
 
-        String urlPath = CommonConstant.TEST_DOMAIN + CommonConstant.KR_ST_1_P_004;
+        String urlPath = CommonConstant.TEST_DOMAIN + CommonConstant.KR_ST_1_P_005;
+
+        if(accountPassword == null || accountPassword.isEmpty()) accountPassword = "";
 
         HashMap<String, Object> bodyMap = new HashMap<>();
         bodyMap.put("organization", stockCode);
         bodyMap.put("connectedId", connectedId);
         bodyMap.put("account", account);
-        bodyMap.put("accountPassword", "");
+        bodyMap.put("accountPassword", accountPassword);
         bodyMap.put("id", "");
         bodyMap.put("add_password", "");
 
