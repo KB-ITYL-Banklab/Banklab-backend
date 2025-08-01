@@ -108,7 +108,8 @@ public class AccountController {
             String userConnectedId = RequestConnectedId.createConnectedId(
                     accountRequest.getBankId(),
                     accountRequest.getBankPassword(),
-                    accountRequest.getBankCode());
+                    accountRequest.getBankCode(),
+                    "BK");
 
             // 2. 커넥티드 아이디로 계좌 정보 조회 및 DB 저장
             List<AccountVO> accountList = AccountResponse.requestAccounts(memberId, accountRequest.getBankCode(), userConnectedId);
