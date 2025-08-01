@@ -1,16 +1,23 @@
 package com.banklab.calculator.controller;
 
+import com.banklab.security.util.JwtProcessor;
 import com.banklab.calculator.dto.request.DepositCalculateRequest;
 import com.banklab.calculator.dto.request.SavingsCalculateRequest;
 import com.banklab.calculator.dto.request.LoanCalculateRequest;
 import com.banklab.calculator.dto.response.DepositCalculateResponse;
 import com.banklab.calculator.dto.response.SavingsCalculateResponse;
 import com.banklab.calculator.dto.response.LoanCalculateResponse;
+import com.banklab.calculator.dto.response.UserInvestmentProfileResponse;
 import com.banklab.calculator.service.CalculatorService;
+import com.banklab.calculator.service.UserProfileService;
+
+import com.banklab.typetest.util.JwtTokenUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
 
 
 /**
@@ -23,6 +30,8 @@ import org.springframework.web.bind.annotation.*;
 public class CalculatorController {
 
     private final CalculatorService calculatorService;
+    private final UserProfileService userProfileService;
+    private final JwtProcessor jwtProcessor;
 
     /**
      * 예금 계산기 - 단리, 복리 옵션 존재
@@ -88,6 +97,22 @@ public class CalculatorController {
 
         log.info("대출 계산 결과: 총비용={}, 총이자={}", response.getResults().getTotalCost(), response.getResults().getTotalInterest());
 
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 사용자 투자 프로필 조회 (계산기용)
+     * JWT 토큰에서 사용자 ID를 추출하여 프로필 조회
+     * @return 투자 프로필 정보
+     */
+    @GetMapping("/profile")
+    public ResponseEntity<UserInvestmentProfileResponse> getUserProfile(
+            HttpServletRequest request) {
+        String token = JwtTokenUtil.extractToken(request);
+        Long memberId = jwtProcessor.getMemberId(token);
+
+        log.info("사용자 투자 프로필 조회 요청: memberId={}", memberId);
+        UserInvestmentProfileResponse response = userProfileService.getUserInvestmentProfile(memberId);
         return ResponseEntity.ok(response);
     }
 }

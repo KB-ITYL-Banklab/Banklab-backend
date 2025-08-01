@@ -31,7 +31,8 @@ import java.util.stream.Collectors;
         "com.banklab.risk.mapper",
         "com.banklab.transaction.mapper",
         "com.banklab.category.mapper",
-        "com.banklab.transaction.summary.mapper"
+        "com.banklab.transaction.summary.mapper",
+        "com.banklab.calculator.mapper"
 })
 @ComponentScan(basePackages = {
         "com.banklab.member.service",
