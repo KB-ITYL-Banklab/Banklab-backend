@@ -1,33 +1,4 @@
 package com.banklab.config;
 
-import com.banklab.product.batch.config.BatchConfig;
-import com.banklab.product.batch.config.SchedulerConfig;
-import com.banklab.security.config.SecurityConfig;
-
-import com.banklab.transaction.config.AsyncConfig;
-import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
-
-public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitializer {
-    @Override
-    protected Class<?>[] getRootConfigClasses() {
-        return new Class[] {
-                RootConfig.class,
-                SecurityConfig.class,
-                RedisConfig.class,
-                BatchConfig.class,
-                SchedulerConfig.class,
-                MailConfig.class,
-                AsyncConfig.class
-        };
-    }
-
-    @Override
-    protected Class<?>[] getServletConfigClasses() {
-        return new Class[] { ServletConfig.class, SwaggerConfig.class };
-    }
-
-    @Override
-    protected String[] getServletMappings() {
-        return new String[] { "/" };
-    }
+public class WebConfig {
 }
