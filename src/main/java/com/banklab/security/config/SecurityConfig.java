@@ -5,6 +5,8 @@ import com.banklab.security.filter.JwtAuthenticationFilter;
 import com.banklab.security.filter.JwtUsernamePasswordAuthenticationFilter;
 import com.banklab.security.handler.CustomAccessDeniedHandler;
 import com.banklab.security.handler.CustomAuthenticationEntryPoint;
+import com.banklab.security.oauth2.handler.OAuth2LoginFailureHandler;
+import com.banklab.security.oauth2.handler.OAuth2LoginSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,11 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -46,6 +53,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private JwtUsernamePasswordAuthenticationFilter jwtUsernamePasswordAuthenticationFilter;
+
+    private final ClientRegistrationRepository clientRegistrationRepository;
+    private final OAuth2AuthorizedClientRepository authorizedClientRepository;
+    private final OAuth2UserService<OAuth2UserRequest, OAuth2User> customOAuth2UserService;
+    private final OAuth2LoginSuccessHandler oAuth2AuthenticationSuccessHandler;
+    private final OAuth2LoginFailureHandler oAuth2LoginFailureHandler;
 
     @Bean
     @Override
@@ -111,7 +124,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);  // 무상태 모드
 
         // 소셜 로그인 설정
-        //http.oauth2Login();
+        http.oauth2Login()
+                .clientRegistrationRepository(clientRegistrationRepository) // ✅ 수동 지정
+                .authorizedClientRepository(authorizedClientRepository)     // ✅ 수동 지정
+                .authorizationEndpoint()
+                    .baseUri("/oauth2/authorization")  // ex: /oauth2/authorization/kakao
+                .and()
+                .userInfoEndpoint()
+                    .userService(customOAuth2UserService) // 사용자 정보 추출 처리
+                .and()
+                    .successHandler(oAuth2AuthenticationSuccessHandler) // 로그인 성공 시 JWT 발급
+                    .failureHandler(oAuth2LoginFailureHandler);
 
         http.cors();
 
@@ -129,10 +152,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/api/member").permitAll()                    // 회원가입
                 .antMatchers(HttpMethod.GET, "/api/member/exist/email/**").permitAll()    // ID 중복 체크
                 .antMatchers(HttpMethod.POST, "/api/verification/**").permitAll()           // 이메일/전화번호 인증
-                .antMatchers(HttpMethod.GET, "/api/oauth/kakao/**").permitAll()             // 카카오 소셜 로그인
+//                .antMatchers(HttpMethod.GET, "/api/oauth/kakao/**").permitAll()             // 카카오 소셜 로그인
                 .antMatchers(HttpMethod.POST, "/api/member/find/**").permitAll()            // 아이디 찾기
                 .antMatchers(HttpMethod.POST, "/api/member/password/reset").permitAll()     // 비밀번호 재설정
                 .antMatchers(HttpMethod.POST, "/api/auth/reissue").permitAll()              // 토큰 재발급
+                .antMatchers("/login/**", "/oauth2/**", "/login/oauth2/**").permitAll()
                 .anyRequest().authenticated(); // 모든 요청에 인증 필요
     }
 }

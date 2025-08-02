@@ -1,6 +1,6 @@
 package com.banklab.member.dto;
 
-import com.banklab.oauth.domain.OAuthProvider;
+import com.banklab.security.oauth2.domain.OAuthProvider;
 import com.banklab.security.account.domain.MemberVO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

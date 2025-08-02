@@ -1,6 +1,6 @@
 package com.banklab.member.mapper;
 
-import com.banklab.oauth.domain.OAuthProvider;
+import com.banklab.security.oauth2.domain.OAuthProvider;
 import com.banklab.security.account.domain.AuthVO;
 import com.banklab.security.account.domain.MemberVO;
 import org.apache.ibatis.annotations.Param;
@@ -15,7 +15,6 @@ public interface MemberMapper {
     List<Long> findAllMemberIds();
     int update(MemberVO member);
     int updatePassword(@Param("email") String email, @Param("password") String password);
-    String findEmailByMemberId(Long id);
     MemberVO findByEmail(String email);
     MemberVO findByProviderAndProviderId(@Param("provider")OAuthProvider provider, @Param("providerId")Long providerId);
     MemberVO findByPhone(String phone);

@@ -1,7 +1,7 @@
 package com.banklab.security.account.domain;
 
 import com.banklab.member.domain.Gender;
-import com.banklab.oauth.domain.OAuthProvider;
+import com.banklab.security.oauth2.domain.OAuthProvider;
 import lombok.*;
 
 import java.time.LocalDate;

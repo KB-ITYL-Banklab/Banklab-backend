@@ -1,19 +1,25 @@
-package com.banklab.oauth.dto;
+package com.banklab.security.oauth2.dto;
 
 import com.banklab.member.domain.Gender;
-import com.banklab.oauth.domain.OAuthProvider;
+import com.banklab.security.oauth2.domain.OAuthProvider;
 import com.banklab.security.account.domain.MemberVO;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
+
+@Slf4j
 @Getter
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class KakaoUserInfoDTO {
+public class KakaoUserInfoDTO extends OAuth2UserInfo {
     private Long id;
     private KakaoAccount kakaoAccount;
 
@@ -28,11 +34,20 @@ public class KakaoUserInfoDTO {
         private String phoneNumber;
     }
 
+    public KakaoUserInfoDTO(Map<String, Object> attributes) {
+        this.id = Long.valueOf(attributes.get(OAuthProvider.KAKAO.getIdAttribute()).toString());
+        @SuppressWarnings("unchecked")
+        Map<String, Object> account = (Map<String, Object>) attributes.get(OAuthProvider.KAKAO.getAttributeKey());
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+        this.kakaoAccount = mapper.convertValue(account, KakaoAccount.class);
+    }
+
     public MemberVO toVO() {
         return MemberVO.builder()
                 .email(kakaoAccount.email)
                 .name(kakaoAccount.name)
-                .phone(kakaoAccount.phoneNumber)
+                .phone(kakaoAccount.phoneNumber.replaceAll("^\\+82\\s?", "0").replaceAll("[-\\s]", ""))
                 .gender(Gender.fromString(kakaoAccount.gender))
                 .birth(LocalDate.parse(kakaoAccount.birthyear + kakaoAccount.birthday, DateTimeFormatter.ofPattern("yyyyMMdd")))
                 .provider(OAuthProvider.KAKAO)

@@ -5,7 +5,7 @@ import com.banklab.common.util.PasswordValidator;
 import com.banklab.member.dto.*;
 import com.banklab.member.exception.PasswordMissmatchException;
 import com.banklab.member.mapper.MemberMapper;
-import com.banklab.oauth.domain.OAuthProvider;
+import com.banklab.security.oauth2.domain.OAuthProvider;
 import com.banklab.security.account.domain.AuthVO;
 import com.banklab.security.account.domain.MemberVO;
 import com.banklab.common.redis.RedisService;
@@ -95,11 +95,6 @@ public class MemberServiceImpl implements MemberService {
     public boolean existsByEmail(String email) {
         MemberVO member = mapper.findByEmail(email);
         return member != null;
-    }
-
-    @Override
-    public String findEmailByMemberId(Long id) {
-        return mapper.findEmailByMemberId(id);
     }
 
     @Transactional

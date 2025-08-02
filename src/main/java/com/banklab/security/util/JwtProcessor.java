@@ -6,9 +6,7 @@ import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.security.Key;
 import java.util.Date;
@@ -17,8 +15,8 @@ import java.util.Date;
 @Component
 @RequiredArgsConstructor
 public class JwtProcessor {
-    static private final long ACCESS_TOKEN_VALID_MILLISECOND = 1000L * 60 * 15; // 15분 설정
-    static private final long REFRESH_TOKEN_VALID_MILLISECOND = 1000L * 60 * 60 * 24 * 7; // 7일
+    static private final long ACCESS_TOKEN_VALID_MILLISECOND = 1000L * JwtConstants.ACCESS_TOKEN_EXP_SECONDS; // 15분
+    static private final long REFRESH_TOKEN_VALID_MILLISECOND = 1000L * JwtConstants.REFRESH_TOKEN_EXP_SECONDS; // 7일
 
     private final JwtKeyManager jwtKeyManager;
 
@@ -26,8 +24,8 @@ public class JwtProcessor {
         return jwtKeyManager.getKey();
     }
 
-    public String generateAccessToken(Long memberId, String username) {
-        return generateTokenWithEmail(String.valueOf(memberId), username, ACCESS_TOKEN_VALID_MILLISECOND);
+    public String generateAccessToken(Long memberId, String username, String provider) {
+        return generateTokenWithClaims(String.valueOf(memberId), username, provider, ACCESS_TOKEN_VALID_MILLISECOND);
     }
 
     public String generateRefreshToken(Long memberId) {
@@ -69,14 +67,15 @@ public class JwtProcessor {
      * @param email 사용자 로그인 ID(이메일)
      * @return 생성된 JWT 토큰 문자열
      */
-    public String generateTokenWithEmail(String subject, String email, Long tokenValidTime) {
+    public String generateTokenWithClaims(String subject, String email, String provider, long tokenValidTime) {
         return Jwts.builder()
-                .setSubject(subject)                    // 사용자 식별자
-                .claim("email", email)              // email 추가
-                .setIssuedAt(new Date())                 // 발급 시간
-                .setExpiration(new Date(new Date().getTime() + tokenValidTime))  // 만료 시간
-                .signWith(getKey())                     // 서명
-                .compact();                            // 문자열 생성
+                .setSubject(subject)               // memberId
+                .claim("email", email)
+                .claim("provider", provider)   // 소셜/일반 구분
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + tokenValidTime))
+                .signWith(getKey())
+                .compact();
     }
 
     /* ***** 토큰 검증 및 정보 추출 ***** */
@@ -131,6 +130,15 @@ public class JwtProcessor {
                 .get("email", String.class);  // email claim 추출
     }
 
+    public String getProvider(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(getKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("provider", String.class);
+    }
+
     /**
      * Access 토큰 검증 (유효 기간 및 서명 검증)
      * @param token Access 토큰
@@ -170,25 +178,11 @@ public class JwtProcessor {
      * @return Refresh Token 문자열 (없으면 null)
      */
     public String extractRefreshToken(HttpServletRequest request) {
-        // 쿠키에서 추출
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if ("refreshToken".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-
-        // 또는 헤더에서 추출
-        return request.getHeader("X-Refresh-Token");
+        return CookieUtil.getCookieValue(request, "refreshToken");
     }
 
     public String extractAccessToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
-        }
-        return null;
+        return CookieUtil.getCookieValue(request, "accessToken");
     }
 
     public long getRemainingExpiration(String token) {

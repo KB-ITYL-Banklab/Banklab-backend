@@ -1,6 +1,6 @@
-package com.banklab.oauth.handler;
+package com.banklab.security.oauth2.handler;
 
-import com.banklab.oauth.domain.OAuthProvider;
+import com.banklab.security.oauth2.domain.OAuthProvider;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedTypes;

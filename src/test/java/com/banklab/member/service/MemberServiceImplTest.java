@@ -4,7 +4,7 @@ import com.banklab.config.RedisConfig;
 import com.banklab.config.RootConfig;
 import com.banklab.member.dto.MemberDTO;
 import com.banklab.member.mapper.MemberMapper;
-import com.banklab.oauth.domain.OAuthProvider;
+import com.banklab.security.oauth2.domain.OAuthProvider;
 import com.banklab.security.account.domain.MemberVO;
 import com.banklab.security.config.SecurityConfig;
 import lombok.extern.log4j.Log4j2;
