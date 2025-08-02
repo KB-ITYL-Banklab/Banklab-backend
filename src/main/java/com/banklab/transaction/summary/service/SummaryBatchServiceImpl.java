@@ -1,5 +1,6 @@
 package com.banklab.transaction.summary.service;
 
+import com.banklab.account.domain.AccountVO;
 import com.banklab.member.mapper.MemberMapper;
 import com.banklab.security.handler.LoginFailureHandler;
 import com.banklab.transaction.mapper.TransactionMapper;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -24,13 +26,20 @@ public class SummaryBatchServiceImpl implements SummaryBatchService {
 
     @Override
     @Transactional
-    public void aggregateDailySummary(LocalDate targetDate) {
+    public void aggregateDailySummary(LocalDate targetDate, Long memberId) {
         // 1. 모든 사용자  조회
-        List<Long> memberIdList = memberMapper.findAllMemberIds();
+        List<Long> memberIdList = new ArrayList<>();
+        if(memberId==null) {
+            memberIdList = memberMapper.findAllMemberIds();
+        }else{
+            memberIdList.add(memberId);
+        }
 
-        for (Long memberId: memberIdList) {
+        for (Long id: memberIdList) {
+
             // 2. 각 사용자 + 카테고리별 지출/수입 합계 계산
-            List<DailySummaryDTO> dailyCategorySummary = summaryMapper.getDailySummary(memberId, Date.valueOf(targetDate));
+            List<DailySummaryDTO> dailyCategorySummary
+                    = summaryMapper.getDailySummary(id, Date.valueOf(targetDate));
 
             // 3. 받아온 데이터 집계 테이블에 저장
             for (DailySummaryDTO dailySummaryDTO: dailyCategorySummary) {
@@ -40,22 +49,20 @@ public class SummaryBatchServiceImpl implements SummaryBatchService {
         }
     }
 
+    /**
+     * 첫 자산 연동 시 호출
+     * @param memberId
+     */
     @Override
     @Transactional
-    public void initDailySummary(Long memberId) {
+    public void initDailySummary(Long memberId, AccountVO account) {
         // 1. 마지막 집계 일자 구하기
-        LocalDate lastSummaryDate = summaryMapper.getLastSummaryDate();
-        LocalDate lastDay;
         LocalDate today = LocalDate.now();
+        LocalDate lastDay = today.minusYears(2);
 
-        // 2. 집계 데이터가 없는 경우, 현재로부터 10년 전 내역부터 가져오기
-        lastDay = (lastSummaryDate!=null)
-                ?lastSummaryDate.plusDays(1)
-                :today.minusYears(10);
-
-        // 3. 마지막 일부터 오늘까지 집계테이블 저장
+        // 2. 마지막 일부터 오늘까지 집계테이블 저장
         while (!lastDay.isAfter(today)) {
-            aggregateDailySummary(lastDay);
+            aggregateDailySummary(lastDay, memberId);
             lastDay = lastDay.plusDays(1);
         }
     }

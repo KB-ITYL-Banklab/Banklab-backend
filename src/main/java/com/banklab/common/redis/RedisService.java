@@ -29,6 +29,14 @@ public class RedisService {
         redisTemplate.opsForValue().set(key, value, timeoutMinutes, TimeUnit.MINUTES);
     }
 
+    // 값 저장 (prefix:key 형식, TTL 설정)
+    public void setBySeconds(String key, String value, int timeOutSeconds) {
+        redisTemplate.opsForValue().set(key, value, timeOutSeconds, TimeUnit.SECONDS);
+    }
+
+
+
+
     public void delete(String key) {
         redisTemplate.delete(key);
     }
