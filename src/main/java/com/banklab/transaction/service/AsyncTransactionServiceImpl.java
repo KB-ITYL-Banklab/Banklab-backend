@@ -33,8 +33,6 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
     private final SummaryBatchService summaryBatchService;
     private final RedisService redisService;
 
-
-
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     @Async

@@ -35,7 +35,6 @@ public class TransactionApiController {
     private final TransactionService transactionService;
     private final RedisService redisService;
 
-
     /**
      * 로그인한 사용자 정보 추출 및 검증
      */
@@ -52,7 +51,6 @@ public class TransactionApiController {
         authInfo.put("email", email);
         return authInfo;
     }
-
 
     /**
      * 표준화된 성공 응답 생성
