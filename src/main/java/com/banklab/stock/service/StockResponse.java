@@ -43,9 +43,13 @@ public class StockResponse {
         // 계좌번호, 예수금
         String resAccount = dataNode.path("resAccount").asText(); // 증권 계좌
         String resDepositReceived = dataNode.path("resDepositReceived").asText(); // 예수금
+        String resDepositReceivedD1 = dataNode.path("resDepositReceivedD1").asText(); // 예수금 D+1
+        String resDepositReceivedD2 = dataNode.path("resDepositReceivedD2").asText(); // 예수금 D+2
 
         log.info("계좌번호 : {}", resAccount);
         log.info("예수금 : {}", resDepositReceived);
+        log.info("예수금 D+1 : {}", resDepositReceivedD1);
+        log.info("예수금 D+2 : {}", resDepositReceivedD2);
 
         JsonNode resItemList = dataNode.path("resItemList");
 
@@ -63,22 +67,28 @@ public class StockResponse {
             stockDTO.setResDepositReceived(resDepositReceived);
 
             // 종목별 정보 (resItem에서 가져오기)
+            stockDTO.setResProductType(resItem.path("resProductType").asText());
             stockDTO.setResItemName(resItem.path("resItemName").asText());
             stockDTO.setResItemCode(resItem.path("resItemCode").asText());
             stockDTO.setResQuantity(resItem.path("resQuantity").asText());
-            stockDTO.setResValuationAmt(resItem.path("resValuationAmt").asText());
+            stockDTO.setResPresentAmt(resItem.path("resPresentAmt").asText());
             stockDTO.setResPurchaseAmount(resItem.path("resPurchaseAmount").asText());
+            stockDTO.setResValuationAmt(resItem.path("resValuationAmt").asText());
             stockDTO.setResValuationPL(resItem.path("resValuationPL").asText());
             stockDTO.setResEarningsRate(resItem.path("resEarningsRate").asText());
+            stockDTO.setResAccountCurrency(resItem.path("resAccountCurrency").asText());
 
             // 출력
+            log.info("상품유형 : {}", stockDTO.getResProductType());
             log.info("종목명 : {}", stockDTO.getResItemName());
             log.info("종목코드 : {}", stockDTO.getResItemCode());
             log.info("수량 : {}", stockDTO.getResQuantity());
-            log.info("평가금액 : {}", stockDTO.getResValuationAmt());
-            log.info("매입금액 : {}", stockDTO.getResPurchaseAmount());
-            log.info("평가손익 : {}", stockDTO.getResValuationPL());
-            log.info("수익률 : {}", stockDTO.getResEarningsRate());
+            log.info("현재가 : {}원", stockDTO.getResPresentAmt());
+            log.info("매입금액 : {}원", stockDTO.getResPurchaseAmount());
+            log.info("평가금액 : {}원", stockDTO.getResValuationAmt());
+            log.info("평가손익 : {}원", stockDTO.getResValuationPL());
+            log.info("수익률 : {}%", stockDTO.getResEarningsRate());
+            log.info("통화코드 : {}", stockDTO.getResAccountCurrency());
 
             StockVO vo = stockDTO.toVO(memberId, connectedId, stockCode);
             stockVOList.add(vo);

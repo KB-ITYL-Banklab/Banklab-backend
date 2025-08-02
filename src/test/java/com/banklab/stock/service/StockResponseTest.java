@@ -20,10 +20,10 @@ class StockResponseTest {
 
     @Test
     void 증권계좌_불러오기_테스트() throws Exception {
-        String connectedId = "eUZnJzpJQWeandgV0oRRLh";
-        String account = "46299336-01";
+        String connectedId = "8bRNzA0j4EG860L9rfB-Yo";
+        String account = "7164752822-01";
 
-        requestStocks(1L, "0243", connectedId, account, "");
+        requestStocks(1L, "0240", connectedId, account, "");
 
 
     }
