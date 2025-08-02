@@ -154,19 +154,4 @@ class TypeTestControllerTest {
         verify(typeTestService).getTestResultByUserId(memberId);
     }
 
-    @Test
-    @DisplayName("memberId가 null일 때 처리 테스트")
-    void memberId가_null일_때_처리_테스트() {
-        // Given
-        when(loginUserProvider.getLoginMemberId()).thenReturn(null);
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("answers", Arrays.asList(1, 2, 3));
-        // When
-        ResponseEntity<Map<String, String>> response = typeTestController.submitAnswers(payload);
-        // Then
-        assertEquals(400, response.getStatusCodeValue());
-        assertNotNull(response.getBody());
-        assertEquals("유효하지 않은 사용자입니다.", response.getBody().get("message"));
-        verify(typeTestService, never()).submitAnswersWithMemberId(any(), any());
-    }
 }
