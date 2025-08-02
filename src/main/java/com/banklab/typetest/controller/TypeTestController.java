@@ -11,7 +11,6 @@ import com.banklab.typetest.dto.TypeTestResultDTO;
 import com.banklab.typetest.dto.QuestionsResponseDTO;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * 유형검사 컨트롤러

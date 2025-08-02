@@ -11,14 +11,10 @@ import com.banklab.calculator.dto.response.UserInvestmentProfileResponse;
 import com.banklab.calculator.service.CalculatorService;
 import com.banklab.calculator.service.UserProfileService;
 
-import com.banklab.typetest.util.JwtTokenUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletRequest;
-
 
 /**
  * 금융 계산기 API 컨트롤러
@@ -106,9 +102,7 @@ public class CalculatorController {
      * @return 투자 프로필 정보
      */
     @GetMapping("/profile")
-    public ResponseEntity<UserInvestmentProfileResponse> getUserProfile(
-            HttpServletRequest request) {
-        String token = JwtTokenUtil.extractToken(request);
+    public ResponseEntity<UserInvestmentProfileResponse> getUserProfile() {
         Long memberId = loginUserProvider.getLoginMemberId();
 
         log.info("사용자 투자 프로필 조회 요청: memberId={}", memberId);
