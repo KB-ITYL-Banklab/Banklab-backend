@@ -22,10 +22,9 @@ public class AuthTokenService {
     public void issueTokenAndSetCookie(HttpServletResponse response, MemberVO member) {
         String email = member.getEmail();
         Long memberId = member.getMemberId();
-        String provider = member.getProvider().name();
 
         // JWT 토큰 생성
-        String access = jwtProcessor.generateAccessToken(memberId, email, provider);
+        String access = jwtProcessor.generateAccessToken(memberId, email);
         String refresh = jwtProcessor.generateRefreshToken(memberId);
 
         // Redis에 저장 (key = "RT:<memberId>", value = token)

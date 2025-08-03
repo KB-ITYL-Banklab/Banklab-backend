@@ -1,7 +1,7 @@
 package com.banklab.security.oauth2.dto;
 
 import com.banklab.member.domain.Gender;
-import com.banklab.security.oauth2.domain.OAuthProvider;
+import com.banklab.security.oauth2.domain.OAuth2Provider;
 import com.banklab.security.account.domain.MemberVO;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,9 +35,9 @@ public class KakaoUserInfoDTO extends OAuth2UserInfo {
     }
 
     public KakaoUserInfoDTO(Map<String, Object> attributes) {
-        this.id = Long.valueOf(attributes.get(OAuthProvider.KAKAO.getIdAttribute()).toString());
+        this.id = Long.valueOf(attributes.get(OAuth2Provider.KAKAO.getIdAttribute()).toString());
         @SuppressWarnings("unchecked")
-        Map<String, Object> account = (Map<String, Object>) attributes.get(OAuthProvider.KAKAO.getAttributeKey());
+        Map<String, Object> account = (Map<String, Object>) attributes.get(OAuth2Provider.KAKAO.getAttributeKey());
         ObjectMapper mapper = new ObjectMapper();
         mapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
         this.kakaoAccount = mapper.convertValue(account, KakaoAccount.class);
@@ -50,7 +50,7 @@ public class KakaoUserInfoDTO extends OAuth2UserInfo {
                 .phone(kakaoAccount.phoneNumber.replaceAll("^\\+82\\s?", "0").replaceAll("[-\\s]", ""))
                 .gender(Gender.fromString(kakaoAccount.gender))
                 .birth(LocalDate.parse(kakaoAccount.birthyear + kakaoAccount.birthday, DateTimeFormatter.ofPattern("yyyyMMdd")))
-                .provider(OAuthProvider.KAKAO)
+                .provider(OAuth2Provider.KAKAO)
                 .providerId(id)
                 .build();
     }

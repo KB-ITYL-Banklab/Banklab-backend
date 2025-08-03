@@ -7,7 +7,7 @@ import java.util.Arrays;
 
 @RequiredArgsConstructor
 @Getter
-public enum OAuthProvider {
+public enum OAuth2Provider {
     KAKAO("kakao", "kakao_account", "id"),
     NAVER("naver", "response", "id"),
     LOCAL("local", "local", "email");
@@ -16,8 +16,8 @@ public enum OAuthProvider {
     private final String attributeKey;  // 응답 JSON의 루트 키
     private final String idAttribute;       // 사용자 식별 키 (id)
 
-    public static OAuthProvider from(String registrationId) {
-        return Arrays.stream(OAuthProvider.values())
+    public static OAuth2Provider from(String registrationId) {
+        return Arrays.stream(OAuth2Provider.values())
                 .filter(p -> p.registrationId.equalsIgnoreCase(registrationId))
                 .findFirst()
                 .orElse(LOCAL);

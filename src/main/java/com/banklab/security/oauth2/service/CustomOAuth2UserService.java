@@ -2,7 +2,7 @@ package com.banklab.security.oauth2.service;
 
 import com.banklab.member.domain.Gender;
 import com.banklab.member.mapper.MemberMapper;
-import com.banklab.security.oauth2.domain.OAuthProvider;
+import com.banklab.security.oauth2.domain.OAuth2Provider;
 import com.banklab.security.account.domain.AuthVO;
 import com.banklab.security.oauth2.domain.CustomOAuth2User;
 import com.banklab.security.account.domain.MemberVO;
@@ -31,10 +31,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         OAuth2User user = super.loadUser(userRequest);
 
         String providerType = userRequest.getClientRegistration().getRegistrationId();
-        OAuthProvider provider = OAuthProvider.from(providerType);
-        String userNameAttributeName = userRequest.getClientRegistration()
-                .getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName();
-        OAuthAttributesDTO extractAttributes = OAuthAttributesDTO.of(provider, userNameAttributeName, user.getAttributes());
+        OAuth2Provider provider = OAuth2Provider.from(providerType);
+        String userNameAttributeName = provider.getIdAttribute();
+        OAuthAttributesDTO extractAttributes = OAuthAttributesDTO.of(provider, user.getAttributes());
 
         MemberVO extracted = extractAttributes.getOAuth2UserInfo().toVO();
         Long providerId = extracted.getProviderId();

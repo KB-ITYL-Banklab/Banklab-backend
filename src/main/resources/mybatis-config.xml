@@ -18,8 +18,8 @@
     <typeHandlers>
         <typeHandler handler="com.banklab.member.handler.GenderTypeHandler"
                      javaType="com.banklab.member.domain.Gender"/>
-        <typeHandler handler="com.banklab.security.oauth2.handler.OAuthProviderTypeHandler"
-                    javaType="com.banklab.security.oauth2.domain.OAuthProvider"/>
+        <typeHandler handler="com.banklab.security.oauth2.handler.OAuth2ProviderTypeHandler"
+                    javaType="com.banklab.security.oauth2.domain.OAuth2Provider"/>
         <typeHandler handler="com.banklab.product.handler.ProductTypeHandler"
                      javaType="com.banklab.product.domain.ProductType"/>
         <typeHandler handler="com.banklab.risk.handler.RiskLevelHandler"

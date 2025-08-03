@@ -6,8 +6,7 @@ import com.banklab.member.dto.MemberDTO;
 import com.banklab.member.service.MemberService;
 import com.banklab.security.account.domain.MemberVO;
 import com.banklab.security.account.dto.UserInfoDTO;
-import com.banklab.security.oauth2.domain.OAuthProvider;
-import com.banklab.security.service.LoginUserProvider;
+import com.banklab.security.util.LoginUserProvider;
 import com.banklab.security.util.CookieUtil;
 import com.banklab.security.util.JwtConstants;
 import com.banklab.security.util.JwtProcessor;
@@ -40,7 +39,7 @@ public class AuthController {
         if (StringUtils.hasText(token) && jwtProcessor.validateAccessToken(token)) {
             long remaining = jwtProcessor.getRemainingExpiration(token);
             redisService.blacklistToken(token, remaining);
-            CookieUtil.deleteCookie(response, "accessToken");
+            CookieUtil.deleteCookie(response, JwtConstants.ACCESS_TOKEN_COOKIE_NAME);
         }
 
         // refresh 토큰 삭제
@@ -48,7 +47,7 @@ public class AuthController {
         if (StringUtils.hasText(refreshToken) && jwtProcessor.validateRefreshToken(refreshToken)) {
             Long memberId = jwtProcessor.getMemberId(refreshToken);
             redisService.delete(RedisKeyUtil.refreshToken(memberId));
-            CookieUtil.deleteCookie(response, "refreshToken");
+            CookieUtil.deleteCookie(response, JwtConstants.REFRESH_TOKEN_COOKIE_NAME);
         }
         return ResponseEntity.ok().build();
     }
@@ -82,11 +81,10 @@ public class AuthController {
 
         MemberDTO member = memberService.get(memberId, null);
         String email = member.getEmail();
-        OAuthProvider provider = member.getProvider();
         if (!StringUtils.hasText(email)) {
             throw new IllegalStateException("존재하지 않는 사용자입니다");
         }
-        String newAccessToken = jwtProcessor.generateAccessToken(memberId, email, provider.name());
+        String newAccessToken = jwtProcessor.generateAccessToken(memberId, email);
         CookieUtil.addCookie(response, JwtConstants.ACCESS_TOKEN_COOKIE_NAME, newAccessToken, JwtConstants.ACCESS_TOKEN_EXP_SECONDS);
 
         return ResponseEntity.ok().build();

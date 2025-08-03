@@ -1,6 +1,6 @@
 package com.banklab.security.oauth2.dto;
 
-import com.banklab.security.oauth2.domain.OAuthProvider;
+import com.banklab.security.oauth2.domain.OAuth2Provider;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -12,17 +12,16 @@ public class OAuthAttributesDTO {
     private String nameAttributeKey; // OAuth2 로그인 진행 시 키가 되는 필드 값
     private OAuth2UserInfo oAuth2UserInfo; // 해당 소셜 로그인 유저 정보
 
-    public static OAuthAttributesDTO of(OAuthProvider provider,
-                                        String nameAttributeKey, Map<String, Object> attributes) {
-        if (provider.equals(OAuthProvider.KAKAO)) {
-            return ofKakao(nameAttributeKey, attributes);
+    public static OAuthAttributesDTO of(OAuth2Provider provider, Map<String, Object> attributes) {
+        if (provider.equals(OAuth2Provider.KAKAO)) {
+            return ofKakao(attributes);
         }
-        return null;
+        throw new IllegalArgumentException("지원하지 않는 OAuth2 Provider: " + provider);
     }
 
-    public static OAuthAttributesDTO ofKakao(String nameAttributeKey, Map<String, Object> attributes) {
+    public static OAuthAttributesDTO ofKakao(Map<String, Object> attributes) {
         return OAuthAttributesDTO.builder()
-                .nameAttributeKey(nameAttributeKey)
+                .nameAttributeKey(OAuth2Provider.KAKAO.getIdAttribute())
                 .oAuth2UserInfo(new KakaoUserInfoDTO(attributes))
                 .build();
     }

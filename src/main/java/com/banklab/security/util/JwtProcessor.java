@@ -24,8 +24,8 @@ public class JwtProcessor {
         return jwtKeyManager.getKey();
     }
 
-    public String generateAccessToken(Long memberId, String username, String provider) {
-        return generateTokenWithClaims(String.valueOf(memberId), username, provider, ACCESS_TOKEN_VALID_MILLISECOND);
+    public String generateAccessToken(Long memberId, String username) {
+        return generateTokenWithClaims(String.valueOf(memberId), username, ACCESS_TOKEN_VALID_MILLISECOND);
     }
 
     public String generateRefreshToken(Long memberId) {
@@ -67,11 +67,10 @@ public class JwtProcessor {
      * @param email 사용자 로그인 ID(이메일)
      * @return 생성된 JWT 토큰 문자열
      */
-    public String generateTokenWithClaims(String subject, String email, String provider, long tokenValidTime) {
+    public String generateTokenWithClaims(String subject, String email, long tokenValidTime) {
         return Jwts.builder()
                 .setSubject(subject)               // memberId
                 .claim("email", email)
-                .claim("provider", provider)   // 소셜/일반 구분
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + tokenValidTime))
                 .signWith(getKey())
@@ -178,11 +177,11 @@ public class JwtProcessor {
      * @return Refresh Token 문자열 (없으면 null)
      */
     public String extractRefreshToken(HttpServletRequest request) {
-        return CookieUtil.getCookieValue(request, "refreshToken");
+        return CookieUtil.getCookieValue(request, JwtConstants.REFRESH_TOKEN_COOKIE_NAME);
     }
 
     public String extractAccessToken(HttpServletRequest request) {
-        return CookieUtil.getCookieValue(request, "accessToken");
+        return CookieUtil.getCookieValue(request, JwtConstants.ACCESS_TOKEN_COOKIE_NAME);
     }
 
     public long getRemainingExpiration(String token) {

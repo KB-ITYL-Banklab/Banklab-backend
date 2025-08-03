@@ -17,19 +17,18 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
+    private final String FRONT_REDIRECT_URL = "http://localhost:5173/oauth2/callback";
     private final AuthTokenService authTokenService;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
-
         // 인증 결과에서 사용자 정보 추출
         CustomOAuth2User user = (CustomOAuth2User) authentication.getPrincipal();
 
         authTokenService.issueTokenAndSetCookie(response, user.getMember());
-        // 프론트엔드로 리디렉션, 토큰을 쿼리 파라미터로 포함
-        String redirectUrl = "http://localhost:5173/oauth2/callback";
-        response.sendRedirect(redirectUrl);
+        // 프론트엔드로 리디렉션
+        response.sendRedirect(FRONT_REDIRECT_URL);
     }
 }
 
