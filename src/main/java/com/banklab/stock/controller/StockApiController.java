@@ -1,7 +1,8 @@
 package com.banklab.stock.controller;
 
 import com.banklab.codef.service.RequestConnectedId;
-import com.banklab.security.util.JwtProcessor;
+import com.banklab.common.redis.RedisService;
+import com.banklab.security.service.LoginUserProvider;
 import com.banklab.stock.domain.StockVO;
 import com.banklab.stock.dto.StockRequestDTO;
 import com.banklab.stock.service.StockResponse;
@@ -27,40 +28,25 @@ import java.util.Map;
 public class StockApiController {
 
     private final StockService stockService;
-    private final JwtProcessor jwtProcessor;
+    private final LoginUserProvider loginUserProvider;
+    private final RedisService redisService;
 
     /**
-     * HTTP 요청에서 JWT 토큰을 추출하고 검증한 후, 사용자 정보를 반환
+     * 로그인한 사용자 정보 추출 및 검증
      */
-    private Map<String, Object> extractAuthInfo(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (bearerToken == null || !bearerToken.startsWith("Bearer ")) {
-            throw new SecurityException("인증이 필요합니다.");
+    private Map<String, Object> extractAuthInfo() {
+        Long memberId = loginUserProvider.getLoginMemberId();
+        String email = loginUserProvider.getLoginEmail();
+
+
+        if (memberId == null || email == null) {
+            throw new SecurityException("인증이 필요합니다. 로그인 후 다시 시도해주세요.");
         }
 
-        String token = bearerToken.substring(7);
-
-        if (!jwtProcessor.validateToken(token)) {
-            throw new SecurityException("유효하지 않은 토큰입니다.");
-        }
-
-        try {
-            Long memberId = jwtProcessor.getMemberId(token);
-            String username = jwtProcessor.getUsername(token);
-
-            if (memberId == null) {
-                throw new SecurityException("토큰에 사용자 정보가 없습니다. 다시 로그인해주세요.");
-            }
-
-            Map<String, Object> authInfo = new HashMap<>();
-            authInfo.put("memberId", memberId);
-            authInfo.put("username", username);
-            return authInfo;
-
-        } catch (Exception e) {
-            log.error("토큰 처리 중 오류 발생: {}", e.getMessage());
-            throw new SecurityException("인증 처리 중 오류가 발생했습니다.");
-        }
+        Map<String, Object> authInfo = new HashMap<>();
+        authInfo.put("memberId", memberId);
+        authInfo.put("email", email);
+        return authInfo;
     }
 
     /**
@@ -72,7 +58,7 @@ public class StockApiController {
         response.put("message", message);
         response.put("data", data);
         response.put("memberId", authInfo.get("memberId"));
-        response.put("username", authInfo.get("username"));
+        response.put("email", authInfo.get("email"));
         return response;
     }
 
@@ -94,19 +80,18 @@ public class StockApiController {
     @PostMapping("/link")
     @ApiOperation(value = "증권계좌 연동", notes = "증권사 로그인 정보로 계좌를 연동하고 보유종목을 DB에 저장.")
     public ResponseEntity<Map<String, Object>> linkStock(
-            HttpServletRequest request,
             @RequestBody StockRequestDTO stockRequest
     ) {
         Map<String, Object> response = new HashMap<>();
 
         try {
             // JWT 토큰에서 인증 정보 추출
-            Map<String, Object> authInfo = extractAuthInfo(request);
+            Map<String, Object> authInfo = extractAuthInfo();
             Long memberId = (Long) authInfo.get("memberId");
-            String username = (String) authInfo.get("username");
+            String email = (String) authInfo.get("email");
 
-            log.info("증권계좌 연동 시작 - username: {}, memberId: {}, stockCode: {}",
-                    username, memberId, stockRequest.getStockCode());
+            log.info("증권계좌 연동 시작 - email: {}, memberId: {}, stockCode: {}",
+                    email, memberId, stockRequest.getStockCode());
 
             // 1. 커넥티드 아이디 발급
             String userConnectedId = RequestConnectedId.createConnectedId(
@@ -146,13 +131,13 @@ public class StockApiController {
      */
     @GetMapping("/list")
     @ApiOperation(value = "보유종목 목록 조회", notes = "사용자의 연동된 증권계좌 보유종목을 조회.")
-    public ResponseEntity<Map<String, Object>> getUserStocks(HttpServletRequest request) {
+    public ResponseEntity<Map<String, Object>> getUserStocks() {
         try {
-            Map<String, Object> authInfo = extractAuthInfo(request);
+            Map<String, Object> authInfo = extractAuthInfo();
             Long memberId = (Long) authInfo.get("memberId");
-            String username = (String) authInfo.get("username");
+            String email = (String) authInfo.get("email");
 
-            log.info("보유종목 목록 조회 - username: {}, memberId: {}", username, memberId);
+            log.info("보유종목 목록 조회 - email: {}, memberId: {}", email, memberId);
 
             List<StockVO> stockList = stockService.getUserStocks(memberId);
 
@@ -180,16 +165,15 @@ public class StockApiController {
     @PutMapping("/refresh")
     @ApiOperation(value = "보유종목 정보 새로고침", notes = "커넥티드 아이디로 보유종목 정보를 새로고침.")
     public ResponseEntity<Map<String, Object>> refreshUserStocks(
-            HttpServletRequest request,
             @RequestBody StockRequestDTO stockRequest
     ) {
         try {
-            Map<String, Object> authInfo = extractAuthInfo(request);
+            Map<String, Object> authInfo = extractAuthInfo();
             Long memberId = (Long) authInfo.get("memberId");
-            String username = (String) authInfo.get("username");
+            String email = (String) authInfo.get("email");
 
-            log.info("보유종목 정보 새로고침 - username: {}, memberId: {}, stockCode: {}",
-                    username, memberId, stockRequest.getStockCode());
+            log.info("보유종목 정보 새로고침 - email: {}, memberId: {}, stockCode: {}",
+                    email, memberId, stockRequest.getStockCode());
 
             // 보유종목 새로고침
             stockService.refreshUserStocks(
@@ -224,22 +208,22 @@ public class StockApiController {
     @DeleteMapping("/unlink")
     @ApiOperation(value = "증권계좌 연동 해제", notes = "로그인한 사용자의 커넥티드 아이디를 삭제하고 증권계좌 연동을 해제.")
     public ResponseEntity<Map<String, Object>> unlinkStock(
-            HttpServletRequest request,
             @RequestBody StockRequestDTO stockRequest
     ) {
         try {
-            Map<String, Object> authInfo = extractAuthInfo(request);
+            Map<String, Object> authInfo = extractAuthInfo();
             Long memberId = (Long) authInfo.get("memberId");
-            String username = (String) authInfo.get("username");
+            String email = (String) authInfo.get("email");
 
-            log.info("증권계좌 연동 해제 - username: {}, memberId: {}, stockCode: {}, account: {}",
-                    username, memberId, stockRequest.getStockCode(), stockRequest.getAccount());
+            log.info("증권계좌 연동 해제 - email: {}, memberId: {}, stockCode: {}, account: {}",
+                    email, memberId, stockRequest.getStockCode(), stockRequest.getAccount());
 
             // 연동 해제
             boolean deleted = RequestConnectedId.deleteConnectedId(
                     stockRequest.getConnectedId(),
                     stockRequest.getStockCode(),
-                    "ST"
+                    "ST",
+                    "A"
             );
 
             if (deleted) {
