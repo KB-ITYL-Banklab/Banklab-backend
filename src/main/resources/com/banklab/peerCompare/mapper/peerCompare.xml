@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+
+<mapper namespace="com.banklab.peerCompare.mapper.ComparisonMapper">
+
+    <select id="getPeerCategoryExpense" resultType="com.banklab.peerCompare.dto.CategoryComparisonDTO">
+        SELECT
+            c.id AS categoryId,
+            c.name AS categoryName,
+            IFNULL(AVG(s.total_expense), 0) AS avgExpense
+        FROM daily_user_expense_summary s
+                 JOIN category c ON s.category_id = c.id
+                 JOIN member_with_age m ON s.member_id = m.member_id
+        WHERE s.date BETWEEN #{startDate} AND #{endDate}
+          AND c.id != 8
+      AND m.age BETWEEN #{ageFrom} AND #{ageTo}
+          AND s.member_id != #{memberId}
+        GROUP BY c.id, c.name
+        ORDER BY avgExpense DESC
+    </select>
+</mapper>
