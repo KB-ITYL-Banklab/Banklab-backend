@@ -47,7 +47,26 @@
     </insert>
     <!--  회원 정보 수정  -->
     <update id="update">
-        UPDATE member SET name = #{name}, update_date = now() WHERE member_id = #{memberId}
+        UPDATE member
+        <set>
+            <if test="email != email">
+                email = #{email},
+            </if>
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="phone != null">
+                phone = #{phone},
+            </if>
+            <if test="gender != null">
+                gender = #{gender},
+            </if>
+            <if test="birth != null">
+                birth = #{birth},
+            </if>
+            update_date = NOW()
+        </set>
+        WHERE member_id = #{memberId}
     </update>
     <update id="updatePassword">
         UPDATE member SET password = #{password}, update_date = now() WHERE email = #{email}
@@ -77,10 +96,5 @@
         WHERE name = #{name}
           AND birth_date = #{birth}
           AND phone = #{phone}
-    </select>
-    <select id="findEmailByMemberId" resultType="java.lang.String">
-        SELECT email
-        FROM member
-        WHERE member_id = #{id}
     </select>
 </mapper>

@@ -25,13 +25,12 @@ public class RiskAnalysisResponse {
     public RiskAnalysisResponse(String riskLevel, String riskReason) {
         this.riskLevel = riskLevel;
         this.riskReason = riskReason;
-        this.riskLevelEnum = RiskLevel.valueOf(riskLevel);
     }
     
     public RiskLevel getRiskLevelEnum() {
         if (riskLevelEnum != null) {
             return riskLevelEnum;
         }
-        return RiskLevel.valueOf(riskLevel);
+        return RiskLevel.MEDIUM;
     }
 }

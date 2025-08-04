@@ -1,6 +1,5 @@
 package com.banklab.risk.scheduler;
 
-import com.banklab.product.service.ProductService;
 import com.banklab.risk.service.RiskAnalysisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

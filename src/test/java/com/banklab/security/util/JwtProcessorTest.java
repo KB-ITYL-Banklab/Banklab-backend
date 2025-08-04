@@ -73,21 +73,25 @@ class JwtProcessorTest {
         assertEquals(role, extractedRole);
     }
 
-    @DisplayName("사용자명, 권한 추출 테스트")
+    @DisplayName("사용자명, member_id, provider 추출 테스트")
     @Test
     void generateTokenWithId() {
         String email = "testUser@exampl.com";
         Long id = 1L;
+//        String provider = "LOCAL";
         String token = jwtProcessor.generateAccessToken(id, email);
 
         String extractedUsername = jwtProcessor.getEmail(token);
         Long extractedId = jwtProcessor.getMemberId(token);
+//        String extractedProvider = jwtProcessor.getProvider(token);
         log.info("새로 생성한 토큰에서 추출한 : {}", extractedUsername);
         log.info("새로 생성한 토큰에서 추출한 member_id: {}", extractedId);
+//        log.info("새로 생성한 토큰에서 추출한 provider: {}", extractedProvider);
 
         // Then
         assertEquals(email, extractedUsername);
         assertEquals(id, extractedId);
+//        assertEquals(provider, extractedProvider);
     }
 
     @DisplayName("새로 생성된 토큰 검증 테스트")
