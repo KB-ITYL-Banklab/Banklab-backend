@@ -94,6 +94,19 @@ public class FinanceTermCsvServiceImpl implements FinanceTermCsvService {
     }
     
     @Override
+    public FinanceTermVO getTermByKeyword(String keyword) {
+        try {
+            log.info("🔑 키워드 조회 시작: {}", keyword);
+            FinanceTermVO result = financeTermMapper.selectByKeyword(keyword);
+            log.info("✅ 키워드 조회 완료: {}", result != null ? "발견" : "없음");
+            return result;
+        } catch (Exception e) {
+            log.error("❌ 키워드 조회 중 오류 발생: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+    
+    @Override
     public List<FinanceTermVO> getTermsWithPaging(int offset, int limit) {
         try {
             log.info("📄 페이징 조회 시작: offset={}, limit={}", offset, limit);
