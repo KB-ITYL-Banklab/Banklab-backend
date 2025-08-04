@@ -38,6 +38,11 @@ public class CommonConstant {
     public static final String KR_BK_2_P_001	= "/v1/kr/bank2/p/account/account-list";                    // 저축은행 개인 보유계좌 조회
     public static final String KR_BK_2_P_002	= "/v1/kr/bank2/p/account/transaction-list";                // 저축은행 개인 수시입출 거래내역
 
+    public static final String KR_ST_1_P_001    = "/v1/kr/stock/a/user/registration-status";                // 증권 등록여부
+    public static final String KR_ST_1_P_003    = "/v1/kr/stock/a/account/account-list";                    // 증권 전계좌
+    public static final String KR_ST_1_P_004    = "/v1/kr/stock/a/account/financial-assets";                // 증권 종합 자산
+    public static final String KR_ST_1_P_005	= "/v1/kr/stock/a/account/balance-inquiry";                 // 증권 주식잔고조회
+
     public static final String KR_CD_B_001	= "/v1/kr/card/b/account/card-list";                            // 카드 법인 보유카드
     public static final String KR_CD_B_002	= "/v1/kr/card/b/account/approval-list";                        // 카드 법인 승인내역
     public static final String KR_CD_B_003	= "/v1/kr/card/b/account/billing-list";                         // 카드 법인 청구내역
