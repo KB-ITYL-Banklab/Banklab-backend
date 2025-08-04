@@ -1,6 +1,6 @@
 package com.banklab.typetest.controller;
 
-import com.banklab.security.service.LoginUserProvider;
+import com.banklab.security.util.LoginUserProvider;
 import com.banklab.typetest.domain.Question;
 import com.banklab.typetest.service.TypeTestService;
 import lombok.RequiredArgsConstructor;

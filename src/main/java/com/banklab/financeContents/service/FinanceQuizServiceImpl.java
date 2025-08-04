@@ -5,7 +5,7 @@ import com.banklab.financeContents.domain.UserQuizResultVO;
 import com.banklab.financeContents.dto.*;
 import com.banklab.financeContents.mapper.FinanceQuizMapper;
 import com.banklab.financeContents.mapper.UserQuizResultMapper;
-import com.banklab.security.service.LoginUserProvider;
+import com.banklab.security.util.LoginUserProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

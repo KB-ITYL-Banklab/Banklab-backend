@@ -1,33 +1,34 @@
-package com.banklab.security.handler;
+package com.banklab.security.oauth2.handler;
 
-import com.banklab.security.account.domain.CustomUser;
-import com.banklab.security.account.dto.UserInfoDTO;
+import com.banklab.security.oauth2.domain.CustomOAuth2User;
 import com.banklab.security.service.AuthTokenService;
-import com.banklab.security.util.JsonResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.ServletException;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@Slf4j
+
 @Component
 @RequiredArgsConstructor
-public class LoginSuccessHandler implements AuthenticationSuccessHandler {
+public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
+    private final String FRONT_REDIRECT_URL = "http://localhost:5173/oauth2/callback";
     private final AuthTokenService authTokenService;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
         // 인증 결과에서 사용자 정보 추출
-        CustomUser user = (CustomUser) authentication.getPrincipal();
+        CustomOAuth2User user = (CustomOAuth2User) authentication.getPrincipal();
 
         authTokenService.issueTokenAndSetCookie(response, user.getMember());
-        JsonResponse.send(response, UserInfoDTO.of(user.getMember()));
+        // 프론트엔드로 리디렉션
+        response.sendRedirect(FRONT_REDIRECT_URL);
     }
 }
+

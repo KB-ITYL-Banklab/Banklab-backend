@@ -8,7 +8,7 @@ import com.banklab.account.service.AccountService;
 import com.banklab.codef.service.RequestConnectedId;
 import com.banklab.common.redis.RedisKeyUtil;
 import com.banklab.common.redis.RedisService;
-import com.banklab.security.service.LoginUserProvider;
+import com.banklab.security.util.LoginUserProvider;
 import com.banklab.transaction.dto.response.TransactionDetailDTO;
 import com.banklab.transaction.dto.request.TransactionRequestDto;
 import com.banklab.transaction.service.AsyncTransactionService;
@@ -109,7 +109,8 @@ public class AccountController {
                     accountRequest.getBankId(),
                     accountRequest.getBankPassword(),
                     accountRequest.getBankCode(),
-                    "BK");
+                    "BK"
+            );
 
             // 2. 커넥티드 아이디로 계좌 정보 조회 및 DB 저장
             List<AccountVO> accountList = AccountResponse.requestAccounts(memberId, accountRequest.getBankCode(), userConnectedId);

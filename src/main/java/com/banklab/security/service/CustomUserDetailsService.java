@@ -1,12 +1,10 @@
 package com.banklab.security.service;
 
 import com.banklab.member.mapper.MemberMapper;
-import com.banklab.oauth.domain.OAuthProvider;
 import com.banklab.security.account.domain.CustomUser;
 import com.banklab.security.account.domain.MemberVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

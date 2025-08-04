@@ -1,6 +1,5 @@
 package com.banklab.calculator.controller;
 
-import com.banklab.security.service.LoginUserProvider;
 import com.banklab.calculator.dto.request.DepositCalculateRequest;
 import com.banklab.calculator.dto.request.SavingsCalculateRequest;
 import com.banklab.calculator.dto.request.LoanCalculateRequest;
@@ -11,6 +10,7 @@ import com.banklab.calculator.dto.response.UserInvestmentProfileResponse;
 import com.banklab.calculator.service.CalculatorService;
 import com.banklab.calculator.service.UserProfileService;
 
+import com.banklab.security.util.LoginUserProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
