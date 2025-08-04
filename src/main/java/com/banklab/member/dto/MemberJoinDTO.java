@@ -1,7 +1,7 @@
 package com.banklab.member.dto;
 
 import com.banklab.member.domain.Gender;
-import com.banklab.oauth.domain.OAuthProvider;
+import com.banklab.security.oauth2.domain.OAuth2Provider;
 import com.banklab.security.account.domain.MemberVO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -29,7 +29,7 @@ public class MemberJoinDTO {
                 .phone(phone.replace("-", ""))
                 .gender(gender)
                 .birth(LocalDate.parse(birth))
-                .provider(OAuthProvider.LOCAL)
+                .provider(OAuth2Provider.LOCAL)
                 .build();
     }
 }

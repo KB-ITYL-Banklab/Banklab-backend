@@ -1,4 +1,4 @@
-package com.banklab.security.service;
+package com.banklab.security.util;
 
 import com.banklab.security.account.domain.CustomUser;
 import com.banklab.security.account.domain.MemberVO;

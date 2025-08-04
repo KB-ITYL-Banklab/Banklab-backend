@@ -5,7 +5,7 @@ import com.banklab.common.util.PasswordValidator;
 import com.banklab.member.dto.*;
 import com.banklab.member.exception.PasswordMissmatchException;
 import com.banklab.member.mapper.MemberMapper;
-import com.banklab.oauth.domain.OAuthProvider;
+import com.banklab.security.oauth2.domain.OAuth2Provider;
 import com.banklab.security.account.domain.AuthVO;
 import com.banklab.security.account.domain.MemberVO;
 import com.banklab.common.redis.RedisService;
@@ -97,11 +97,6 @@ public class MemberServiceImpl implements MemberService {
         return member != null;
     }
 
-    @Override
-    public String findEmailByMemberId(Long id) {
-        return mapper.findEmailByMemberId(id);
-    }
-
     @Transactional
     @Override
     public MemberDTO update(Long id, MemberUpdateDTO member) {
@@ -121,7 +116,7 @@ public class MemberServiceImpl implements MemberService {
         MemberVO vo = mapper.get(null, dto.getEmail());
 
         // 소셜 로그인 계정 여부
-        if (!OAuthProvider.LOCAL.equals(vo.getProvider())) {
+        if (!OAuth2Provider.LOCAL.equals(vo.getProvider())) {
             throw new IllegalStateException("소셜 로그인 계정은 비밀번호 변경을 할 수 없습니다.");
         }
 

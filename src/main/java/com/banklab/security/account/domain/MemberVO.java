@@ -1,7 +1,7 @@
 package com.banklab.security.account.domain;
 
 import com.banklab.member.domain.Gender;
-import com.banklab.oauth.domain.OAuthProvider;
+import com.banklab.security.oauth2.domain.OAuth2Provider;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -21,7 +21,7 @@ public class MemberVO {
     private String phone;
     private Gender gender;
     private LocalDate birth;
-    private OAuthProvider provider;
+    private OAuth2Provider provider;
     private Long providerId;
     private Date regDate;
     private Date updateDate;

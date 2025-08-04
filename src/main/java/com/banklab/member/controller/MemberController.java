@@ -2,7 +2,7 @@ package com.banklab.member.controller;
 
 import com.banklab.member.dto.*;
 import com.banklab.member.service.MemberService;
-import com.banklab.security.service.LoginUserProvider;
+import com.banklab.security.util.LoginUserProvider;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
