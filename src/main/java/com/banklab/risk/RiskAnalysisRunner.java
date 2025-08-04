@@ -1,5 +1,6 @@
 package com.banklab.risk;
 
+import com.banklab.config.MailConfig;
 import com.banklab.config.RedisConfig;
 import com.banklab.config.RootConfig;
 import com.banklab.product.service.ProductService;
@@ -19,7 +20,7 @@ public class RiskAnalysisRunner {
         try {
             // Spring 컨텍스트 로드
             AnnotationConfigApplicationContext context =
-                    new AnnotationConfigApplicationContext(RootConfig.class, SecurityConfig.class, RedisConfig.class);
+                    new AnnotationConfigApplicationContext(RootConfig.class, SecurityConfig.class, RedisConfig.class, MailConfig.class);
 
             // 필요한 서비스 가져오기
             RiskAnalysisService riskAnalysisService = context.getBean(RiskAnalysisService.class);
@@ -120,11 +121,17 @@ public class RiskAnalysisRunner {
             System.out.println("모든 상품에 대한 위험도 분석을 시작합니다...");
             System.out.println("이 작업은 시간이 걸릴 수 있습니다.");
 
+            // 시작 시간 기록
+            long startTime = System.currentTimeMillis();
+            
             riskAnalysisService.batchAnalyzeAllProductsRisk();
+            
+            // 종료 시간 기록
+            long endTime = System.currentTimeMillis();
+            long duration = endTime - startTime;
 
-            System.out.println("위험도 분석이 비동기로 시작되었습니다.");
-            System.out.println("분석 완료까지 몇 분 정도 소요될 수 있습니다.");
-            System.out.println("메뉴 1번으로 진행 상황을 확인할 수 있습니다.");
+            System.out.println("위험도 분석이 완료되었습니다.");
+            System.out.printf("소요 시간: %.2f초\n", duration / 1000.0);
 
         } catch (Exception e) {
             System.err.println("위험도 분석 실행 중 오류 발생: " + e.getMessage());

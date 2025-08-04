@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.calculator.mapper.UserProfileMapper">
+    
+    <!--
+       사용자 투자 프로필에서 계산기에 필요한 정보만 조회
+       반환 타입: Map<String, String>
+       파라미터: userId
+   -->
+    <select id="findUserInvestmentInfoByUserId" resultType="map">
+        SELECT
+            available_amount_range AS amountRange,
+            investment_period_range AS preferredTerm
+        FROM user_investment_profile
+        WHERE user_id = #{userId}
+    </select>
+    
+</mapper>

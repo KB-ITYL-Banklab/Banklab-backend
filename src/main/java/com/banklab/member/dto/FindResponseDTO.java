@@ -1,6 +1,6 @@
 package com.banklab.member.dto;
 
-import com.banklab.oauth.domain.OAuthProvider;
+import com.banklab.security.oauth2.domain.OAuth2Provider;
 import com.banklab.security.account.domain.MemberVO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,7 +16,7 @@ import java.text.SimpleDateFormat;
 public class FindResponseDTO {
     private String email;
     private String regDate;
-    private OAuthProvider provider;
+    private OAuth2Provider provider;
 
     public static FindResponseDTO of(MemberVO m) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");

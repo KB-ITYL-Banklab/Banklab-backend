@@ -5,22 +5,30 @@ import com.banklab.security.filter.JwtAuthenticationFilter;
 import com.banklab.security.filter.JwtUsernamePasswordAuthenticationFilter;
 import com.banklab.security.handler.CustomAccessDeniedHandler;
 import com.banklab.security.handler.CustomAuthenticationEntryPoint;
+import com.banklab.security.oauth2.handler.OAuth2LoginFailureHandler;
+import com.banklab.security.oauth2.handler.OAuth2LoginSuccessHandler;
+import com.banklab.security.policy.AccessPolicy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -46,6 +54,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private JwtUsernamePasswordAuthenticationFilter jwtUsernamePasswordAuthenticationFilter;
+
+    // OAuth2 관련
+    private final ClientRegistrationRepository clientRegistrationRepository;
+    private final OAuth2AuthorizedClientRepository authorizedClientRepository;
+    private final OAuth2UserService<OAuth2UserRequest, OAuth2User> customOAuth2UserService;
+    private final OAuth2LoginSuccessHandler oAuth2AuthenticationSuccessHandler;
+    private final OAuth2LoginFailureHandler oAuth2LoginFailureHandler;
 
     @Bean
     @Override
@@ -111,29 +126,30 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);  // 무상태 모드
 
         // 소셜 로그인 설정
-        //http.oauth2Login();
+        http.oauth2Login()
+                .clientRegistrationRepository(clientRegistrationRepository) // 수동 지정
+                .authorizedClientRepository(authorizedClientRepository)     // 수동 지정
+                .authorizationEndpoint()
+                    .baseUri("/oauth2/authorization")  // ex: /oauth2/authorization/kakao
+                .and()
+                .userInfoEndpoint()
+                    .userService(customOAuth2UserService) // 사용자 정보 추출 처리
+                .and()
+                    .successHandler(oAuth2AuthenticationSuccessHandler) // 로그인 성공 시 JWT 발급
+                    .failureHandler(oAuth2LoginFailureHandler);
 
         http.cors();
 
-        // 기본 설정으로 시작 - 모든 요청에 인증 필요
-        http.authorizeRequests() //  요청 권한 설정
-                .antMatchers(HttpMethod.GET, "/api/news/**").permitAll()  // 경제뉴스 API 공개
-                .antMatchers(HttpMethod.GET, "/api/gold/**").permitAll()  // 금융차트 금 API 공개
-                .antMatchers(HttpMethod.GET, "/api/stocks/**").permitAll() // 금융차트 주식 API 공개
-                .antMatchers(HttpMethod.GET, "/api/upbit/**").permitAll() // 금융차트 가상화페 API 공개
-                .antMatchers(HttpMethod.GET, "/api/exchange/**").permitAll() // 금융차트 외환 API 공개
-                .antMatchers(HttpMethod.GET, "/api/health/**").permitAll() // 금융차트  API 연결여부 공개
-                .antMatchers(HttpMethod.GET, "/api/terms/**").permitAll() // 금융용어  API  공개
-//                .antMatchers(HttpMethod.GET, "/api/quiz/**").permitAll() // 경제퀴즈 API 공개
-//                .antMatchers(HttpMethod.POST, "/api/quiz/**").permitAll() // 경제퀴즈 POST API 공개
-                // 회원 관련 공개 API (인증 불필요)
-                .antMatchers(HttpMethod.POST, "/api/member").permitAll()                    // 회원가입
-                .antMatchers(HttpMethod.GET, "/api/member/exist/email/**").permitAll()    // ID 중복 체크
-                .antMatchers(HttpMethod.POST, "/api/verification/**").permitAll()           // 이메일/전화번호 인증
-                .antMatchers(HttpMethod.GET, "/api/oauth/kakao/**").permitAll()             // 카카오 소셜 로그인
-                .antMatchers(HttpMethod.POST, "/api/member/find/**").permitAll()            // 아이디 찾기
-                .antMatchers(HttpMethod.POST, "/api/member/password/reset").permitAll()     // 비밀번호 재설정
-                .antMatchers(HttpMethod.POST, "/api/auth/reissue").permitAll()              // 토큰 재발급
-                .anyRequest().authenticated(); // 모든 요청에 인증 필요
+
+        ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry = http.authorizeRequests();
+        // permitAll 경로 등록
+        for (AccessPolicy.AccessRule rule : AccessPolicy.PERMIT_ALL) {
+            if (rule.method != null) {
+                registry.antMatchers(rule.method, rule.uriPattern).permitAll();
+            } else {
+                registry.antMatchers(rule.uriPattern).permitAll();
+            }
+        }
+        registry.anyRequest().authenticated(); // 나머지 인증 필요
     }
 }

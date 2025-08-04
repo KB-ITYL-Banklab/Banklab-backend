@@ -1,6 +1,7 @@
 package com.banklab.security.filter;
 
 import com.banklab.common.redis.RedisService;
+import com.banklab.security.policy.AccessPolicy;
 import com.banklab.security.util.JsonResponse;
 import com.banklab.security.util.JwtProcessor;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -13,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -37,10 +39,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
     }
 
+    private boolean isPermitted(HttpServletRequest request) {
+        AntPathMatcher pathMatcher = new AntPathMatcher();
+        String requestUri = request.getRequestURI();
+        String method = request.getMethod();
+
+        return AccessPolicy.PERMIT_ALL.stream().anyMatch(rule -> {
+            boolean methodMatch = (rule.method == null || rule.method.name().equalsIgnoreCase(method));
+            boolean uriMatch = pathMatcher.match(rule.uriPattern, requestUri);
+            return methodMatch && uriMatch;
+        });
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String accessToken = jwtProcessor.extractAccessToken(request);
+        // 인증 우회 경로 처리
+        if (isPermitted(request)) {
+            super.doFilter(request, response, filterChain);
+            return;
+        }
 
+        String accessToken = jwtProcessor.extractAccessToken(request);
+        String refreshToken = jwtProcessor.extractRefreshToken(request);
+
+        // accessToken 없고 refreshToken만 있을 때 → 재발급 유도
+        if (!StringUtils.hasText(accessToken) && StringUtils.hasText(refreshToken)) {
+            JsonResponse.sendError(response, HttpStatus.UNAUTHORIZED, "ACCESS_TOKEN_EXPIRED");
+            return;
+        }
+        // accessToken이 존재할 때만 인증 처리
         if (StringUtils.hasText(accessToken)) {
             // 로그아웃(차단)된 토큰인지 Redis에서 검사
             if (redisService.isBlacklisted(accessToken)) {

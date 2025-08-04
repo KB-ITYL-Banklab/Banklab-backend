@@ -30,8 +30,9 @@ import java.util.stream.Collectors;
         "com.banklab.risk.mapper",
         "com.banklab.transaction.mapper",
         "com.banklab.category.mapper",
+        "com.banklab.transaction.summary.mapper",
+        "com.banklab.calculator.mapper",
         "com.banklab.peerCompare.mapper",
-        "com.banklab.transaction.summary.mapper"
 })
 @ComponentScan(basePackages = {
         "com.banklab.member.service",
@@ -51,7 +52,8 @@ import java.util.stream.Collectors;
         "com.banklab.verification.service",
         "com.banklab.common.redis",
         "com.banklab.category.perplexity",
-        "com.banklab.category.kakaomap"
+        "com.banklab.category.kakaomap",
+        "com.banklab.calculator.service"
 })
 @EnableTransactionManagement
 public class RootConfig {

@@ -8,7 +8,7 @@ import com.banklab.account.service.AccountService;
 import com.banklab.codef.service.RequestConnectedId;
 import com.banklab.common.redis.RedisKeyUtil;
 import com.banklab.common.redis.RedisService;
-import com.banklab.security.service.LoginUserProvider;
+import com.banklab.security.util.LoginUserProvider;
 import com.banklab.transaction.dto.response.TransactionDetailDTO;
 import com.banklab.transaction.dto.request.TransactionRequestDto;
 import com.banklab.transaction.service.AsyncTransactionService;

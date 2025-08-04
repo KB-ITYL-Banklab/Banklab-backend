@@ -2,7 +2,7 @@ package com.banklab.transaction.controller;
 
 import com.banklab.common.redis.RedisKeyUtil;
 import com.banklab.common.redis.RedisService;
-import com.banklab.security.service.LoginUserProvider;
+import com.banklab.security.util.LoginUserProvider;
 import com.banklab.transaction.dto.request.TransactionRequestDto;
 import com.banklab.transaction.dto.response.SummaryDTO;
 import com.banklab.transaction.dto.response.TransactionDetailDTO;
