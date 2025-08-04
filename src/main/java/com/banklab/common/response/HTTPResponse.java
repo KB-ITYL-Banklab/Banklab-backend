@@ -1,6 +1,5 @@
 package com.banklab.common.response;
 
-import com.banklab.security.service.LoginUserProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

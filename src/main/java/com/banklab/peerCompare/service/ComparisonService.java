@@ -12,4 +12,6 @@ public interface ComparisonService {
             String email,
             Date startDate,
             Date endDate);
+
+    List<CategoryExpenseDTO> getMyCategoryCompare(Long memberId,Date startDate, Date endDate);
 }

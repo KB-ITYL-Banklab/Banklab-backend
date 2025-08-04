@@ -18,7 +18,7 @@ public interface ComparisonMapper {
      * @return
      */
     List<CategoryComparisonDTO> getPeerCategoryExpense(
-            @Param("membberId") Long memberId,
+            @Param("memberId") Long memberId,
             @Param("startDate") Date startDate,
             @Param("endDate") Date endDate,
             @Param("ageFrom") Integer ageFrom,

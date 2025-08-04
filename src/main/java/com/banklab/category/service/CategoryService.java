@@ -42,9 +42,10 @@ public class CategoryService {
         log.info("[START] 카테고리 분류 시작:  Thread: {}", Thread.currentThread().getName());
 
         // 순차적으로 요청 보내기
-        redisService.setBySeconds(key, "CLASSIFYING_CATEGORIES",20);
-        RateLimiter rateLimiter = RateLimiter.create(1.2);
+        redisService.set(key, "CLASSIFYING_CATEGORIES",2);
+        RateLimiter rateLimiter = RateLimiter.create(0.5);
 
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
         for (int i = 0; i < descriptions.size(); i++) {
             String desc = descriptions.get(i);
             long delay = 800L * i; // 0ms, 700ms, 1400ms, ...

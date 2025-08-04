@@ -37,12 +37,11 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
 
     @Async
     public void getTransactions(long memberId, TransactionRequestDto request){
-        String key = RedisKeyUtil.transaction(memberId,request.getResAccount());
         log.info("[START] 거래 내역 불러오기 시작 : Thread: {}",Thread.currentThread().getName());
         List<AccountVO> userAccounts=new ArrayList<>();
 
         // 계좌가 특정되지 않은 경우 (Batch 처리 || 전체 계좌 update)
-        if(request==null||request.getResAccount().isBlank()){
+        if(request==null || request.getResAccount() == null ||request.getResAccount().isBlank()){
             userAccounts= accountMapper.selectAccountsByUserId(memberId);
         }else{
             // 특정 계좌가 들어온 경우
@@ -54,9 +53,9 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
         for (AccountVO account : userAccounts) {
             // 2-1. 해당 계좌의 거래 내역 존재 확인
             checkIsPresent(memberId, account, request);
-
             TransactionDTO dto = makeTransactionDTO(account, request);
             List<TransactionHistoryVO> transactions;
+            String key = RedisKeyUtil.transaction(memberId,account.getResAccount());
 
             try {
                 // 1. CODEF API 호출
@@ -64,7 +63,7 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
 
                 log.info("[START] 거래 내역 db 저장 시작");
                 // 2. DB에 거래 내역 저장
-                redisService.setBySeconds(key, "FETCHING_TRANSACTIONS",15);
+                redisService.setBySeconds(key, "FETCHING_TRANSACTIONS",30);
                 transactionService.saveTransactionList(memberId,account, transactions );
                 log.info("[END] 거래 내역 db 저장 종료");
 
@@ -73,10 +72,10 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
 
                 log.info("[START] 집계 내역 db 저장 시작");
                 // 4. 집계 업데이트
-                redisService.setBySeconds(key, "ANALYZING_DATA",20);
+                redisService.setBySeconds(key, "ANALYZING_DATA",30);
                 summaryBatchService.initDailySummary(memberId,account);
                 log.info("[END] 집계 내역 db 저장 종료");
-                redisService.setBySeconds(key, "DONE",20);
+                redisService.set(key, "DONE",1);
 
 
             } catch (IOException | InterruptedException e) {

@@ -7,7 +7,7 @@ import lombok.Data;
 public class CategoryComparisonDTO {
     private Long categoryId;
     private String categoryName;
-    private double avgExpense;  // 또래 평균
+    private Double avgExpense;  // 또래 평균
 
     private Integer userExpense;    // 사용자 지출
     private Integer diff;       // 차이
