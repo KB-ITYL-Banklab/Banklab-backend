@@ -42,7 +42,7 @@ class RequestConnectedIdTest {
 
     @Test
     void 커넥티드_아이디_삭제() throws Exception {
-        String connected_id = "1pk0usYmAWd87vWvF2XgqD"; // 커넥티드 아이디
+        String connected_id = "cdgK5d2sku0b5j6R4Xg6bW"; // 커넥티드 아이디
         String bankCode = "0240"; // 기관코드(은행코드 ex. 0004)
 
         RequestConnectedId.deleteConnectedId(connected_id, bankCode, "ST","A");

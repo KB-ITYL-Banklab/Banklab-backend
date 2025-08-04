@@ -2,7 +2,7 @@ package com.banklab.stock.controller;
 
 import com.banklab.codef.service.RequestConnectedId;
 import com.banklab.common.redis.RedisService;
-import com.banklab.security.service.LoginUserProvider;
+import com.banklab.security.util.LoginUserProvider;
 import com.banklab.stock.domain.StockVO;
 import com.banklab.stock.dto.StockRequestDTO;
 import com.banklab.stock.service.StockResponse;
