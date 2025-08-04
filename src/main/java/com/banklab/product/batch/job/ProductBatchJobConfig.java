@@ -1,5 +1,7 @@
 package com.banklab.product.batch.job;
 
+import com.banklab.product.batch.tasklet.annuity.DeleteAnnuityTasklet;
+import com.banklab.product.batch.tasklet.annuity.FetchAndInsertAnnuityTasklet;
 import com.banklab.product.batch.tasklet.creditloan.DeleteCreditLoanTasklet;
 import com.banklab.product.batch.tasklet.creditloan.FetchAndInsertCreditLoanTasklet;
 import com.banklab.product.batch.tasklet.deposit.DeleteDepositTasklet;
@@ -15,7 +17,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * 예금, 적금, 신용대출 상품들을 위한 배치 작업입니다.
+ * 예금, 적금, 신용대출, 연금 저축상품들을 위한 배치 작업입니다.
  * 상품을 갱신하고, 이전 상품 정보들을 삭제합니다.
  * 이후 외부 API를 이용하여 새로운 데이터를 받아옵니다.
  */
@@ -48,6 +50,13 @@ public class ProductBatchJobConfig {
 
     @Autowired
     private FetchAndInsertCreditLoanTasklet fetchAndInsertCreditLoanTasklet;
+
+    // Annuity Tasklets
+    @Autowired
+    private DeleteAnnuityTasklet deleteAnnuityTasklet;
+
+    @Autowired
+    private FetchAndInsertAnnuityTasklet fetchAndInsertAnnuityTasklet;
 
     @Bean
     public Job depositRefreshJob() {
@@ -114,4 +123,28 @@ public class ProductBatchJobConfig {
                 .tasklet(fetchAndInsertCreditLoanTasklet)
                 .build();
     }
+
+    @Bean
+    public Job annuityRefreshJob() {
+        return jobBuilderFactory.get("annuityRefreshJob")
+                .start(deleteAnnuityStep())
+                .next(fetchAndInsertAnnuityStep())
+                .build();
+    }
+
+    @Bean
+    public Step deleteAnnuityStep() {
+        return stepBuilderFactory.get("deleteAnnuityStep")
+                .tasklet(deleteAnnuityTasklet)
+                .build();
+    }
+
+    @Bean
+    public Step fetchAndInsertAnnuityStep() {
+        return stepBuilderFactory.get("fetchAndInsertAnnuityStep")
+                .tasklet(fetchAndInsertAnnuityTasklet)
+                .build();
+    }
+
+
 }
