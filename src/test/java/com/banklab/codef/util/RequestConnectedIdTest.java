@@ -31,8 +31,8 @@ class RequestConnectedIdTest {
         log.info("SECRET_KEY: " + CommonConstant.SECRET_KEY);
         log.info("PUBLIC_KEY: " + CommonConstant.PUBLIC_KEY);
 
-        String id = "alswo2833"; // 은행 아이디
-        String password = "wjdwo8133@@"; // 은행 비밀번호
+        String id = ""; // 은행 아이디
+        String password = ""; // 은행 비밀번호
 
         // 아아디, 패스워드, 기관코드, 비즈니스 타입(은행 BK, 증권 ST, 카드 CD), 고객구분 [은행(개인) P, 증권(통합) A]
         String connected_id = RequestConnectedId.createConnectedId(id, password, "0240", "ST", "A");
