@@ -23,7 +23,7 @@ public class CreditLoanApiService {
     private String API_KEY;
 
     public CreditLoanProductAndOptionListDto fetchProductsFromApi() {
-        String fullUrl = API_URL + "?auth=" + API_KEY + "&topFinGrpNo=050000&pageNo=1";
+        String fullUrl = API_URL + "?auth=" + API_KEY + "&topFinGrpNo=020000&pageNo=1";
 
         System.out.println("Credit Loan API 호출 URL: " + fullUrl);
 
