@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.banklab.product.mapper.CreditLoanProductMapper">
-    <insert id="insertCreditLoanProduct" parameterType="com.banklab.product.domain.CreditLoanProduct"
+    <insert id="insertCreditLoanProduct" parameterType="com.banklab.product.domain.creditloan.CreditLoanProduct"
             useGeneratedKeys="true" keyProperty="id">
         INSERT INTO credit_loan_product (
             dcls_month, fin_co_no, kor_co_nm, fin_prdt_cd, fin_prdt_nm, join_way,
@@ -14,13 +14,13 @@
             #{crdtPrdtType}, #{crdtPrdtTypeNm}, #{cbName}, #{dclsStrtDay}, #{dclsEndDay}, #{finCoSubmDay}
         )
     </insert>
-    <select id="findAllCreditLoanProducts" resultType="com.banklab.product.domain.CreditLoanProduct">
+    <select id="findAllCreditLoanProducts" resultType="com.banklab.product.domain.creditloan.CreditLoanProduct">
         SELECT * FROM credit_loan_product
     </select>
     <delete id="deleteAllCreditLoanProducts">
         DELETE FROM credit_loan_product
     </delete>
-    <select id="findByProductKey" resultType="com.banklab.product.domain.CreditLoanProduct">
+    <select id="findByProductKey" resultType="com.banklab.product.domain.creditloan.CreditLoanProduct">
         SELECT *
         FROM credit_loan_product
         WHERE dcls_month = #{dclsMonth}
@@ -28,7 +28,7 @@
           AND fin_prdt_cd = #{finPrdtCd}
     </select>
 
-    <select id="findById" resultType="com.banklab.product.domain.CreditLoanProduct">
+    <select id="findById" resultType="com.banklab.product.domain.creditloan.CreditLoanProduct">
         SELECT *
         FROM credit_loan_product
         WHERE id = #{id}

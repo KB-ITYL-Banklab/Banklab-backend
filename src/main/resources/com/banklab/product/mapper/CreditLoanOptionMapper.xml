@@ -5,7 +5,7 @@
 
 <mapper namespace="com.banklab.product.mapper.CreditLoanOptionMapper">
     
-    <resultMap id="CreditLoanOptionResultMap" type="com.banklab.product.domain.CreditLoanOption">
+    <resultMap id="CreditLoanOptionResultMap" type="com.banklab.product.domain.creditloan.CreditLoanOption">
         <id property="id" column="id"/>
         <result property="dclsMonth" column="dcls_month"/>
         <result property="finCoNo" column="fin_co_no"/>
@@ -24,7 +24,7 @@
         <result property="crdtGradAvg" column="crdt_grad_avg"/>
     </resultMap>
 
-    <insert id="insertCreditLoanOption" parameterType="com.banklab.product.domain.CreditLoanOption">
+    <insert id="insertCreditLoanOption" parameterType="com.banklab.product.domain.creditloan.CreditLoanOption">
         INSERT INTO credit_loan_option (
             dcls_month, fin_co_no, fin_prdt_cd, crdt_prdt_type,
             crdt_lend_rate_type, crdt_lend_rate_type_nm,
@@ -50,7 +50,7 @@
         FROM credit_loan_option
         ORDER BY fin_co_no, fin_prdt_cd, crdt_lend_rate_type
     </select>
-    <select id="findOptionsByProduct" resultType="com.banklab.product.domain.CreditLoanOption">
+    <select id="findOptionsByProduct" resultType="com.banklab.product.domain.creditloan.CreditLoanOption">
         SELECT
             id,
             dcls_month as dclsMonth,

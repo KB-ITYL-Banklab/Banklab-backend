@@ -1,4 +1,4 @@
-package com.banklab.product.service;
+package com.banklab.product.service.creditloan;
 
 import com.banklab.product.dto.creditloan.CreditLoanWithOptionsDto;
 

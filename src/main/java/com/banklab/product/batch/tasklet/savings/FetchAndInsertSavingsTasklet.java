@@ -1,13 +1,13 @@
-package com.banklab.product.batch.tasklet;
+package com.banklab.product.batch.tasklet.savings;
 
-import com.banklab.product.domain.SavingsOption;
-import com.banklab.product.domain.SavingsProduct;
+import com.banklab.product.domain.savings.SavingsOption;
+import com.banklab.product.domain.savings.SavingsProduct;
 import com.banklab.product.dto.savings.SavingsOptionDto;
 import com.banklab.product.dto.savings.SavingsProductAndOptionListDto;
 import com.banklab.product.dto.savings.SavingsProductDto;
 import com.banklab.product.mapper.SavingsOptionMapper;
 import com.banklab.product.mapper.SavingsProductMapper;
-import com.banklab.product.service.SavingsApiService;
+import com.banklab.product.service.savings.SavingsApiService;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;

@@ -1,13 +1,13 @@
-package com.banklab.product.batch.tasklet;
+package com.banklab.product.batch.tasklet.deposit;
 
-import com.banklab.product.domain.DepositOption;
-import com.banklab.product.domain.DepositProduct;
+import com.banklab.product.domain.deposit.DepositOption;
+import com.banklab.product.domain.deposit.DepositProduct;
 import com.banklab.product.dto.deposit.DepositOptionDto;
 import com.banklab.product.dto.deposit.DepositProductAndOptionListDto;
 import com.banklab.product.dto.deposit.DepositProductDto;
 import com.banklab.product.mapper.DepositOptionMapper;
 import com.banklab.product.mapper.DepositProductMapper;
-import com.banklab.product.service.DepositApiService;
+import com.banklab.product.service.deposit.DepositApiService;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;

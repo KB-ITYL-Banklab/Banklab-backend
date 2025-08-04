@@ -1,7 +1,7 @@
-package com.banklab.product.batch.tasklet;
+package com.banklab.product.batch.tasklet.savings;
 
-import com.banklab.product.mapper.DepositOptionMapper;
-import com.banklab.product.mapper.DepositProductMapper;
+import com.banklab.product.mapper.SavingsOptionMapper;
+import com.banklab.product.mapper.SavingsProductMapper;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
@@ -10,18 +10,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DeleteDepositTasklet implements Tasklet {
+public class DeleteSavingsTasklet implements Tasklet {
 
     @Autowired
-    private DepositProductMapper depositProductMapper;
-    
+    private SavingsProductMapper savingsProductMapper;
     @Autowired
-    private DepositOptionMapper depositOptionMapper;
+    private SavingsOptionMapper savingsOptionMapper;
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-        depositProductMapper.deleteAllDepositProducts();
-        depositOptionMapper.deleteAllDepositOptions();
+        savingsProductMapper.deleteAllSavingsProducts();
+        savingsOptionMapper.deleteAllSavingsOptions();
         return RepeatStatus.FINISHED;
     }
 }
+

@@ -1,7 +1,9 @@
-package com.banklab.product.service;
+package com.banklab.product.service.deposit;
 
 import com.banklab.product.domain.*;
-import com.banklab.product.dto.savings.*;
+import com.banklab.product.domain.deposit.DepositOption;
+import com.banklab.product.domain.deposit.DepositProduct;
+import com.banklab.product.dto.deposit.*;
 import com.banklab.product.mapper.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,83 +16,79 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SavingsDetailServiceImpl implements SavingsDetailService {
+public class DepositDetailServiceImpl implements DepositDetailService {
 
-    private final SavingsProductMapper savingsProductMapper;
-    private final SavingsOptionMapper savingsOptionMapper;
+    private final DepositProductMapper depositProductMapper;
+    private final DepositOptionMapper depositOptionMapper;
 
     @Override
-    public SavingsWithOptionsDto getSavingsWithOptions(String dclsMonth, String finCoNo, String finPrdtCd) {
+    public DepositWithOptionsDto getDepositWithOptions(String dclsMonth, String finCoNo, String finPrdtCd) {
         try {
-            System.out.println("dcls"+dclsMonth+"finCoNo"+finCoNo+"finPrdtCd"+finPrdtCd);
-            log.info("적금 상품과 옵션 조회: dclsMonth={}, finCoNo={}, finPrdtCd={}", dclsMonth, finCoNo, finPrdtCd);
-            
+            log.info("예금 상품과 옵션 조회: dclsMonth={}, finCoNo={}, finPrdtCd={}", dclsMonth, finCoNo, finPrdtCd);
+
             // 1. 상품 조회
-            SavingsProduct product = savingsProductMapper.findByProductKey(dclsMonth, finCoNo, finPrdtCd);
+            DepositProduct product = depositProductMapper.findByProductKey(dclsMonth, finCoNo, finPrdtCd);
             if (product == null) {
-                log.warn("적금 상품을 찾을 수 없음: dclsMonth={}, finCoNo={}, finPrdtCd={}", dclsMonth, finCoNo, finPrdtCd);
+                log.warn("예금 상품을 찾을 수 없음: dclsMonth={}, finCoNo={}, finPrdtCd={}", dclsMonth, finCoNo, finPrdtCd);
                 return null;
             }
 
             // 2. 옵션 조회
-            List<SavingsOption> options = savingsOptionMapper.findOptionsByProduct(dclsMonth, finCoNo, finPrdtCd);
-            
+            List<DepositOption> options = depositOptionMapper.findOptionsByProduct(dclsMonth, finCoNo, finPrdtCd);
+
             // 3. DTO 변환
-            List<SavingsOptionDto> optionDTOs = options.stream()
-                    .map(this::convertToSavingsOptionDto)
+            List<DepositOptionDto> optionDTOs = options.stream()
+                    .map(this::convertToDepositOptionDTO)
                     .collect(Collectors.toList());
-            
+
             // 4. 통합 DTO 빌드
-            return buildSavingsWithOptionsDto(product, optionDTOs);
-            
+            return buildDepositWithOptionsDTO(product, optionDTOs);
+
         } catch (Exception e) {
-            log.error("적금 상품 옵션 조회 중 오류 발생: dclsMonth={}, finCoNo={}, finPrdtCd={}", 
-                     dclsMonth, finCoNo, finPrdtCd, e);
+            log.error("예금 상품 옵션 조회 중 오류 발생: dclsMonth={}, finCoNo={}, finPrdtCd={}",
+                    dclsMonth, finCoNo, finPrdtCd, e);
             return null;
         }
     }
 
-
     /**
-     * SavingsOption을 SavingsOptionDTO로 변환
+     * DepositOption을 DepositOptionDTO로 변환
      */
-    private SavingsOptionDto convertToSavingsOptionDto(SavingsOption option) {
-        return SavingsOptionDto.builder()
+    private DepositOptionDto convertToDepositOptionDTO(DepositOption option) {
+        return DepositOptionDto.builder()
                 .id(option.getId())
                 .intrRateType(option.getIntrRateType())
                 .intrRateTypeNm(option.getIntrRateTypeNm())
                 .saveTrm(String.valueOf(option.getSaveTrm()))
                 .intrRate(option.getIntrRate())
                 .intrRate2(option.getIntrRate2())
-                .rsrvType(option.getRsrvType())
-                .rsrvTypeNm(option.getRsrvTypeNm())
                 .build();
     }
 
     /**
-     * SavingsProduct와 옵션들로 SavingsWithOptionsDTO 빌드
+     * DepositProduct와 옵션들로 DepositWithOptionsDTO 빌드
      */
-    private SavingsWithOptionsDto buildSavingsWithOptionsDto(SavingsProduct product, List<SavingsOptionDto> options) {
+    private DepositWithOptionsDto buildDepositWithOptionsDTO(DepositProduct product, List<DepositOptionDto> options) {
         // 최저/최고 금리 계산
         BigDecimal minRate = options.stream()
-                .map(SavingsOptionDto::getIntrRate)
+                .map(DepositOptionDto::getIntrRate)
                 .filter(rate -> rate != null)
                 .min(BigDecimal::compareTo)
                 .orElse(BigDecimal.ZERO);
         
         BigDecimal maxRate = options.stream()
-                .map(SavingsOptionDto::getIntrRate2)
+                .map(DepositOptionDto::getIntrRate2)
                 .filter(rate -> rate != null)
                 .max(BigDecimal::compareTo)
                 .orElse(BigDecimal.ZERO);
 
-        return SavingsWithOptionsDto.builder()
+        return DepositWithOptionsDto.builder()
                 .dclsMonth(product.getDclsMonth())
                 .finCoNo(product.getFinCoNo())
                 .finPrdtCd(product.getFinPrdtCd())
                 .finPrdtNm(product.getFinPrdtNm())
                 .korCoNm(product.getKorCoNm())
-                .productType(ProductType.SAVINGS)
+                .productType(ProductType.DEPOSIT)
                 .joinWay(product.getJoinWay())
                 .mtrtInt(product.getMtrtInt())
                 .spclCnd(product.getSpclCnd())

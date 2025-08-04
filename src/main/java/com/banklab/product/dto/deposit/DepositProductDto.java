@@ -1,7 +1,7 @@
 package com.banklab.product.dto.deposit;
 
 
-import com.banklab.product.domain.DepositProduct;
+import com.banklab.product.domain.deposit.DepositProduct;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

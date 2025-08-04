@@ -1,6 +1,6 @@
 package com.banklab.product.dto.creditloan;
 
-import com.banklab.product.domain.CreditLoanOption;
+import com.banklab.product.domain.creditloan.CreditLoanOption;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

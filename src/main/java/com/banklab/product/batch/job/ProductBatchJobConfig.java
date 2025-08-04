@@ -1,6 +1,11 @@
 package com.banklab.product.batch.job;
 
-import com.banklab.product.batch.tasklet.*;
+import com.banklab.product.batch.tasklet.creditloan.DeleteCreditLoanTasklet;
+import com.banklab.product.batch.tasklet.creditloan.FetchAndInsertCreditLoanTasklet;
+import com.banklab.product.batch.tasklet.deposit.DeleteDepositTasklet;
+import com.banklab.product.batch.tasklet.deposit.FetchAndInsertDepositTasklet;
+import com.banklab.product.batch.tasklet.savings.DeleteSavingsTasklet;
+import com.banklab.product.batch.tasklet.savings.FetchAndInsertSavingsTasklet;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;

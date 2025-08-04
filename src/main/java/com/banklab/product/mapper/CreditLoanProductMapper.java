@@ -1,6 +1,6 @@
 package com.banklab.product.mapper;
 
-import com.banklab.product.domain.CreditLoanProduct;
+import com.banklab.product.domain.creditloan.CreditLoanProduct;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

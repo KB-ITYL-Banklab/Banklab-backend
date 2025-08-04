@@ -1,6 +1,8 @@
-package com.banklab.product.service;
+package com.banklab.product.service.creditloan;
 
 import com.banklab.product.domain.*;
+import com.banklab.product.domain.creditloan.CreditLoanOption;
+import com.banklab.product.domain.creditloan.CreditLoanProduct;
 import com.banklab.product.dto.creditloan.*;
 import com.banklab.product.mapper.*;
 import lombok.RequiredArgsConstructor;

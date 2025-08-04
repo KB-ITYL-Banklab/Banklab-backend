@@ -1,13 +1,13 @@
-package com.banklab.product.batch.tasklet;
+package com.banklab.product.batch.tasklet.creditloan;
 
-import com.banklab.product.domain.CreditLoanOption;
-import com.banklab.product.domain.CreditLoanProduct;
+import com.banklab.product.domain.creditloan.CreditLoanOption;
+import com.banklab.product.domain.creditloan.CreditLoanProduct;
 import com.banklab.product.dto.creditloan.CreditLoanOptionDto;
 import com.banklab.product.dto.creditloan.CreditLoanProductAndOptionListDto;
 import com.banklab.product.dto.creditloan.CreditLoanProductDto;
 import com.banklab.product.mapper.CreditLoanOptionMapper;
 import com.banklab.product.mapper.CreditLoanProductMapper;
-import com.banklab.product.service.CreditLoanApiService;
+import com.banklab.product.service.creditloan.CreditLoanApiService;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;

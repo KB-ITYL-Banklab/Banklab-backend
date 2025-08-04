@@ -1,4 +1,4 @@
-package com.banklab.product.service;
+package com.banklab.product.service.savings;
 
 import com.banklab.product.dto.savings.SavingsWithOptionsDto;
 

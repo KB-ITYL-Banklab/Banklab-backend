@@ -1,4 +1,4 @@
-package com.banklab.product.service;
+package com.banklab.product.service.deposit;
 
 import com.banklab.product.dto.deposit.DepositWithOptionsDto;
 

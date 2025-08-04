@@ -1,7 +1,7 @@
-package com.banklab.product.service;
+package com.banklab.product.service.savings;
 
-import com.banklab.product.dto.deposit.DepositApiResultWrapper;
-import com.banklab.product.dto.deposit.DepositProductAndOptionListDto;
+import com.banklab.product.dto.savings.SavingsApiResultWrapper;
+import com.banklab.product.dto.savings.SavingsProductAndOptionListDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -12,20 +12,20 @@ import java.util.Collections;
 import java.util.stream.Collectors;
 
 /**
- * 예금 상품 fetch API
+ * 적금 상품 fetch API
  */
 @Service
-public class DepositApiService {
+public class SavingsApiService {
     private final RestTemplate restTemplate = new RestTemplate();
 
-    private final String API_URL = "https://finlife.fss.or.kr/finlifeapi/depositProductsSearch.json";
+    private final String API_URL = "https://finlife.fss.or.kr/finlifeapi/savingProductsSearch.json";
     @Value("${finlife.api-key}")
     private String API_KEY;
 
-    public DepositProductAndOptionListDto fetchProductsFromApi() {
+    public SavingsProductAndOptionListDto fetchProductsFromApi() {
         String fullUrl = API_URL + "?auth=" + API_KEY + "&topFinGrpNo=020000&pageNo=1";
 
-        System.out.println("Deposit API 호출 URL: " + fullUrl);
+        System.out.println("Savings API 호출 URL: " + fullUrl);
 
         try {
             // HTTP 헤더 설정
@@ -43,32 +43,32 @@ public class DepositApiService {
                     String.class
             );
 
-            System.out.println("Deposit API 응답 상태: " + stringResponse.getStatusCode());
-            System.out.println("Deposit API 응답 Body: " + stringResponse.getBody());
+            System.out.println("Savings API 응답 상태: " + stringResponse.getStatusCode());
+            System.out.println("Savings API 응답 Body: " + stringResponse.getBody());
 
             if (stringResponse.getBody() == null || stringResponse.getBody().isEmpty()) {
-                throw new RuntimeException("Deposit API 응답이 비어있습니다.");
+                throw new RuntimeException("Savings API 응답이 비어있습니다.");
             }
 
-            // DepositApiResultWrapper로 파싱
-            ResponseEntity<DepositApiResultWrapper> response = restTemplate.exchange(
+            // SavingsApiResultWrapper로 파싱
+            ResponseEntity<SavingsApiResultWrapper> response = restTemplate.exchange(
                     fullUrl,
                     HttpMethod.GET,
                     entity,
-                    DepositApiResultWrapper.class
+                    SavingsApiResultWrapper.class
             );
 
             if (response.getBody() == null) {
-                throw new RuntimeException("Deposit API 응답 파싱 실패. JSON 구조를 확인해주세요.");
+                throw new RuntimeException("Savings API 응답 파싱 실패. JSON 구조를 확인해주세요.");
             }
 
-            DepositApiResultWrapper.DepositApiResult result = response.getBody().getResult();
+            SavingsApiResultWrapper.SavingsApiResult result = response.getBody().getResult();
 
             if (result == null) {
-                throw new RuntimeException("Deposit API 결과 데이터가 null입니다.");
+                throw new RuntimeException("Savings API 결과 데이터가 null입니다.");
             }
 
-            DepositProductAndOptionListDto dto = new DepositProductAndOptionListDto();
+            SavingsProductAndOptionListDto dto = new SavingsProductAndOptionListDto();
 
             dto.setProducts(result.getBaseList().stream()
                     .collect(Collectors.toList()));
@@ -76,17 +76,17 @@ public class DepositApiService {
             dto.setOptions(result.getOptionList().stream()
                     .collect(Collectors.toList()));
 
-            System.out.println("Deposit API 호출 성공: 상품 " + result.getBaseList().size() + "개, 옵션 " + result.getOptionList().size() + "개");
+            System.out.println("savings API 호출 성공: 상품 " + result.getBaseList().size() + "개, 옵션 " + result.getOptionList().size() + "개");
 
             return dto;
 
         } catch (ResourceAccessException e) {
-            System.err.println("Deposit API 네트워크 연결 오류: " + e.getMessage());
-            throw new RuntimeException("Deposit API 서버에 연결할 수 없습니다: " + e.getMessage(), e);
+            System.err.println("Savings API 네트워크 연결 오류: " + e.getMessage());
+            throw new RuntimeException("Savings API 서버에 연결할 수 없습니다: " + e.getMessage(), e);
         } catch (Exception e) {
-            System.err.println("Deposit API 호출 오류: " + e.getMessage());
+            System.err.println("Savings API 호출 오류: " + e.getMessage());
             e.printStackTrace();
-            throw new RuntimeException("Deposit API 호출 중 오류가 발생했습니다: " + e.getMessage(), e);
+            throw new RuntimeException("Savings API 호출 중 오류가 발생했습니다: " + e.getMessage(), e);
         }
     }
 }

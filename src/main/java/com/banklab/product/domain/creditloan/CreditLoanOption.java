@@ -1,4 +1,4 @@
-package com.banklab.product.domain;
+package com.banklab.product.domain.creditloan;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

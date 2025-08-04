@@ -1,6 +1,8 @@
 package com.banklab.product.service;
 
-import com.banklab.product.domain.*;
+import com.banklab.product.domain.creditloan.CreditLoanProduct;
+import com.banklab.product.domain.deposit.DepositProduct;
+import com.banklab.product.domain.savings.SavingsProduct;
 import com.banklab.product.mapper.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

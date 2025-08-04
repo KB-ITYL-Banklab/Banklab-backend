@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.banklab.product.mapper.SavingsProductMapper">
-    <insert id="insertSavingsProduct" parameterType="com.banklab.product.domain.SavingsProduct">
+    <insert id="insertSavingsProduct" parameterType="com.banklab.product.domain.savings.SavingsProduct">
         INSERT INTO savings_product (
             dcls_month, fin_co_no, kor_co_nm, fin_prdt_cd, fin_prdt_nm, join_way, mtrt_int, spcl_cnd, join_deny,
             join_member, etc_note, max_limit, dcls_strt_day, dcls_end_day, fin_co_subm_day
@@ -13,13 +13,13 @@
             #{joinMember}, #{etcNote}, #{maxLimit}, #{dclsStrtDay}, #{dclsEndDay}, #{finCoSubmDay}
         )
     </insert>
-    <select id="findAllSavingsProducts" resultType="com.banklab.product.domain.SavingsProduct">
+    <select id="findAllSavingsProducts" resultType="com.banklab.product.domain.savings.SavingsProduct">
         SELECT * FROM savings_product
     </select>
     <delete id="deleteAllSavingsProducts">
         DELETE FROM savings_product
     </delete>
-    <select id="findByProductKey" resultType="com.banklab.product.domain.SavingsProduct">
+    <select id="findByProductKey" resultType="com.banklab.product.domain.savings.SavingsProduct">
         SELECT 
             id,
             dcls_month as dclsMonth,
@@ -43,7 +43,7 @@
           AND fin_prdt_cd = #{finPrdtCd}
     </select>
 
-    <select id="findById" resultType="com.banklab.product.domain.SavingsProduct">
+    <select id="findById" resultType="com.banklab.product.domain.savings.SavingsProduct">
         SELECT 
             id,
             dcls_month as dclsMonth,

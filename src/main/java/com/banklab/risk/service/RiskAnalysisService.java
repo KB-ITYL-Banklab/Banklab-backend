@@ -1,12 +1,13 @@
 package com.banklab.risk.service;
 
+import com.banklab.product.domain.creditloan.CreditLoanProduct;
+import com.banklab.product.domain.deposit.DepositProduct;
+import com.banklab.product.domain.savings.SavingsProduct;
 import com.banklab.risk.domain.ProductRiskRating;
 import com.banklab.product.domain.ProductType;
-import com.banklab.risk.domain.RiskLevel;
 import com.banklab.risk.mapper.ProductRiskRatingMapper;
 import com.banklab.risk.dto.BatchRiskAnalysisRequest;
 import com.banklab.risk.dto.RiskAnalysisResponse;
-import com.banklab.product.domain.*;
 import com.banklab.product.mapper.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 @Service
 @Transactional

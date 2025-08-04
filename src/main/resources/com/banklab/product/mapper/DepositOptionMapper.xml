@@ -4,14 +4,14 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.banklab.product.mapper.DepositOptionMapper">
-    <insert id="insertDepositOption" parameterType="com.banklab.product.domain.DepositOption">
+    <insert id="insertDepositOption" parameterType="com.banklab.product.domain.deposit.DepositOption">
         INSERT INTO deposit_option (
             dcls_month, fin_co_no, fin_prdt_cd, intr_rate_type, intr_rate_type_nm, save_trm, intr_rate, intr_rate2
         ) VALUES (
             #{dclsMonth}, #{finCoNo}, #{finPrdtCd}, #{intrRateType}, #{intrRateTypeNm}, #{saveTrm}, #{intrRate}, #{intrRate2}
         )
     </insert>
-    <select id="findAllDepositOptions" resultType="com.banklab.product.domain.DepositOption">
+    <select id="findAllDepositOptions" resultType="com.banklab.product.domain.deposit.DepositOption">
         SELECT * FROM deposit_option
     </select>
     <delete id="deleteAllDepositOptions">
@@ -19,7 +19,7 @@
     </delete>
     
     <!-- 특정 상품의 모든 옵션 조회 -->
-    <select id="findOptionsByProduct" resultType="com.banklab.product.domain.DepositOption">
+    <select id="findOptionsByProduct" resultType="com.banklab.product.domain.deposit.DepositOption">
         SELECT 
             id,
             dcls_month as dclsMonth,

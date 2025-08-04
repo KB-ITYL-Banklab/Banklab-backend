@@ -1,11 +1,10 @@
-package com.banklab.product.domain;
+package com.banklab.product.domain.creditloan;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -13,7 +12,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SavingsProduct {
+public class CreditLoanProduct {
     private Long id;
     private String dclsMonth;
     private String finCoNo;
@@ -21,14 +20,15 @@ public class SavingsProduct {
     private String finPrdtCd;
     private String finPrdtNm;
     private String joinWay;
-    private String mtrtInt;
-    private String spclCnd;
-    private Integer joinDeny;
-    private String joinMember;
-    private String etcNote;
-    private BigDecimal maxLimit;
+    private String crdtPrdtType;
+    private String crdtPrdtTypeNm;
+    private String cbName;
     private LocalDate dclsStrtDay;
     private LocalDate dclsEndDay;
     private LocalDateTime finCoSubmDay;
-}
 
+    // 위험도 분석용 추가 필드들
+    private String spclCnd; // 우대조건 (분석용)
+    private String etcNote; // 기타유의사항 (분석용)
+
+}
