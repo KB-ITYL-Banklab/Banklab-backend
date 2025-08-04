@@ -36,6 +36,7 @@ public class TransactionApiController {
     private final RedisService redisService;
 
     /**
+
      * 로그인한 사용자 정보 추출 및 검증
      */
     private Map<String, Object> extractAuthInfo() {

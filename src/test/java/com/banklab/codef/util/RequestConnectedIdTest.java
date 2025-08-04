@@ -34,7 +34,7 @@ class RequestConnectedIdTest {
         String password = ""; // 은행 비밀번호
 
 
-        String connected_id = RequestConnectedId.createConnectedId(id, password, "0270");
+        String connected_id = RequestConnectedId.createConnectedId(id, password, "0270", "BK");
         log.info("Connected ID: " + connected_id);
 
     }
