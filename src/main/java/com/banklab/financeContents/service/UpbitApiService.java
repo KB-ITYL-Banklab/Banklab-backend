@@ -1,5 +1,6 @@
 package com.banklab.financeContents.service;
 
+import com.banklab.financeContents.dto.UpbitCandleDto;
 import com.banklab.financeContents.dto.UpbitMarketDto;
 import com.banklab.financeContents.dto.UpbitTickerDto;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -12,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,6 +28,8 @@ public class UpbitApiService {
     private static final String UPBIT_API_BASE_URL = "https://api.upbit.com/v1";
     private static final String MARKET_ALL_ENDPOINT = "/market/all";
     private static final String TICKER_ENDPOINT = "/ticker";
+    private static final String CANDLES_DAYS_ENDPOINT = "/candles/days";
+    private static final String CANDLES_MINUTES_ENDPOINT = "/candles/minutes";
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
@@ -269,5 +274,287 @@ public class UpbitApiService {
         log.info("테스트용 단일 마켓 조회: {}", market);
         List<UpbitTickerDto> tickers = getTickers(List.of(market));
         return tickers.isEmpty() ? null : tickers.get(0);
+    }
+
+    /**
+     * 일봉 캔들 데이터 조회
+     * @param market 마켓 코드 (예: KRW-BTC)
+     * @param count 조회할 개수 (최대 200개)
+     * @param to 마지막 캔들 시각 (YYYY-MM-DD 형식, null이면 최신부터)
+     * @return 일봉 캔들 데이터 리스트
+     */
+    public List<UpbitCandleDto> getDayCandles(String market, int count, String to) {
+        StringBuilder urlBuilder = new StringBuilder(UPBIT_API_BASE_URL + CANDLES_DAYS_ENDPOINT);
+        urlBuilder.append("?market=").append(market);
+        urlBuilder.append("&count=").append(Math.min(count, 200)); // 최대 200개 제한
+        
+        if (to != null && !to.trim().isEmpty()) {
+            // YYYY-MM-DD 형식을 YYYY-MM-DDTHH:MM:SSZ 형식으로 변환
+            urlBuilder.append("&to=").append(to).append("T00:00:00Z");
+        }
+        
+        String url = urlBuilder.toString();
+        log.info("업비트 일봉 캔들 API 호출: {}", url);
+        
+        return getCandleData(url, market, "일봉");
+    }
+
+    /**
+     * 분봉 캔들 데이터 조회
+     * @param unit 분 단위 (1, 3, 5, 10, 15, 30, 60, 240)
+     * @param market 마켓 코드 (예: KRW-BTC)
+     * @param count 조회할 개수 (최대 200개)
+     * @param to 마지막 캔들 시각 (YYYY-MM-DDTHH:MM:SS 형식, null이면 최신부터)
+     * @return 분봉 캔들 데이터 리스트
+     */
+    public List<UpbitCandleDto> getMinuteCandles(int unit, String market, int count, String to) {
+        // 지원하는 분 단위 검증
+        List<Integer> supportedUnits = List.of(1, 3, 5, 10, 15, 30, 60, 240);
+        if (!supportedUnits.contains(unit)) {
+            log.error("지원하지 않는 분 단위: {}. 지원 단위: {}", unit, supportedUnits);
+            return List.of();
+        }
+        
+        StringBuilder urlBuilder = new StringBuilder(UPBIT_API_BASE_URL + CANDLES_MINUTES_ENDPOINT + "/" + unit);
+        urlBuilder.append("?market=").append(market);
+        urlBuilder.append("&count=").append(Math.min(count, 200)); // 최대 200개 제한
+        
+        if (to != null && !to.trim().isEmpty()) {
+            urlBuilder.append("&to=").append(to);
+        }
+        
+        String url = urlBuilder.toString();
+        log.info("업비트 {}분봉 캔들 API 호출: {}", unit, url);
+        
+        return getCandleData(url, market, unit + "분봉");
+    }
+
+    /**
+     * 캔들 데이터 공통 조회 메서드
+     */
+    private List<UpbitCandleDto> getCandleData(String url, String market, String candleType) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Accept", "application/json");
+            headers.add("User-Agent", "Java-RestTemplate");
+            
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+            
+            ResponseEntity<String> response = restTemplate.exchange(
+                url, HttpMethod.GET, entity, String.class);
+
+            log.info("업비트 {} 캔들 API 응답 상태코드: {}", candleType, response.getStatusCode());
+            
+            if (response.getStatusCode().is2xxSuccessful()) {
+                String responseBody = response.getBody();
+                
+                if (responseBody == null || responseBody.trim().isEmpty()) {
+                    log.error("{} 캔들 API 응답 본문이 비어있음", candleType);
+                    return List.of();
+                }
+                
+                try {
+                    List<UpbitCandleDto> candles = objectMapper.readValue(
+                        responseBody, new TypeReference<List<UpbitCandleDto>>() {});
+                    
+                    log.info("{} 캔들 데이터 조회 성공: {}개", candleType, candles.size());
+                    
+                    if (!candles.isEmpty()) {
+                        UpbitCandleDto firstCandle = candles.get(0);
+                        log.info("첫 번째 {} 캔들: {} - 시간: {}, 시가: {}, 종가: {}", 
+                            candleType, market, firstCandle.getCandleDateTimeKst(), 
+                            firstCandle.getOpeningPrice(), firstCandle.getTradePrice());
+                    }
+                    
+                    return candles;
+                    
+                } catch (Exception jsonException) {
+                    log.error("{} 캔들 JSON 파싱 실패", candleType, jsonException);
+                    return List.of();
+                }
+                
+            } else {
+                log.error("{} 캔들 조회 실패. 상태코드: {}, 응답: {}", 
+                    candleType, response.getStatusCode(), response.getBody());
+                return List.of();
+            }
+            
+        } catch (Exception e) {
+            log.error("{} 캔들 API 호출 중 오류 발생", candleType, e);
+            return List.of();
+        }
+    }
+
+    /**
+     * 한달치 일봉 데이터 조회 (약 30개)
+     * @param market 마켓 코드
+     * @return 최근 30일간의 일봉 데이터
+     */
+    public List<UpbitCandleDto> getMonthlyDayCandles(String market) {
+        log.info("한달치 일봉 데이터 조회: {}", market);
+        return getDayCandles(market, 30, null);
+    }
+
+    /**
+     * 모든 KRW 마켓의 한달치 일봉 데이터 조회
+     * @return 모든 마켓의 한달치 일봉 데이터
+     */
+    public List<UpbitCandleDto> getAllMarketsMonthlyCandles() {
+        log.info("=== 모든 KRW 마켓 한달치 일봉 데이터 조회 시작 ===");
+        
+        List<UpbitMarketDto> markets = getAllMarkets();
+        if (markets.isEmpty()) {
+            log.warn("조회된 마켓이 없습니다.");
+            return List.of();
+        }
+
+        List<UpbitCandleDto> allCandles = new java.util.ArrayList<>();
+        int processedCount = 0;
+        int totalMarkets = markets.size();
+
+        for (UpbitMarketDto market : markets) {
+            processedCount++;
+            try {
+                log.info("마켓 {}/{} 처리 중: {}", processedCount, totalMarkets, market.getMarket());
+                
+                List<UpbitCandleDto> marketCandles = getMonthlyDayCandles(market.getMarket());
+                allCandles.addAll(marketCandles);
+                
+                log.info("마켓 {} 완료: {}개 캔들 수집", market.getMarket(), marketCandles.size());
+                
+                // API 호출 제한을 고려해 200ms 지연
+                Thread.sleep(200);
+                
+            } catch (Exception e) {
+                log.error("마켓 {} 캔들 조회 중 오류 발생: {}", market.getMarket(), e.getMessage());
+                continue;
+            }
+        }
+        
+        log.info("=== 모든 KRW 마켓 한달치 일봉 데이터 조회 완료 ===");
+        log.info("총 {}개 마켓에서 {}개 캔들 수집", totalMarkets, allCandles.size());
+        
+        return allCandles;
+    }
+
+    /**
+     * 실시간 현재가 데이터 조회 (단일 종목) - Ticker API 사용
+     * @param market 마켓 코드
+     * @return 실시간 현재가 데이터
+     */
+    public UpbitTickerDto getRealtimeTicker(String market) {
+        log.info("실시간 현재가 데이터 조회: {}", market);
+        
+        try {
+            List<UpbitTickerDto> tickers = getTickers(List.of(market));
+            
+            if (tickers.isEmpty()) {
+                log.warn("마켓 {} 실시간 현재가 데이터 없음", market);
+                return null;
+            }
+            
+            UpbitTickerDto ticker = tickers.get(0);
+            log.info("실시간 현재가 조회 성공: {} - 현재가: {}, 등락률: {}%", 
+                market, ticker.getTrade_price(), 
+                ticker.getChange_rate() != null ? ticker.getChange_rate() * 100 : "N/A");
+            
+            return ticker;
+            
+        } catch (Exception e) {
+            log.error("실시간 현재가 조회 실패: {}", market, e);
+            return null;
+        }
+    }
+
+    /**
+     * 실시간 1분봉 데이터 조회 (가장 최신 1개) - 디버깅 강화
+     * @param market 마켓 코드
+     * @return 최신 1분봉 데이터
+     */
+    public UpbitCandleDto getLatestMinuteCandle(String market) {
+        log.info("실시간 1분봉 데이터 조회 시작: {}", market);
+        
+        try {
+            List<UpbitCandleDto> candles = getMinuteCandles(1, market, 1, null);
+            
+            if (candles.isEmpty()) {
+                log.warn("1분봉 캔들 데이터가 비어있음: {}", market);
+                return null;
+            }
+            
+            UpbitCandleDto latestCandle = candles.get(0);
+            
+            log.info("1분봉 캔들 데이터 조회 성공: {} - 시간: {}, 종가: {}", 
+                market, latestCandle.getCandleDateTimeKst(), latestCandle.getTradePrice());
+            
+            return latestCandle;
+            
+        } catch (Exception e) {
+            log.error("1분봉 캔들 데이터 조회 실패: {}", market, e);
+            return null;
+        }
+    }
+
+    /**
+     * 모든 KRW 마켓의 실시간 현재가 데이터 조회 - Ticker API 사용
+     * @return 모든 마켓의 실시간 현재가 데이터
+     */
+    public List<UpbitTickerDto> getAllRealtimeTickers() {
+        log.info("=== 모든 KRW 마켓 실시간 현재가 데이터 조회 시작 ===");
+        
+        try {
+            // 모든 KRW 마켓의 현재가를 한번에 조회 (더 효율적)
+            List<UpbitTickerDto> allTickers = getAllKrwTickers();
+            
+            log.info("=== 모든 KRW 마켓 실시간 현재가 데이터 조회 완료: {}건 ===", allTickers.size());
+            
+            return allTickers;
+            
+        } catch (Exception e) {
+            log.error("모든 마켓 실시간 현재가 조회 실패", e);
+            return List.of();
+        }
+    }
+
+    /**
+     * 모든 KRW 마켓의 실시간 1분봉 데이터 조회
+     * @return 모든 마켓의 최신 1분봉 데이터
+     */
+    public List<UpbitCandleDto> getAllMarketsLatestCandles() {
+        log.info("=== 모든 KRW 마켓 실시간 1분봉 데이터 조회 시작 ===");
+        
+        List<UpbitMarketDto> markets = getAllMarkets();
+        if (markets.isEmpty()) {
+            log.warn("조회된 마켓이 없습니다.");
+            return List.of();
+        }
+
+        List<UpbitCandleDto> allCandles = new java.util.ArrayList<>();
+        int processedCount = 0;
+        int totalMarkets = markets.size();
+
+        for (UpbitMarketDto market : markets) {
+            processedCount++;
+            try {
+                log.debug("마켓 {}/{} 실시간 데이터 조회 중: {}", processedCount, totalMarkets, market.getMarket());
+                
+                UpbitCandleDto latestCandle = getLatestMinuteCandle(market.getMarket());
+                if (latestCandle != null) {
+                    allCandles.add(latestCandle);
+                }
+                
+                // API 호출 제한을 고려해 100ms 지연 (실시간이므로 빠르게)
+                Thread.sleep(100);
+                
+            } catch (Exception e) {
+                log.error("마켓 {} 실시간 데이터 조회 중 오류 발생: {}", market.getMarket(), e.getMessage());
+                continue;
+            }
+        }
+        
+        log.info("=== 모든 KRW 마켓 실시간 1분봉 데이터 조회 완료 ===");
+        log.info("총 {}개 마켓에서 {}개 실시간 캔들 수집", totalMarkets, allCandles.size());
+        
+        return allCandles;
     }
 }

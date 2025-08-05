@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,7 +54,7 @@ public class UpbitDataService {
             log.info("데이터 변환 시작");
             List<FinanceUpbit> financeUpbitList = tickers.stream()
                 .map(this::convertToFinanceUpbit)
-                .collect(Collectors.toList());
+                .toList();
             log.info("데이터 변환 완료. 변환된 데이터 수: {}", financeUpbitList.size());
 
             // 데이터 저장 전략: 오늘 날짜에 해당하는 데이터가 있으면 업데이트, 없으면 삽입
@@ -168,8 +169,8 @@ public class UpbitDataService {
             // 상위 5개 마켓으로 Ticker 조회 테스트
             List<String> testMarkets = markets.stream()
                 .limit(5)
-                .map(m -> m.getMarket())
-                .collect(Collectors.toList());
+                .map(com.banklab.financeContents.dto.UpbitMarketDto::getMarket)
+                .toList();
             
             log.info("테스트 마켓들: {}", testMarkets);
             
@@ -241,6 +242,235 @@ public class UpbitDataService {
         } catch (Exception e) {
             log.error("배치 처리 테스트 실패", e);
             return "배치 처리 테스트 실패: " + e.getMessage();
+        }
+    }
+
+    /**
+     * 최근 한달치 실제 과거 데이터를 DB에 삽입
+     * 업비트 API의 일봉 캔들 데이터를 사용하여 실제 과거 한달치 데이터를 수집합니다.
+     */
+    @Transactional
+    public void insertMonthlyData() {
+        try {
+            log.info("=== 최근 한달치 실제 데이터 삽입 시작 ===");
+            
+            // 업비트 API에서 모든 KRW 마켓의 한달치 일봉 데이터를 가져옵니다
+            List<com.banklab.financeContents.dto.UpbitCandleDto> candleDataList = upbitApiService.getAllMarketsMonthlyCandles();
+            
+            if (candleDataList.isEmpty()) {
+                throw new RuntimeException("업비트 API에서 캔들 데이터를 가져올 수 없습니다.");
+            }
+            
+            log.info("업비트 API에서 {}개의 캔들 데이터를 수집했습니다.", candleDataList.size());
+            
+            // 캔들 데이터를 FinanceUpbit 엔티티로 변환
+            List<FinanceUpbit> financeUpbitList = candleDataList.stream()
+                .map(this::convertCandleToFinanceUpbit)
+                .toList();
+            
+            log.info("{}개의 캔들 데이터를 FinanceUpbit 엔티티로 변환 완료", financeUpbitList.size());
+            
+            // 배치 삽입
+            if (!financeUpbitList.isEmpty()) {
+                upbitMapper.insertMonthlyData(financeUpbitList);
+                log.info("최근 한달치 실제 데이터 삽입 완료: {}건", financeUpbitList.size());
+            }
+            
+        } catch (Exception e) {
+            log.error("최근 한달치 데이터 삽입 실패", e);
+            throw new RuntimeException("최근 한달치 데이터 삽입 실패: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * UpbitCandleDto를 FinanceUpbit으로 변환 (candleDateTime 포함)
+     */
+    private FinanceUpbit convertCandleToFinanceUpbit(com.banklab.financeContents.dto.UpbitCandleDto candle) {
+        FinanceUpbit financeUpbit = new FinanceUpbit();
+        
+        financeUpbit.setMarket(candle.getMarket());
+        
+        // 캔들 날짜/시간 설정 (Date 타입으로 변환)
+        if (candle.getCandleDateTimeKst() != null) {
+            try {
+                // "2025-07-15T09:00:00" 형식의 문자열을 Date로 변환
+                String dateTimeStr = candle.getCandleDateTimeKst().replace("+09:00", "");
+                java.time.LocalDateTime localDateTime = java.time.LocalDateTime.parse(dateTimeStr);
+                
+                // LocalDateTime을 Date로 변환 (KST 기준)
+                java.time.ZoneId zoneId = java.time.ZoneId.of("Asia/Seoul");
+                java.time.ZonedDateTime zonedDateTime = localDateTime.atZone(zoneId);
+                java.util.Date candleDate = java.util.Date.from(zonedDateTime.toInstant());
+                
+                financeUpbit.setCandleDateTime(candleDate);
+                
+                log.debug("캔들 날짜 변환 성공: {} -> {}", candle.getCandleDateTimeKst(), candleDate);
+                
+            } catch (Exception e) {
+                log.warn("캔들 날짜 파싱 실패: {} - {}", candle.getMarket(), candle.getCandleDateTimeKst(), e);
+                // 파싱 실패 시 현재 시간 사용
+                financeUpbit.setCandleDateTime(new java.util.Date());
+            }
+        } else {
+            // 캔들 날짜가 없으면 현재 시간 사용
+            financeUpbit.setCandleDateTime(new java.util.Date());
+        }
+        
+        // 캔들 데이터를 BigDecimal로 변환하고 소수점 둘째 자리로 반올림
+        financeUpbit.setOpeningPrice(candle.getOpeningPrice() != null ? 
+            java.math.BigDecimal.valueOf(candle.getOpeningPrice())
+                .setScale(2, java.math.RoundingMode.HALF_UP) : null);
+        financeUpbit.setTradePrice(candle.getTradePrice() != null ? 
+            java.math.BigDecimal.valueOf(candle.getTradePrice())
+                .setScale(2, java.math.RoundingMode.HALF_UP) : null);
+        financeUpbit.setPrevClosingPrice(candle.getPrevClosingPrice() != null ? 
+            java.math.BigDecimal.valueOf(candle.getPrevClosingPrice())
+                .setScale(2, java.math.RoundingMode.HALF_UP) : null);
+        
+        // 등락률은 Double 유지
+        financeUpbit.setChangeRate(candle.getChangeRate());
+        
+        // 거래량, 거래대금
+        financeUpbit.setAccTradeVolume24h(candle.getCandleAccTradeVolume());
+        financeUpbit.setAccTradePrice24h(candle.getCandleAccTradePrice());
+        
+        log.debug("캔들 데이터 변환 완료: {} - 캔들날짜: {}, 시가: {}, 종가: {}, 등락률: {}", 
+            financeUpbit.getMarket(), financeUpbit.getCandleDateTime(), 
+            financeUpbit.getOpeningPrice(), financeUpbit.getTradePrice(), financeUpbit.getChangeRate());
+        
+        return financeUpbit;
+    }
+
+    /**
+     * 종목명(마켓코드)으로 해당 종목의 모든 데이터 조회
+     */
+    public List<FinanceUpbit> getDataByMarket(String market) {
+        log.info("종목 {} 전체 데이터 조회", market);
+        List<FinanceUpbit> result = upbitMapper.selectDataByMarket(market);
+        log.info("종목 {} 조회 결과: {}건", market, result.size());
+        return result;
+    }
+
+    /**
+     * 종목명(마켓코드)으로 해당 종목의 특정 기간 데이터 조회
+     */
+    public List<FinanceUpbit> getDataByMarketAndDateRange(String market, String startDate, String endDate) {
+        log.info("종목 {} 기간별 데이터 조회: {} ~ {}", market, startDate, endDate);
+        List<FinanceUpbit> result = upbitMapper.selectDataByMarketAndDateRange(market, startDate, endDate);
+        log.info("종목 {} 기간별 조회 결과: {}건", market, result.size());
+        return result;
+    }
+
+    /**
+     * 실시간 1분봉 데이터 조회 (단일 종목) - Candle API 사용
+     * @param market 마켓 코드
+     * @return 실시간 캔들 데이터
+     */
+    public FinanceUpbit getRealtimeCandle(String market) {
+        log.info("실시간 캔들 데이터 조회: {}", market);
+        
+        try {
+            // 1분봉 최신 1개 조회
+            com.banklab.financeContents.dto.UpbitCandleDto candleDto = upbitApiService.getLatestMinuteCandle(market);
+            
+            if (candleDto == null) {
+                log.warn("마켓 {} 실시간 캔들 데이터 없음", market);
+                return null;
+            }
+            
+            // UpbitCandleDto를 FinanceUpbit으로 변환 (간소화된 버전)
+            FinanceUpbit realtimeData = convertCandleToRealtimeData(candleDto);
+            
+            log.info("실시간 캔들 데이터 조회 성공: {} - 시간: {}, 현재가: {}", 
+                market, realtimeData.getCandleDateTime(), realtimeData.getTradePrice());
+            
+            return realtimeData;
+            
+        } catch (Exception e) {
+            log.error("실시간 캔들 데이터 조회 실패: {}", market, e);
+            return null;
+        }
+    }
+
+    /**
+     * UpbitCandleDto를 실시간 데이터용 FinanceUpbit으로 변환 (간소화)
+     */
+    private FinanceUpbit convertCandleToRealtimeData(com.banklab.financeContents.dto.UpbitCandleDto candle) {
+        FinanceUpbit financeUpbit = new FinanceUpbit();
+        
+        financeUpbit.setMarket(candle.getMarket());
+        
+        // 캔들 날짜/시간 설정
+        if (candle.getCandleDateTimeKst() != null) {
+            try {
+                String dateTimeStr = candle.getCandleDateTimeKst().replace("+09:00", "");
+                java.time.LocalDateTime localDateTime = java.time.LocalDateTime.parse(dateTimeStr);
+                
+                java.time.ZoneId zoneId = java.time.ZoneId.of("Asia/Seoul");
+                java.time.ZonedDateTime zonedDateTime = localDateTime.atZone(zoneId);
+                java.util.Date candleDate = java.util.Date.from(zonedDateTime.toInstant());
+                
+                financeUpbit.setCandleDateTime(candleDate);
+            } catch (Exception e) {
+                log.warn("실시간 캔들 날짜 파싱 실패: {}", candle.getMarket(), e);
+                financeUpbit.setCandleDateTime(new java.util.Date());
+            }
+        } else {
+            financeUpbit.setCandleDateTime(new java.util.Date());
+        }
+        
+        // 가격 데이터 설정
+        financeUpbit.setOpeningPrice(candle.getOpeningPrice() != null ? 
+            java.math.BigDecimal.valueOf(candle.getOpeningPrice()).setScale(2, java.math.RoundingMode.HALF_UP) : null);
+        financeUpbit.setTradePrice(candle.getTradePrice() != null ? 
+            java.math.BigDecimal.valueOf(candle.getTradePrice()).setScale(2, java.math.RoundingMode.HALF_UP) : null);
+        financeUpbit.setPrevClosingPrice(candle.getPrevClosingPrice() != null ? 
+            java.math.BigDecimal.valueOf(candle.getPrevClosingPrice()).setScale(2, java.math.RoundingMode.HALF_UP) : null);
+        
+        // 등락률 설정
+        financeUpbit.setChangeRate(candle.getChangeRate());
+        
+        // 거래량, 거래대금 설정
+        financeUpbit.setAccTradeVolume24h(candle.getCandleAccTradeVolume());
+        financeUpbit.setAccTradePrice24h(candle.getCandleAccTradePrice());
+        
+        log.debug("실시간 캔들 데이터 변환 완료: {} - 시간: {}, 시가: {}, 종가: {}", 
+            financeUpbit.getMarket(), financeUpbit.getCandleDateTime(), 
+            financeUpbit.getOpeningPrice(), financeUpbit.getTradePrice());
+        
+        return financeUpbit;
+    }
+
+    /**
+     * 모든 마켓의 실시간 1분봉 데이터 조회
+     * @return 모든 마켓의 실시간 캔들 데이터
+     */
+    public List<FinanceUpbit> getAllRealtimeCandles() {
+        log.info("=== 모든 마켓 실시간 캔들 데이터 조회 시작 ===");
+        
+        try {
+            List<com.banklab.financeContents.dto.UpbitCandleDto> candleDataList = 
+                upbitApiService.getAllMarketsLatestCandles();
+            
+            if (candleDataList.isEmpty()) {
+                log.warn("실시간 캔들 데이터가 없습니다");
+                return List.of();
+            }
+            
+            log.info("업비트 API에서 {}개의 실시간 캔들 데이터를 수집했습니다.", candleDataList.size());
+            
+            // 캔들 데이터를 FinanceUpbit 엔티티로 변환
+            List<FinanceUpbit> realtimeDataList = candleDataList.stream()
+                .map(this::convertCandleToFinanceUpbit)
+                .toList();
+            
+            log.info("=== 모든 마켓 실시간 캔들 데이터 조회 완료: {}건 ===", realtimeDataList.size());
+            
+            return realtimeDataList;
+            
+        } catch (Exception e) {
+            log.error("모든 마켓 실시간 데이터 조회 실패", e);
+            return List.of();
         }
     }
 }

@@ -41,4 +41,23 @@ public interface UpbitMapper {
      * 기존 데이터 업데이트 (같은 날짜의 데이터가 있을 경우)
      */
     void updateUpbitData(FinanceUpbit financeUpbit);
+    
+    /**
+     * 최근 한달치 데이터 일괄 삽입
+     */
+    void insertMonthlyData(List<FinanceUpbit> financeUpbitList);
+    
+    /**
+     * 종목명으로 해당 종목의 모든 데이터 조회
+     */
+    List<FinanceUpbit> selectDataByMarket(@Param("market") String market);
+    
+    /**
+     * 종목명으로 해당 종목의 특정 기간 데이터 조회
+     */
+    List<FinanceUpbit> selectDataByMarketAndDateRange(
+        @Param("market") String market, 
+        @Param("startDate") String startDate, 
+        @Param("endDate") String endDate
+    );
 }

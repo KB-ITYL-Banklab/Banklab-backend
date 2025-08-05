@@ -5,12 +5,13 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 /**
- * 업비트 금융 데이터 도메인
+ * 업비트 금융 데이터 도메인 (Spring Legacy 호환)
  */
 @Data
 public class FinanceUpbit {
     private Long id;                        // 고유 ID
     private String market;                  // 마켓 코드 (예: KRW-BTC)
+    private Date candleDateTime;            // 캔들 기준 시각 (실제 캔들의 날짜/시간)
     private BigDecimal openingPrice;        // 시가 (DECIMAL)
     private BigDecimal tradePrice;          // 종가 (현재가, DECIMAL)
     private BigDecimal prevClosingPrice;    // 전일 종가 (DECIMAL)
