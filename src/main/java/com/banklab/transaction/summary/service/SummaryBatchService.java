@@ -8,5 +8,5 @@ import java.util.Date;
 
 public interface SummaryBatchService {
     void aggregateDailySummary(LocalDate targetDate, Long memberId);
-    void initDailySummary(Long memberId, AccountVO account);
+    void initDailySummary(Long memberId, AccountVO account, String startDate);
 }

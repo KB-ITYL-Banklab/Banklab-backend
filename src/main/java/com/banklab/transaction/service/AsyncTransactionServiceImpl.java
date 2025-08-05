@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletionException;
 
 @Service
@@ -60,7 +61,7 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
             try {
                 // 1. CODEF API 호출
                 transactions = TransactionResponse.requestTransactions(memberId,dto);
-
+                if(transactions.isEmpty()){ return; }
                 log.info("[START] 거래 내역 db 저장 시작");
                 // 2. DB에 거래 내역 저장
                 redisService.setBySeconds(key, "FETCHING_TRANSACTIONS",30);
@@ -73,7 +74,7 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
                 log.info("[START] 집계 내역 db 저장 시작");
                 // 4. 집계 업데이트
                 redisService.setBySeconds(key, "ANALYZING_DATA",30);
-                summaryBatchService.initDailySummary(memberId,account);
+                summaryBatchService.initDailySummary(memberId,account, request.getStartDate());
                 log.info("[END] 집계 내역 db 저장 종료");
                 redisService.set(key, "DONE",1);
 
@@ -96,7 +97,7 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
 
         if(lastTransactionDate!=null){
             if (req == null) req = new TransactionRequestDto();
-            req.setStartDate(lastTransactionDate.plusDays(1).format(formatter));
+            req.setStartDate(lastTransactionDate.format(formatter));
         }
     }
 

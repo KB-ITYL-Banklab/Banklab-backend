@@ -203,6 +203,12 @@ public class AccountController {
             accountService.refreshAccountBalance(memberId, accountRequest.getBankCode(), accountRequest.getConnectedId());
             List<AccountDTO> accountList = accountService.getUserAccounts(memberId);
 
+            asyncTransactionService.getTransactions(memberId,
+                    TransactionRequestDto.builder()
+                            .resAccount(accountList.get(0).getResAccount())
+                            .build());
+
+
             Map<String, Object> response = new HashMap<>();
             response.put("accounts", accountList);
 

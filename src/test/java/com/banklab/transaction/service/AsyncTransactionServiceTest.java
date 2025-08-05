@@ -112,7 +112,7 @@ class AsyncTransactionServiceTest {
             verify(accountMapper, never()).selectAccountsByUserId(anyLong());
             verify(transactionService, times(1)).saveTransactionList(memberId, testAccount, testTransactions);
             verify(categoryService, times(1)).categorizeTransactions(eq(testTransactions), anyString());
-            verify(summaryBatchService, times(1)).initDailySummary(memberId, testAccount);
+            verify(summaryBatchService, times(1)).initDailySummary(memberId, testAccount, anyString());
         }
     }
 
@@ -143,7 +143,7 @@ class AsyncTransactionServiceTest {
             
             // [수정] categorizeTransactions 호출을 2개의 인자로 검증합니다.
             verify(categoryService, times(1)).categorizeTransactions(eq(testTransactions), anyString());
-            verify(summaryBatchService, times(1)).initDailySummary(memberId, testAccount);
+            verify(summaryBatchService, times(1)).initDailySummary(memberId, testAccount, anyString());
         }
     }
 
@@ -170,7 +170,7 @@ class AsyncTransactionServiceTest {
             // then: 예외 발생 후, 후속 처리(저장, 분류, 집계)가 호출되지 않았는지 검증합니다.
             verify(transactionService, never()).saveTransactionList(any(), any(), any());
             verify(categoryService, never()).categorizeTransactions(any(), anyString());
-            verify(summaryBatchService, never()).initDailySummary(any(), any());
+            verify(summaryBatchService, never()).initDailySummary(any(), any(),anyString());
         }
     }
 

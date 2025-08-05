@@ -1,6 +1,5 @@
 package com.banklab.peerCompare.controller;
 
-import com.banklab.category.dto.CategoryExpenseDTO;
 import com.banklab.common.response.HTTPResponse;
 import com.banklab.peerCompare.dto.CategoryComparisonDTO;
 import com.banklab.peerCompare.service.ComparisonService;
@@ -54,10 +53,10 @@ public class ComparisonController {
             String email = (String) authInfo.get("email");
 
             List<CategoryComparisonDTO> peerCategoryCompare = comparisonService.getPeerCategoryCompare(memberId, email, startDate, endDate);
-            List<CategoryExpenseDTO> userCategory = comparisonService.getMyCategoryCompare(memberId, startDate, endDate);
+//            List<CategoryExpenseDTO> userCategory = comparisonService.getMyCategoryCompare(memberId, startDate, endDate);
 
             response.put("peer", peerCategoryCompare);
-            response.put("user", userCategory);
+//            response.put("user", userCategory);
 
             return ResponseEntity.ok(HTTPResponse.createSuccessResponse(
                     "또래 평균을 가져오는데 성공했습니다.",response, authInfo));

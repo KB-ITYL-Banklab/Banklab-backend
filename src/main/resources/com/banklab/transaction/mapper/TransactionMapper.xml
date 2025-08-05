@@ -28,8 +28,8 @@
               )
     </insert>
 
-    <insert id="saveTransactionList"  parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO transaction_history (
+    <insert id="saveTransactionList" parameterType="java.util.List">
+        INSERT IGNORE INTO transaction_history (
         member_id,
         resAccount,
         transaction_date,
@@ -55,6 +55,8 @@
             )
         </foreach>
     </insert>
+
+
 
 
     <update id="updateCategories" parameterType="list">
