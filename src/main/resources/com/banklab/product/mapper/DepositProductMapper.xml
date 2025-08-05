@@ -7,10 +7,10 @@
     <insert id="insertDepositProduct" parameterType="com.banklab.product.domain.deposit.DepositProduct">
         INSERT INTO deposit_product (
             dcls_month, fin_co_no, kor_co_nm, fin_prdt_cd, fin_prdt_nm, join_way, mtrt_int, spcl_cnd, join_deny,
-            join_member, etc_note, max_limit, dcls_strt_day, dcls_end_day, fin_co_subm_day
+            join_member, etc_note, max_limit, dcls_strt_day, dcls_end_day, fin_co_subm_day, created_at, updated_at
         ) VALUES (
             #{dclsMonth}, #{finCoNo}, #{korCoNm}, #{finPrdtCd}, #{finPrdtNm}, #{joinWay}, #{mtrtInt}, #{spclCnd}, #{joinDeny},
-            #{joinMember}, #{etcNote}, #{maxLimit}, #{dclsStrtDay}, #{dclsEndDay}, #{finCoSubmDay}
+            #{joinMember}, #{etcNote}, #{maxLimit}, #{dclsStrtDay}, #{dclsEndDay}, #{finCoSubmDay}, NOW(), NOW()
         )
     </insert>
     <select id="findAllDepositProducts" resultType="com.banklab.product.domain.deposit.DepositProduct">
@@ -36,7 +36,9 @@
             max_limit as maxLimit,
             dcls_strt_day as dclsStrtDay,
             dcls_end_day as dclsEndDay,
-            fin_co_subm_day as finCoSubmDay
+            fin_co_subm_day as finCoSubmDay,
+            created_at as createdAt,
+            updated_at as updatedAt
         FROM deposit_product
         WHERE dcls_month = #{dclsMonth}
           AND fin_co_no = #{finCoNo}
@@ -60,9 +62,32 @@
             max_limit as maxLimit,
             dcls_strt_day as dclsStrtDay,
             dcls_end_day as dclsEndDay,
-            fin_co_subm_day as finCoSubmDay
+            fin_co_subm_day as finCoSubmDay,
+            created_at as createdAt,
+            updated_at as updatedAt
         FROM deposit_product
         WHERE id = #{id}
     </select>
+
+    <update id="updateDepositProduct" parameterType="com.banklab.product.domain.deposit.DepositProduct">
+        UPDATE deposit_product SET
+            dcls_month = #{dclsMonth},
+            fin_co_no = #{finCoNo},
+            kor_co_nm = #{korCoNm},
+            fin_prdt_cd = #{finPrdtCd},
+            fin_prdt_nm = #{finPrdtNm},
+            join_way = #{joinWay},
+            mtrt_int = #{mtrtInt},
+            spcl_cnd = #{spclCnd},
+            join_deny = #{joinDeny},
+            join_member = #{joinMember},
+            etc_note = #{etcNote},
+            max_limit = #{maxLimit},
+            dcls_strt_day = #{dclsStrtDay},
+            dcls_end_day = #{dclsEndDay},
+            fin_co_subm_day = #{finCoSubmDay},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
 
 </mapper>

@@ -22,6 +22,8 @@
         <result property="crdtGrad12" column="crdt_grad_12"/>
         <result property="crdtGrad13" column="crdt_grad_13"/>
         <result property="crdtGradAvg" column="crdt_grad_avg"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
     </resultMap>
 
     <insert id="insertCreditLoanOption" parameterType="com.banklab.product.domain.creditloan.CreditLoanOption">
@@ -30,13 +32,13 @@
             crdt_lend_rate_type, crdt_lend_rate_type_nm,
             crdt_grad_1, crdt_grad_4, crdt_grad_5, crdt_grad_6,
             crdt_grad_10, crdt_grad_11, crdt_grad_12, crdt_grad_13,
-            crdt_grad_avg
+            crdt_grad_avg, created_at, updated_at
         ) VALUES (
             #{dclsMonth}, #{finCoNo}, #{finPrdtCd}, #{crdtPrdtType},
             #{crdtLendRateType}, #{crdtLendRateTypeNm},
             #{crdtGrad1}, #{crdtGrad4}, #{crdtGrad5}, #{crdtGrad6},
             #{crdtGrad10}, #{crdtGrad11}, #{crdtGrad12}, #{crdtGrad13},
-            #{crdtGradAvg}
+            #{crdtGradAvg}, NOW(), NOW()
         )
     </insert>
 
@@ -46,7 +48,7 @@
             crdt_lend_rate_type, crdt_lend_rate_type_nm,
             crdt_grad_1, crdt_grad_4, crdt_grad_5, crdt_grad_6,
             crdt_grad_10, crdt_grad_11, crdt_grad_12, crdt_grad_13,
-            crdt_grad_avg
+            crdt_grad_avg, created_at, updated_at
         FROM credit_loan_option
         ORDER BY fin_co_no, fin_prdt_cd, crdt_lend_rate_type
     </select>
@@ -67,7 +69,9 @@
             crdt_grad_11 as crdtGrad11,
             crdt_grad_12 as crdtGrad12,
             crdt_grad_13 as crdtGrad13,
-            crdt_grad_avg as crdtGradAvg
+            crdt_grad_avg as crdtGradAvg,
+            created_at as createdAt,
+            updated_at as updatedAt
         FROM credit_loan_option
         WHERE dcls_month = #{dclsMonth}
           AND fin_co_no = #{finCoNo}
@@ -75,6 +79,55 @@
         ORDER BY crdt_lend_rate_type
 
     </select>
+
+    <select id="findByOptionKey" resultType="com.banklab.product.domain.creditloan.CreditLoanOption">
+        SELECT
+            id,
+            dcls_month as dclsMonth,
+            fin_co_no as finCoNo,
+            fin_prdt_cd as finPrdtCd,
+            crdt_prdt_type as crdtPrdtType,
+            crdt_lend_rate_type as crdtLendRateType,
+            crdt_lend_rate_type_nm as crdtLendRateTypeNm,
+            crdt_grad_1 as crdtGrad1,
+            crdt_grad_4 as crdtGrad4,
+            crdt_grad_5 as crdtGrad5,
+            crdt_grad_6 as crdtGrad6,
+            crdt_grad_10 as crdtGrad10,
+            crdt_grad_11 as crdtGrad11,
+            crdt_grad_12 as crdtGrad12,
+            crdt_grad_13 as crdtGrad13,
+            crdt_grad_avg as crdtGradAvg,
+            created_at as createdAt,
+            updated_at as updatedAt
+        FROM credit_loan_option
+        WHERE dcls_month = #{dclsMonth}
+          AND fin_co_no = #{finCoNo}
+          AND fin_prdt_cd = #{finPrdtCd}
+          AND crdt_prdt_type = #{crdtPrdtType}
+          AND crdt_lend_rate_type = #{crdtLendRateType}
+    </select>
+
+    <update id="updateCreditLoanOption" parameterType="com.banklab.product.domain.creditloan.CreditLoanOption">
+        UPDATE credit_loan_option SET
+            dcls_month = #{dclsMonth},
+            fin_co_no = #{finCoNo},
+            fin_prdt_cd = #{finPrdtCd},
+            crdt_prdt_type = #{crdtPrdtType},
+            crdt_lend_rate_type = #{crdtLendRateType},
+            crdt_lend_rate_type_nm = #{crdtLendRateTypeNm},
+            crdt_grad_1 = #{crdtGrad1},
+            crdt_grad_4 = #{crdtGrad4},
+            crdt_grad_5 = #{crdtGrad5},
+            crdt_grad_6 = #{crdtGrad6},
+            crdt_grad_10 = #{crdtGrad10},
+            crdt_grad_11 = #{crdtGrad11},
+            crdt_grad_12 = #{crdtGrad12},
+            crdt_grad_13 = #{crdtGrad13},
+            crdt_grad_avg = #{crdtGradAvg},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
 
     <delete id="deleteAllCreditLoanOptions">
         DELETE FROM credit_loan_option

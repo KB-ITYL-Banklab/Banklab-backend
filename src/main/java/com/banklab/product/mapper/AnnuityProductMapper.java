@@ -28,5 +28,9 @@ public interface AnnuityProductMapper {
      */
     AnnuityProduct findById(@Param("id") Long id);
     
+    /**
+     * 상품 업데이트
+     */
+    void updateAnnuityProduct(AnnuityProduct annuityProduct);
 
 }

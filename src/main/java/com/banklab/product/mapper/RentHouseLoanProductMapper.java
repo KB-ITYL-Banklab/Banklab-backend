@@ -18,4 +18,9 @@ public interface RentHouseLoanProductMapper {
                                           @Param("finPrdtCd") String finPrdtCd);
 
     RentHouseLoanProduct findById(@Param("id") Long id);
+
+    /**
+     * 상품 업데이트
+     */
+    void updateRentHouseLoanProduct(RentHouseLoanProduct rentHouseLoanProduct);
 }

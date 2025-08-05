@@ -54,13 +54,13 @@
             join_way, pnsn_kind, pnsn_kind_nm, sale_strt_day, mntn_cnt,
             prdt_type, prdt_type_nm, avg_prft_rate, dcls_rate, guar_rate,
             btrm_prft_rate_1, btrm_prft_rate_2, btrm_prft_rate_3, etc, sale_co,
-            dcls_strt_day, dcls_end_day, fin_co_subm_day
+            dcls_strt_day, dcls_end_day, fin_co_subm_day, created_at, updated_at
         ) VALUES (
             #{dclsMonth}, #{finCoNo}, #{finPrdtCd}, #{korCoNm}, #{finPrdtNm},
             #{joinWay}, #{pnsnKind}, #{pnsnKindNm}, #{saleStrtDay}, #{mntnCnt},
             #{prdtType}, #{prdtTypeNm}, #{avgPrftRate}, #{dclsRate}, #{guarRate},
             #{btrmPrftRate1}, #{btrmPrftRate2}, #{btrmPrftRate3}, #{etc}, #{saleCo},
-            #{dclsStrtDay}, #{dclsEndDay}, #{finCoSubmDay}
+            #{dclsStrtDay}, #{dclsEndDay}, #{finCoSubmDay}, NOW(), NOW()
         )
     </insert>
 
@@ -100,5 +100,34 @@
               AND fin_co_no = #{finCoNo}
               AND fin_prdt_cd = #{finPrdtCd}
     </select>
+
+    <update id="updateAnnuityProduct" parameterType="com.banklab.product.domain.annuity.AnnuityProduct">
+        UPDATE annuity_product SET
+            dcls_month = #{dclsMonth},
+            fin_co_no = #{finCoNo},
+            fin_prdt_cd = #{finPrdtCd},
+            kor_co_nm = #{korCoNm},
+            fin_prdt_nm = #{finPrdtNm},
+            join_way = #{joinWay},
+            pnsn_kind = #{pnsnKind},
+            pnsn_kind_nm = #{pnsnKindNm},
+            sale_strt_day = #{saleStrtDay},
+            mntn_cnt = #{mntnCnt},
+            prdt_type = #{prdtType},
+            prdt_type_nm = #{prdtTypeNm},
+            avg_prft_rate = #{avgPrftRate},
+            dcls_rate = #{dclsRate},
+            guar_rate = #{guarRate},
+            btrm_prft_rate_1 = #{btrmPrftRate1},
+            btrm_prft_rate_2 = #{btrmPrftRate2},
+            btrm_prft_rate_3 = #{btrmPrftRate3},
+            etc = #{etc},
+            sale_co = #{saleCo},
+            dcls_strt_day = #{dclsStrtDay},
+            dcls_end_day = #{dclsEndDay},
+            fin_co_subm_day = #{finCoSubmDay},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
 
 </mapper>

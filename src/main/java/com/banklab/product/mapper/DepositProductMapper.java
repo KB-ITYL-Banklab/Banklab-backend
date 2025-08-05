@@ -22,4 +22,9 @@ public interface DepositProductMapper {
      * ID로 상품 조회
      */
     DepositProduct findById(@Param("id") Long id);
+    
+    /**
+     * 상품 업데이트
+     */
+    void updateDepositProduct(DepositProduct product);
 }

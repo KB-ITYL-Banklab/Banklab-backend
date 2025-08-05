@@ -73,4 +73,23 @@
         AND fin_co_no = #{finCoNo}
         AND fin_prdt_cd = #{finPrdtCd}
     </select>
+
+    <update id="updateRentHouseLoanProduct" parameterType="com.banklab.product.domain.renthouse.RentHouseLoanProduct">
+        UPDATE rent_house_loan_product SET
+            dcls_month = #{dclsMonth},
+            fin_co_no = #{finCoNo},
+            kor_co_nm = #{korCoNm},
+            fin_prdt_cd = #{finPrdtCd},
+            fin_prdt_nm = #{finPrdtNm},
+            join_way = #{joinWay},
+            loan_inci_expn = #{loanInciExpn},
+            erly_rpay_fee = #{erlyRpayFee},
+            dly_rate = #{dlyRate},
+            loan_lmt = #{loanLmt},
+            dcls_strt_day = #{dclsStrtDay},
+            dcls_end_day = #{dclsEndDay},
+            fin_co_subm_day = #{finCoSubmDay},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
 </mapper>
