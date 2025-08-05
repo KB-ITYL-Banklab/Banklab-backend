@@ -37,18 +37,4 @@ public interface UserQuizResultMapper {
      * @return 업데이트된 행 수
      */
     int updateUserQuizResult(UserQuizResultVO userQuizResult);
-    
-    /**
-     * 사용자가 오늘 퀴즈를 이미 풀었는지 확인
-     * @param memberId 사용자 ID
-     * @return 오늘 풀이 횟수 (0이면 안 풀었음, 1이면 이미 풀었음)
-     */
-    int getTodayQuizCount(@Param("memberId") Long memberId);
-    
-    /**
-     * 사용자의 오늘 퀴즈 결과 조회
-     * @param memberId 사용자 ID
-     * @return 오늘의 퀴즈 결과 (없으면 null)
-     */
-    UserQuizResultVO getTodayQuizResult(@Param("memberId") Long memberId);
 }

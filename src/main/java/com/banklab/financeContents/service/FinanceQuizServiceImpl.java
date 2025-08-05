@@ -135,11 +135,6 @@ public class FinanceQuizServiceImpl implements FinanceQuizService {
             throw new IllegalArgumentException("userAnswer가 null입니다.");
         }
         
-        // 오늘 이미 퀴즈를 풀었는지 확인
-        if (hasUserSolvedTodayQuiz(memberId)) {
-            throw new IllegalStateException("오늘은 이미 퀴즈를 완료하셨습니다. 내일 다시 도전해주세요!");
-        }
-        
         // 1. 오늘의 퀴즈 정답 가져오기
         List<FinanceQuizDTO> todayQuizzes = getTodayQuizzes();
         if (todayQuizzes.size() != 3) {
@@ -272,76 +267,6 @@ public class FinanceQuizServiceImpl implements FinanceQuizService {
         }
         
         return answer;
-    }
-
-    @Override
-    public boolean hasUserSolvedTodayQuiz(Long memberId) {
-        if (memberId == null) {
-            return false;
-        }
-        int todayCount = userQuizResultMapper.getTodayQuizCount(memberId);
-        return todayCount > 0;
-    }
-
-    @Override
-    public DailyQuizResultDTO getTodayQuizResult(Long memberId) {
-        if (memberId == null) {
-            return null;
-        }
-        
-        // 1. DB에서 오늘의 퀴즈 결과 조회
-        UserQuizResultVO todayResult = userQuizResultMapper.getTodayQuizResult(memberId);
-        if (todayResult == null) {
-            return null;
-        }
-        
-        // 2. 오늘의 퀴즈 문제들 가져오기
-        List<FinanceQuizDTO> todayQuizzes = getTodayQuizzes();
-        if (todayQuizzes.size() != 3) {
-            throw new IllegalStateException("오늘의 퀴즈는 정확히 3문제여야 합니다.");
-        }
-        
-        // 3. 사용자 답안 파싱 (예: "3O1" -> ['3', 'O', '1'])
-        String userAnswers = todayResult.getUserAnswer();
-        if (userAnswers == null || userAnswers.length() != 3) {
-            throw new IllegalStateException("저장된 답안 데이터가 올바르지 않습니다.");
-        }
-        
-        // 4. 각 문제별 결과 재생성
-        int correctCount = 0;
-        List<QuizResultDTO> detailResults = new ArrayList<>();
-        
-        for (int i = 0; i < 3; i++) {
-            // 사용자 답안 (한 글자씩)
-            String userAnswer = String.valueOf(userAnswers.charAt(i));
-            
-            // 정답
-            String correctAnswer = todayQuizzes.get(i).getAnswer();
-            
-            // 정답 여부 확인
-            boolean isCorrect = isAnswerCorrect(userAnswer, correctAnswer, todayQuizzes.get(i).getQuizType());
-            
-            if (isCorrect) {
-                correctCount++;
-            }
-            
-            // 상세 결과 생성
-            detailResults.add(new QuizResultDTO(
-                isCorrect, 
-                correctAnswer, 
-                todayQuizzes.get(i).getExplanation(), 
-                userAnswer
-            ));
-        }
-        
-        // 5. 결과 DTO 생성 및 반환
-        return new DailyQuizResultDTO(
-            correctCount, 
-            3, // 총 문제 수
-            0, // 획득 포인트 (계산하지 않음, 이미 저장된 값 사용)
-            todayResult.getAccumulatedPoints(), // DB에서 가져온 누적 포인트
-            detailResults
-        );
     }
 
     /**
