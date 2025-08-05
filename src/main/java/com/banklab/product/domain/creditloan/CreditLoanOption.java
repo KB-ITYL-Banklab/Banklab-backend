@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -28,4 +29,6 @@ public class CreditLoanOption {
     private BigDecimal crdtGrad12; // 신용등급 12등급 금리
     private BigDecimal crdtGrad13; // 신용등급 13등급 금리
     private BigDecimal crdtGradAvg; // 평균 금리
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

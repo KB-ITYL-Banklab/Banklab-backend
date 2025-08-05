@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -20,5 +21,7 @@ public class DepositOption {
     private Integer saveTrm;
     private BigDecimal intrRate;
     private BigDecimal intrRate2;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
 }

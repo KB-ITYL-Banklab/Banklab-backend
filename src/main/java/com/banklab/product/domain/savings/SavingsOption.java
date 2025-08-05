@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -23,4 +24,6 @@ public class SavingsOption {
     private Integer saveTrm; // 저축기간 (개월)
     private BigDecimal intrRate; // 저축금리
     private BigDecimal intrRate2; // 최고우대금리
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

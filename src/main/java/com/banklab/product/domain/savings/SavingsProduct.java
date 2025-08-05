@@ -30,5 +30,7 @@ public class SavingsProduct {
     private LocalDate dclsStrtDay;
     private LocalDate dclsEndDay;
     private LocalDateTime finCoSubmDay;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }
 
