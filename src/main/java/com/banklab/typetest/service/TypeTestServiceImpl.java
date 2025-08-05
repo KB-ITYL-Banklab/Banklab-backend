@@ -156,6 +156,23 @@ public class TypeTestServiceImpl implements TypeTestService {
             return createFailResult("전체 상품 조회 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
+    /**
+     * 사용자 투자유형명만 반환하는 API용 메서드
+     */
+    @Override
+    public Map<String, Object> getUserInvestmentType(Long userId) {
+        UserInvestmentType userInvestmentType = userInvestmentTypeMapper.findByUserId(userId);
+        if (userInvestmentType == null) {
+            return Map.of("userId", userId, "investmentTypeName", null, "message", "투자유형 결과 없음");
+        }
+        InvestmentType investmentType = getInvestmentType(userInvestmentType.getInvestmentTypeId());
+        return Map.of(
+                "userId", userId,
+                "investmentTypeId", investmentType.getId(),
+                "investmentTypeName", investmentType.getInvestmentTypeName(),
+                "message", "투자유형 조회 성공"
+        );
+    }
 
     /**
      * 응답을 질문 타입별로 분류

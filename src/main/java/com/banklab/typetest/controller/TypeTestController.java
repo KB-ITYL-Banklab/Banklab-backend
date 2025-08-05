@@ -85,4 +85,17 @@ public class TypeTestController {
         }
         return ResponseEntity.ok(result);
     }
+
+    /**
+     * 사용자 투자유형 반환
+     */
+    @GetMapping("/user-type")
+    public ResponseEntity<Map<String, Object>> getUserInvestmentType() {
+        Long memberId = loginUserProvider.getLoginMemberId();
+        if (memberId == null) {
+            return ResponseEntity.badRequest().body(Map.of("message", "유효하지 않은 토큰입니다."));
+        }
+        Map<String, Object> result = typeTestService.getUserInvestmentType(memberId);
+        return ResponseEntity.ok(result);
+    }
 }

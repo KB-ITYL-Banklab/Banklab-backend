@@ -36,4 +36,11 @@ public interface TypeTestService {
      * @return 테스트 결과 DTO
      */
     TypeTestResultDTO getAllProductsByType(Long userId);
+
+    /**
+     * 사용자 투자 유형을 반환합니다.
+     * @param userId
+     * @return
+     */
+    Map<String, Object> getUserInvestmentType(Long userId);
 }
