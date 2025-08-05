@@ -23,8 +23,7 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * 예금, 적금, 신용대출, 연금 저축상품들을 위한 배치 작업입니다.
- * 상품을 갱신하고, 이전 상품 정보들을 삭제합니다.
- * 이후 외부 API를 이용하여 새로운 데이터를 받아옵니다.
+ * 이후 외부 API를 이용하여 새로운 데이터를 받아온 후 상품의 변경을 감지하여 갱신합니다.
  */
 @Configuration
 public class ProductBatchJobConfig {
@@ -78,8 +77,9 @@ public class ProductBatchJobConfig {
     @Bean
     public Job depositRefreshJob() {
         return jobBuilderFactory.get("depositRefreshJob")
-                .start(deleteDepositStep())
-                .next(fetchAndInsertDepositStep())
+                .start(fetchAndInsertDepositStep())
+//                .start(deleteDepositStep())
+//                .next(fetchAndInsertDepositStep())
                 .build();
     }
 
@@ -100,8 +100,9 @@ public class ProductBatchJobConfig {
     @Bean
     public Job savingsRefreshJob() {
         return jobBuilderFactory.get("savingsRefreshJob")
-                .start(deleteSavingsStep())
-                .next(fetchAndInsertSavingsStep())
+                .start(fetchAndInsertSavingsStep())
+//                .start(deleteSavingsStep())
+//                .next(fetchAndInsertSavingsStep())
                 .build();
     }
 
@@ -122,8 +123,9 @@ public class ProductBatchJobConfig {
     @Bean
     public Job creditLoanRefreshJob() {
         return jobBuilderFactory.get("creditLoanRefreshJob")
-                .start(deleteCreditLoanStep())
-                .next(fetchAndInsertCreditLoanStep())
+                .start(fetchAndInsertCreditLoanStep())
+//                .start(deleteCreditLoanStep())
+//                .next(fetchAndInsertCreditLoanStep())
                 .build();
     }
 
@@ -144,8 +146,9 @@ public class ProductBatchJobConfig {
     @Bean
     public Job annuityRefreshJob() {
         return jobBuilderFactory.get("annuityRefreshJob")
-                .start(deleteAnnuityStep())
-                .next(fetchAndInsertAnnuityStep())
+                .start(fetchAndInsertAnnuityStep())
+//                .start(deleteAnnuityStep())
+//                .next(fetchAndInsertAnnuityStep())
                 .build();
     }
 
@@ -166,8 +169,9 @@ public class ProductBatchJobConfig {
     @Bean
     public Job mortgageLoanRefreshJob() {
         return jobBuilderFactory.get("mortgageLoanRefreshJob")
-                .start(deleteMortgageLoanStep())
-                .next(fetchAndInsertMortgageLoanStep())
+                .start(fetchAndInsertMortgageLoanStep())
+//                .start(deleteMortgageLoanStep())
+//                .next(fetchAndInsertMortgageLoanStep())
                 .build();
     }
 
@@ -188,8 +192,9 @@ public class ProductBatchJobConfig {
     @Bean
     public Job rentHouseLoanRefreshJob() {
         return jobBuilderFactory.get("rentHouseLoanRefreshJob")
-                .start(deleteRentHouseLoanStep())
-                .next(fetchAndInsertRentHouseLoanStep())
+                .start(fetchAndInsertRentHouseLoanStep())
+//                .start(deleteRentHouseLoanStep())
+//                .next(fetchAndInsertRentHouseLoanStep())
                 .build();
     }
 

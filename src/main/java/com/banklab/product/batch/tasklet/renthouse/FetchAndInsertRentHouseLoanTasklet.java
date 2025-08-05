@@ -27,19 +27,90 @@ public class FetchAndInsertRentHouseLoanTasklet implements Tasklet {
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
+        log.info("=== 전세자금대출 상품 Upsert 배치 시작 ===");
         
         RentHouseLoanProductAndOptionListDto dto = rentHouseLoanApiService.fetchProductsFromApi();
+        
+        int insertedProducts = 0;
+        int updatedProducts = 0;
+        int insertedOptions = 0;
+        int updatedOptions = 0;
 
+        // 상품 처리
         for (RentHouseLoanProductDto baseDto : dto.getProducts()) {
-            RentHouseLoanProduct rentHouseLoanProduct = RentHouseLoanProductDto.toRentHouseLoanProduct(baseDto);
-            rentHouseLoanProductMapper.insertRentHouseLoanProduct(rentHouseLoanProduct);
+            RentHouseLoanProduct newProduct = RentHouseLoanProductDto.toRentHouseLoanProduct(baseDto);
+            
+            // 기존 상품 확인
+            RentHouseLoanProduct existingProduct = rentHouseLoanProductMapper.findByProductKey(
+                newProduct.getDclsMonth(),
+                newProduct.getFinCoNo(), 
+                newProduct.getFinPrdtCd()
+            );
+            
+            if (existingProduct == null) {
+                // 신규 상품 삽입
+                rentHouseLoanProductMapper.insertRentHouseLoanProduct(newProduct);
+                insertedProducts++;
+                log.debug("신규 전세자금대출 상품 삽입: {}", newProduct.getFinPrdtNm());
+            } else if (!existingProduct.getFinCoSubmDay().equals(newProduct.getFinCoSubmDay())) {
+                // fin_co_subm_day가 다르면 변경된 것으로 판단하여 업데이트
+                newProduct.setId(existingProduct.getId());
+                rentHouseLoanProductMapper.updateRentHouseLoanProduct(newProduct);
+                updatedProducts++;
+                log.debug("전세자금대출 상품 업데이트: {}", newProduct.getFinPrdtNm());
+            }
         }
 
+        // 옵션 처리
         for (RentHouseLoanOptionDto optionDto : dto.getOptions()) {
-            RentHouseLoanOption rentHouseLoanOption = RentHouseLoanOptionDto.toRentHouseLoanOption(optionDto);
-            rentHouseLoanOptionMapper.insertRentHouseLoanOption(rentHouseLoanOption);
+            RentHouseLoanOption newOption = RentHouseLoanOptionDto.toRentHouseLoanOption(optionDto);
+            
+            // 기존 옵션 확인
+            RentHouseLoanOption existingOption = rentHouseLoanOptionMapper.findByOptionKey(
+                newOption.getDclsMonth(),
+                newOption.getFinCoNo(),
+                newOption.getFinPrdtCd(),
+                newOption.getRpayType(),
+                newOption.getLendRateType()
+            );
+            
+            if (existingOption == null) {
+                // 신규 옵션 삽입
+                rentHouseLoanOptionMapper.insertRentHouseLoanOption(newOption);
+                insertedOptions++;
+                log.debug("신규 전세자금대출 옵션 삽입: {} - {}", newOption.getFinPrdtCd(), newOption.getLendRateTypeNm());
+            } else if (isOptionChanged(existingOption, newOption)) {
+                // 금리 정보가 변경되었으면 업데이트
+                newOption.setId(existingOption.getId());
+                rentHouseLoanOptionMapper.updateRentHouseLoanOption(newOption);
+                updatedOptions++;
+                log.debug("전세자금대출 옵션 업데이트: {} - {}", newOption.getFinPrdtCd(), newOption.getLendRateTypeNm());
+            }
         }
+        
+        log.info("전세자금대출 배치 완료 - 상품: 신규 {}, 업데이트 {} | 옵션: 신규 {}, 업데이트 {}", 
+                insertedProducts, updatedProducts, insertedOptions, updatedOptions);
 
         return RepeatStatus.FINISHED;
+    }
+    
+    /**
+     * 옵션 변경 여부 확인 (금리 변경 체크)
+     */
+    private boolean isOptionChanged(RentHouseLoanOption existing, RentHouseLoanOption newOption) {
+        return !safeEquals(existing.getLendRateMin(), newOption.getLendRateMin()) ||
+               !safeEquals(existing.getLendRateMax(), newOption.getLendRateMax()) ||
+               !safeEquals(existing.getLendRateAvg(), newOption.getLendRateAvg()) ||
+               !safeEquals(existing.getRpayTypeNm(), newOption.getRpayTypeNm()) ||
+               !safeEquals(existing.getLendRateTypeNm(), newOption.getLendRateTypeNm());
+    }
+    
+    /**
+     * null-safe equals 비교
+     */
+    private boolean safeEquals(Object obj1, Object obj2) {
+        if (obj1 == null && obj2 == null) return true;
+        if (obj1 == null || obj2 == null) return false;
+        return obj1.equals(obj2);
     }
 }

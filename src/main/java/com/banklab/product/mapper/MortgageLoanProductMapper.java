@@ -20,4 +20,6 @@ public interface MortgageLoanProductMapper {
 
     MortgageLoanProduct findById(@Param("id") Long id);
 
+    void updateMortgageLoanProduct(MortgageLoanProduct mortgageLoanProduct);
+
 }

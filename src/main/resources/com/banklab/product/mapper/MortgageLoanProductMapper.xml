@@ -4,6 +4,24 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.banklab.product.mapper.MortgageLoanProductMapper">
+    <update id="updateMortgageLoanProduct" parameterType="com.banklab.product.domain.mortgage.MortgageLoanProduct">
+            UPDATE mortgage_loan_product SET
+                                               dcls_month = #{dclsMonth},
+                                               fin_co_no = #{finCoNo},
+                                               kor_co_nm = #{korCoNm},
+                                               fin_prdt_cd = #{finPrdtCd},
+                                               fin_prdt_nm = #{finPrdtNm},
+                                               join_way = #{joinWay},
+                                               loan_inci_expn = #{loanInciExpn},
+                                               erly_rpay_fee = #{erlyRpayFee},
+                                               dly_rate = #{dlyRate},
+                                               loan_lmt = #{loanLmt},
+                                               dcls_strt_day = #{dclsStrtDay},
+                                               dcls_end_day = #{dclsEndDay},
+                                               fin_co_subm_day = #{finCoSubmDay},
+                                               updated_at = NOW()
+            WHERE id = #{id}
+    </update>
     <select id="findAllMortgageLaonProducts"
             resultType="com.banklab.product.domain.mortgage.MortgageLoanProduct">
         SELECT *
