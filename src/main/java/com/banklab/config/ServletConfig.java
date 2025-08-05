@@ -28,6 +28,7 @@ import java.util.List;
         "com.banklab.category.perplexity.controller",
         "com.banklab.peerCompare.controller",
         "com.banklab.verification.controller",
+        "com.banklab.stock.controller",
         "com.banklab.verification.controller",
         "com.banklab.calculator.controller"
 })

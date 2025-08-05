@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
         "com.banklab.transaction.summary.mapper",
         "com.banklab.calculator.mapper",
         "com.banklab.peerCompare.mapper",
+        "com.banklab.stock.mapper",
 })
 @ComponentScan(basePackages = {
         "com.banklab.member.service",
@@ -48,6 +49,7 @@ import java.util.stream.Collectors;
         "com.banklab.transaction",
         "com.banklab.category",
         "com.banklab.peerCompare",
+        "com.banklab.stock.service",
         "com.banklab.verification.sender",
         "com.banklab.verification.service",
         "com.banklab.common.redis",
