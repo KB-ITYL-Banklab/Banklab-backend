@@ -27,7 +27,9 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional
     public void saveTransactionList(Long memberId,AccountVO account, List<TransactionHistoryVO> transactions) {
         if(transactions.isEmpty())  return;
-        transactionMapper.saveTransactionList(transactions);
+        for(TransactionHistoryVO t: transactions){
+            transactionMapper.saveTransaction(t);
+        }
     }
 
     @Override

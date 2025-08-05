@@ -6,6 +6,8 @@ import com.banklab.common.redis.RedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+
 import java.util.Set;
 
 @Log4j2
@@ -18,43 +20,71 @@ public class KakaoMapService {
     private static final long CACHE_TTL_SECONDS = 60 * 60 * 6; // 6시간
 
     public long getCategoryByDesc(String redisKey, String desc) {
+        // 1. 내부 매핑 시도
         long categoryId = mapToInternalCategory(desc);
 
-        if(categoryId!=8){
+        // 2. 기타(8) 카테고리가 아닌 경우 캐시에 저장 후 반환
+        if (categoryId != 8) {
             storeInRedis(redisKey, String.valueOf(categoryId));
             return categoryId;
         }
 
-        // 2. 캐시에 없거나 기타로 분류되면 API 호출
-        KakaoMapSearchResponseDto response = kakaoMapClient.getCategoryByDesc(desc);
+        // 3. 카카오 API 호출 (429 대응 포함)
+        KakaoMapSearchResponseDto response = getCategoryWithRetry(desc, 3); // 최대 3회 재시도
 
         String categoryName = null;
         if (response != null && !response.getDocuments().isEmpty()) {
             categoryName = response.getDocuments().get(0).getCategoryName();
         }
 
-        // 넘어온 값이 없는 경우
+        // 4. 응답이 없거나 categoryName이 비어 있는 경우 fallback 처리
         if (categoryName == null || categoryName.isEmpty()) {
             categoryName = desc;
         }
 
+        // 5. 최종 카테고리 매핑 및 로그
         categoryId = mapToInternalCategory(categoryName);
         log.info("상호명: {}, 분류된 카테고리: {}, 카테고리 id: {}", desc, categoryName, categoryId);
 
-
-        // 3. 결과 캐시에 저장 (TTL 포함)
+        // 6. 캐시에 결과 저장 (기타 포함)
         storeInRedis(redisKey, String.valueOf(categoryId));
 
         return categoryId;
     }
 
+    private KakaoMapSearchResponseDto getCategoryWithRetry(String desc, int maxRetries) {
+        int retryCount = 0;
+        long waitTime = 1000; // 1초
+
+        while (retryCount < maxRetries) {
+            try {
+                return kakaoMapClient.getCategoryByDesc(desc);
+            } catch (HttpClientErrorException.TooManyRequests e) {
+                retryCount++;
+                log.warn("429 Too Many Requests 발생 - {}ms 후 재시도 ({}회)", waitTime, retryCount);
+                try {
+                    Thread.sleep(waitTime);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+                waitTime *= 2; // Exponential backoff
+            } catch (Exception e) {
+                // 기타 예외 처리
+                log.error("카카오 API 호출 중 예외 발생: {}", e.getMessage(), e);
+                break;
+            }
+        }
+        return null;
+    }
+
     public void storeInRedis(String redisKey, String categoryId) {
-        redisService.set(redisKey, categoryId,30);
+        redisService.set(redisKey, categoryId, 30);
     }
 
     public Long isStoredInRedis(String redisKey) {
 
-        String cachedCategory =redisService.get(redisKey);
+        String cachedCategory = redisService.get(redisKey);
         if (cachedCategory != null) {
             try {
                 return Long.parseLong(cachedCategory);
@@ -64,7 +94,6 @@ public class KakaoMapService {
         }
         return null;
     }
-
 
     private static final Set<String> CAFE_KEYWORDS = Set.of("카페", "커피", "디저트", "제과", "베이커리", "파스쿠찌", "투썸", "이디야", "스타벅스", "빽다방", "던킨", "크로플");
     private static final Set<String> HOUSING_KEYWORDS = Set.of("관리비", "월세", "주거", "통신", "휴대폰", "인터넷", "수도", "가스", "전기", "공과금", "임대", "kt", "skt", "lgu+", "sk브로드밴드");

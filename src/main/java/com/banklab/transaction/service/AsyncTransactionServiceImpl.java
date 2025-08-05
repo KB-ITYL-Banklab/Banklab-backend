@@ -62,22 +62,32 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
                 // 1. CODEF API 호출
                 transactions = TransactionResponse.requestTransactions(memberId,dto);
                 if(transactions.isEmpty()){ return; }
-                log.info("[START] 거래 내역 db 저장 시작");
+
                 // 2. DB에 거래 내역 저장
+                log.info("[START] 거래 내역 db 저장 시작");
                 redisService.setBySeconds(key, "FETCHING_TRANSACTIONS",30);
                 transactionService.saveTransactionList(memberId,account, transactions );
                 log.info("[END] 거래 내역 db 저장 종료");
 
                 // 3. 상호명 -> 카테고리 분류 실행
-                categoryService.categorizeTransactions(transactions, key).join();
+                boolean isCategorized = false;
+                try {
+                    categoryService.categorizeTransactions(transactions, key).get();
+                    isCategorized=true;
+                }catch (Exception e){
+                    log.error("카테고리 분류 중 에러 발생",e);
+                }
 
-                log.info("[START] 집계 내역 db 저장 시작");
-                // 4. 집계 업데이트
-                redisService.setBySeconds(key, "ANALYZING_DATA",30);
-                summaryBatchService.initDailySummary(memberId,account, request.getStartDate());
-                log.info("[END] 집계 내역 db 저장 종료");
-                redisService.set(key, "DONE",1);
-
+                if(isCategorized) {
+                    // 4. 집계 업데이트
+                    log.info("[START] 집계 내역 db 저장 시작");
+                    redisService.setBySeconds(key, "ANALYZING_DATA", 30);
+                    summaryBatchService.initDailySummary(memberId, account, request.getStartDate());
+                    log.info("[END] 집계 내역 db 저장 종료");
+                    redisService.set(key, "DONE", 1);
+                }else{
+                    redisService.set(key, "FAILED", 1);
+                }
 
             } catch (IOException | InterruptedException e) {
                 log.error("거래 내역 불러오는 중 오류 발생");

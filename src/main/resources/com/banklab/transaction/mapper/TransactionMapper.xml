@@ -5,27 +5,32 @@
 
 <mapper namespace="com.banklab.transaction.mapper.TransactionMapper">
 
-    <insert id="saveTransaction" parameterType="com.banklab.transaction.domain.TransactionHistoryVO">
-        INSERT INTO transaction_history (
-            resAccount,
-            transaction_date,
-            transaction_time,
-            resAccountOut,
-            resAccountIn,
-            resAfterTranBalance,
-            description,
-            category_id
+    <insert id="saveTransaction" parameterType="com.banklab.transaction.domain.TransactionHistoryVO"
+            useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT IGNORE INTO transaction_history (
+        member_id,
+        resAccount,
+        transaction_date,
+        transaction_time,
+        resAccountOut,
+        resAccountIn,
+        resAfterTranBalance,
+        description,
+        category_id
         )
-        VALUES(
-               #{resAccount},
-               STR_TO_DATE(#{transactionDate}, '%Y%m%d'),
-               TIME_FORMAT(#{transactionTime}, '%H%i%s'),
-               #{resAccountOut},
-               #{resAccountIn},
-               #{resAfterTranBalance},
-               #{description},
-               #{category_id}
-              )
+        VALUES
+            (
+            #{memberId},
+            #{resAccount},
+            STR_TO_DATE(#{transactionDate}, '%Y%m%d'),
+            TIME_FORMAT(#{transactionTime}, '%H%i%s'),
+            #{resAccountOut},
+            #{resAccountIn},
+            #{resAfterTranBalance},
+            #{description},
+            #{category_id}
+            )
     </insert>
 
     <insert id="saveTransactionList" parameterType="java.util.List">
@@ -55,6 +60,19 @@
             )
         </foreach>
     </insert>
+
+    <select id="findInsertedTransactions"
+            resultType="com.banklab.transaction.domain.TransactionHistoryVO"
+            parameterType="map">
+        SELECT id, member_id, resAccount, description, transaction_date
+        FROM transaction_history
+        WHERE member_id = #{memberId}
+        AND transaction_date = STR_TO_DATE(#{transactionDate}, '%Y%m%d')
+        AND description IN
+        <foreach collection="descriptions" item="desc" open="(" separator="," close=")">
+            #{desc}
+        </foreach>
+    </select>
 
 
 
