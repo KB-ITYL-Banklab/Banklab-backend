@@ -1,259 +1,273 @@
 package com.banklab.financeContents.service;
 
-import com.banklab.financeContents.dto.BitcoinTickerDTO;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.http.ResponseEntity;
+import com.banklab.financeContents.dto.UpbitMarketDto;
+import com.banklab.financeContents.dto.UpbitTickerDto;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
-import java.util.Arrays;
+import java.util.stream.Collectors;
 
 /**
- * 업비트(Upbit) 암호화폐 거래소 공개 API를 호출하는 서비스 클래스
- * 
- * <p>이 서비스는 업비트의 공개 API를 통해 실시간 암호화폐 시세 정보를 조회합니다.
- * 인증키가 필요하지 않은 공개 API만을 사용하므로 별도의 회원가입이나 API 키 발급 없이 사용 가능합니다.</p>
+ * 업비트 API 호출 서비스
  */
+@Slf4j
 @Service
 public class UpbitApiService {
-    
-    /** 로깅을 위한 Logger 인스턴스 */
-    private static final Logger logger = LoggerFactory.getLogger(UpbitApiService.class);
-    
-    /** HTTP 요청을 처리하는 RestTemplate */
+
+    private static final String UPBIT_API_BASE_URL = "https://api.upbit.com/v1";
+    private static final String MARKET_ALL_ENDPOINT = "/market/all";
+    private static final String TICKER_ENDPOINT = "/ticker";
+
     private final RestTemplate restTemplate;
-    
-    /** JSON 데이터를 Java 객체로 변환하는 ObjectMapper */
     private final ObjectMapper objectMapper;
-    
-    /** 업비트 API 기본 URL - 비트코인 시세 조회용 */
-    private static final String UPBIT_API_URL = "https://api.upbit.com/v1/ticker?markets=KRW-BTC";
-    
-    /**
-     * 생성자 - 의존성 주입을 통해 RestTemplate을 받습니다.
-     * 
-     * @param restTemplate Spring에서 관리하는 RestTemplate Bean
-     */
-    @Autowired
-    public UpbitApiService(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
+
+    public UpbitApiService() {
+        this.restTemplate = new RestTemplate();
         this.objectMapper = new ObjectMapper();
-        
-        logger.info("UpbitApiService가 초기화되었습니다.");
-        logger.debug("API 기본 URL: {}", UPBIT_API_URL);
     }
-    
+
     /**
-     * 비트코인(KRW-BTC)의 상세 시세 정보를 가져옵니다.
+     * 업비트 마켓 리스트 조회
+     * @return 마켓 리스트
      */
-    public BitcoinTickerDTO getBitcoinTicker() {
+    public List<UpbitMarketDto> getAllMarkets() {
+        String url = UPBIT_API_BASE_URL + MARKET_ALL_ENDPOINT;
+        log.info("업비트 마켓 리스트 API 호출 시작: {}", url);
+        
         try {
-            logger.info("업비트 API 호출 시작: {}", UPBIT_API_URL);
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Accept", "application/json");
+            headers.add("User-Agent", "Java-RestTemplate");
             
-            // HTTP 헤더 설정 - API 서버에서 요구하는 형식으로 설정
-            HttpHeaders headers = createHttpHeaders();
-            HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
+            HttpEntity<String> entity = new HttpEntity<>(headers);
             
-            // API 호출 실행
+            log.info("HTTP 요청 헤더: {}", headers);
+            
             ResponseEntity<String> response = restTemplate.exchange(
-                UPBIT_API_URL, 
-                HttpMethod.GET, 
-                entity, 
-                String.class
-            );
+                url, HttpMethod.GET, entity, String.class);
+
+            log.info("업비트 마켓 API 응답 상태코드: {}", response.getStatusCode());
             
-            logger.info("업비트 API 응답 상태: {}", response.getStatusCode());
-            logger.debug("업비트 API 응답 데이터: {}", response.getBody());
-            
-            // 응답 성공 여부 확인
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                // JSON 응답을 List<BitcoinTickerDTO>로 변환
-                // 업비트 API는 단일 항목도 배열 형태로 응답함
-                List<BitcoinTickerDTO> tickerList = objectMapper.readValue(
-                    response.getBody(), 
-                    new TypeReference<List<BitcoinTickerDTO>>() {}
-                );
+            if (response.getStatusCode().is2xxSuccessful()) {
+                String responseBody = response.getBody();
+                log.info("API 응답 본문 길이: {} characters", responseBody != null ? responseBody.length() : 0);
                 
-                if (!tickerList.isEmpty()) {
-                    BitcoinTickerDTO ticker = tickerList.get(0);
-                    logger.info("비트코인 현재가: {} KRW", ticker.getTradePrice());
-                    return ticker;
-                } else {
-                    logger.warn("업비트 API 응답 데이터가 비어있습니다.");
-                    return null;
+                if (responseBody == null || responseBody.trim().isEmpty()) {
+                    log.error("응답 본문이 비어있음");
+                    return List.of();
                 }
+                
+                // 응답 본문 일부 로깅 (처음 200자)
+                String preview = responseBody.length() > 200 ? responseBody.substring(0, 200) + "..." : responseBody;
+                log.info("응답 본문 미리보기: {}", preview);
+                
+                try {
+                    List<UpbitMarketDto> markets = objectMapper.readValue(
+                        responseBody, new TypeReference<List<UpbitMarketDto>>() {});
+                    
+                    log.info("JSON 파싱 성공. 전체 마켓 수: {}", markets.size());
+                    
+                    // KRW 마켓만 필터링
+                    List<UpbitMarketDto> krwMarkets = markets.stream()
+                        .filter(market -> market.getMarket().startsWith("KRW-"))
+                        .collect(Collectors.toList());
+                    
+                    log.info("KRW 마켓 필터링 완료. KRW 마켓 수: {}", krwMarkets.size());
+                    
+                    if (!krwMarkets.isEmpty()) {
+                        log.info("첫 번째 KRW 마켓 샘플: {} - {}", 
+                            krwMarkets.get(0).getMarket(), krwMarkets.get(0).getKorean_name());
+                    }
+                    
+                    return krwMarkets;
+                    
+                } catch (Exception jsonException) {
+                    log.error("JSON 파싱 실패", jsonException);
+                    log.error("파싱 실패한 응답 내용: {}", responseBody);
+                    return List.of();
+                }
+                
             } else {
-                logger.error("업비트 API 호출 실패. 상태 코드: {}", response.getStatusCode());
-                return null;
+                log.error("업비트 마켓 조회 실패. 상태코드: {}, 응답: {}", 
+                    response.getStatusCode(), response.getBody());
+                return List.of();
             }
             
+        } catch (org.springframework.web.client.ResourceAccessException e) {
+            log.error("네트워크 연결 실패 (타임아웃, DNS 해석 실패 등): {}", e.getMessage());
+            log.error("연결 대상 URL: {}", url);
+            return List.of();
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            log.error("HTTP 클라이언트 오류 (4xx): 상태코드={}, 응답={}", e.getStatusCode(), e.getResponseBodyAsString());
+            return List.of();
+        } catch (org.springframework.web.client.HttpServerErrorException e) {
+            log.error("HTTP 서버 오류 (5xx): 상태코드={}, 응답={}", e.getStatusCode(), e.getResponseBodyAsString());
+            return List.of();
         } catch (Exception e) {
-            logger.error("업비트 API 호출 중 오류 발생: {}", e.getMessage(), e);
-            return null;
+            log.error("예상치 못한 오류 발생: {}", e.getClass().getSimpleName(), e);
+            return List.of();
         }
     }
-    
+
     /**
-     * 여러 암호화폐의 시세 정보를 한 번에 가져옵니다.
-     *   KRW-BTC: 비트코인
-     *   KRW-ETH: 이더리움
-     *   KRW-XRP: 리플
-     *   KRW-ADA: 에이다
+     * 업비트 현재가 정보 조회
+     * @param markets 마켓 코드 리스트
+     * @return 현재가 정보 리스트
      */
-    public List<BitcoinTickerDTO> getMultipleTickers(String markets) {
+    public List<UpbitTickerDto> getTickers(List<String> markets) {
+        String marketParam = String.join(",", markets);
+        String url = UPBIT_API_BASE_URL + TICKER_ENDPOINT + "?markets=" + marketParam;
+        
+        log.info("업비트 현재가 API 호출 시작");
+        log.info("요청 URL: {}", url);
+        log.info("요청 마켓 수: {}", markets.size());
+        log.info("요청 마켓 샘플: {}", markets.stream().limit(3).collect(Collectors.toList()));
+        
         try {
-            // 입력 검증
-            if (markets == null || markets.trim().isEmpty()) {
-                logger.error("마켓 코드가 비어있습니다.");
-                throw new IllegalArgumentException("마켓 코드는 필수입니다.");
-            }
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Accept", "application/json");
+            headers.add("User-Agent", "Java-RestTemplate");
             
-            String url = "https://api.upbit.com/v1/ticker?markets=" + markets;
-            logger.info("업비트 API 다중 시세 호출: {}", url);
+            HttpEntity<String> entity = new HttpEntity<>(headers);
             
-            // HTTP 헤더 설정
-            HttpHeaders headers = createHttpHeaders();
-            HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
-            
-            // API 호출
+            log.info("HTTP 요청 전송 중...");
             ResponseEntity<String> response = restTemplate.exchange(
-                url, 
-                HttpMethod.GET, 
-                entity, 
-                String.class
-            );
+                url, HttpMethod.GET, entity, String.class);
+
+            log.info("업비트 현재가 API 응답 상태코드: {}", response.getStatusCode());
             
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                List<BitcoinTickerDTO> tickerList = objectMapper.readValue(
-                    response.getBody(), 
-                    new TypeReference<List<BitcoinTickerDTO>>() {}
-                );
+            if (response.getStatusCode().is2xxSuccessful()) {
+                String responseBody = response.getBody();
+                log.info("현재가 API 응답 본문 길이: {} characters", responseBody != null ? responseBody.length() : 0);
                 
-                logger.info("{}개의 암호화폐 시세 정보를 가져왔습니다.", tickerList.size());
+                if (responseBody == null || responseBody.trim().isEmpty()) {
+                    log.error("현재가 API 응답 본문이 비어있음");
+                    return List.of();
+                }
                 
-                // 로그로 각 종목의 현재가 출력 (디버깅용)
-                tickerList.forEach(ticker -> 
-                    logger.debug("{}: {} KRW", ticker.getMarket(), ticker.getTradePrice()));
+                // 응답 본문 일부 로깅 (처음 500자)
+                String preview = responseBody.length() > 500 ? responseBody.substring(0, 500) + "..." : responseBody;
+                log.info("현재가 API 응답 본문 미리보기: {}", preview);
                 
-                return tickerList;
+                try {
+                    List<UpbitTickerDto> tickers = objectMapper.readValue(
+                        responseBody, new TypeReference<List<UpbitTickerDto>>() {});
+                    
+                    log.info("현재가 JSON 파싱 성공. 조회된 현재가 데이터 수: {}", tickers.size());
+                    
+                    if (!tickers.isEmpty()) {
+                        UpbitTickerDto sample = tickers.get(0);
+                        log.info("첫 번째 현재가 데이터 샘플: {} - 현재가: {}, 등락률: {}%", 
+                            sample.getMarket(), sample.getTrade_price(), 
+                            sample.getChange_rate() != null ? sample.getChange_rate() * 100 : "N/A");
+                    }
+                    
+                    return tickers;
+                    
+                } catch (Exception jsonException) {
+                    log.error("현재가 JSON 파싱 실패", jsonException);
+                    log.error("파싱 실패한 현재가 응답 내용: {}", responseBody);
+                    return List.of();
+                }
+                
             } else {
-                logger.error("업비트 API 다중 시세 호출 실패. 상태 코드: {}", response.getStatusCode());
-                return null;
+                log.error("업비트 현재가 조회 실패. 상태코드: {}, 응답: {}", 
+                    response.getStatusCode(), response.getBody());
+                return List.of();
             }
             
+        } catch (org.springframework.web.client.ResourceAccessException e) {
+            log.error("현재가 API 네트워크 연결 실패: {}", e.getMessage());
+            return List.of();
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            log.error("현재가 API HTTP 클라이언트 오류 (4xx): 상태코드={}, 응답={}", 
+                e.getStatusCode(), e.getResponseBodyAsString());
+            return List.of();
+        } catch (org.springframework.web.client.HttpServerErrorException e) {
+            log.error("현재가 API HTTP 서버 오류 (5xx): 상태코드={}, 응답={}", 
+                e.getStatusCode(), e.getResponseBodyAsString());
+            return List.of();
         } catch (Exception e) {
-            logger.error("업비트 API 다중 시세 호출 중 오류 발생: {}", e.getMessage(), e);
-            return null;
+            log.error("현재가 API 예상치 못한 오류: {}", e.getClass().getSimpleName(), e);
+            return List.of();
         }
     }
-    
+
     /**
-     * 비트코인의 현재가만 간단하게 가져옵니다.
+     * 모든 KRW 마켓의 현재가 정보 조회 (배치 처리)
+     * @return 현재가 정보 리스트
      */
-    public Double getBitcoinPrice() {
-        logger.debug("비트코인 현재가 조회 요청");
+    public List<UpbitTickerDto> getAllKrwTickers() {
+        log.info("=== 업비트 전체 KRW 마켓 현재가 조회 시작 (배치 처리) ===");
         
-        BitcoinTickerDTO ticker = getBitcoinTicker();
+        List<UpbitMarketDto> markets = getAllMarkets();
         
-        if (ticker != null) {
-            Double price = ticker.getTradePrice();
-            logger.debug("비트코인 현재가: {} KRW", price);
-            return price;
-        } else {
-            logger.warn("비트코인 현재가 조회 실패");
-            return null;
+        if (markets.isEmpty()) {
+            log.warn("조회된 마켓이 없습니다. API 호출 실패 가능성");
+            return List.of();
         }
+
+        List<String> marketCodes = markets.stream()
+            .map(UpbitMarketDto::getMarket)
+            .collect(Collectors.toList());
+
+        log.info("마켓 코드 리스트 준비 완료: {}개", marketCodes.size());
+        log.info("마켓 코드 샘플: {}", marketCodes.stream().limit(5).collect(Collectors.toList()));
+
+        // 9개씩 배치로 나누어 처리
+        List<UpbitTickerDto> allTickers = new java.util.ArrayList<>();
+        int batchSize = 9;
+        int totalBatches = (int) Math.ceil((double) marketCodes.size() / batchSize);
+        
+        log.info("배치 처리 시작: 총 {}개 마켓을 {}개씩 {}번의 배치로 처리", 
+            marketCodes.size(), batchSize, totalBatches);
+        
+        for (int i = 0; i < marketCodes.size(); i += batchSize) {
+            int batchNumber = (i / batchSize) + 1;
+            int endIndex = Math.min(i + batchSize, marketCodes.size());
+            List<String> batch = marketCodes.subList(i, endIndex);
+            
+            log.info("배치 {}/{} 처리 중: {}개 마켓 ({} ~ {})", 
+                batchNumber, totalBatches, batch.size(), i + 1, endIndex);
+            log.debug("배치 {} 마켓 목록: {}", batchNumber, batch);
+            
+            try {
+                List<UpbitTickerDto> batchTickers = getTickers(batch);
+                allTickers.addAll(batchTickers);
+                
+                log.info("배치 {}/{} 완료: {}개 마켓 요청 → {}개 Ticker 응답", 
+                    batchNumber, totalBatches, batch.size(), batchTickers.size());
+                
+                // API 호출 제한을 고려해 약간의 지연 추가 (100ms)
+                Thread.sleep(100);
+                
+            } catch (Exception e) {
+                log.error("배치 {}/{} 처리 중 오류 발생: {}", batchNumber, totalBatches, e.getMessage());
+                // 하나의 배치가 실패해도 계속 진행
+                continue;
+            }
+        }
+        
+        log.info("=== 업비트 전체 KRW 마켓 현재가 조회 완료 ===");
+        log.info("최종 결과: {}개 마켓 → {}개 Ticker 수집", marketCodes.size(), allTickers.size());
+        
+        return allTickers;
     }
-    
+
     /**
-     * 업비트 API 연결 상태를 확인합니다.
+     * 테스트용 단일 마켓 조회
      */
-    public boolean isApiAvailable() {
-        try {
-            logger.debug("API 연결 상태 확인 중...");
-            
-            BitcoinTickerDTO ticker = getBitcoinTicker();
-            boolean isAvailable = ticker != null;
-            
-            logger.info("API 연결 상태: {}", isAvailable ? "정상" : "불가능");
-            return isAvailable;
-            
-        } catch (Exception e) {
-            logger.error("API 연결 상태 확인 중 오류: {}", e.getMessage());
-            return false;
-        }
-    }
-    
-    /**
-     * HTTP 요청에 사용할 공통 헤더를 생성합니다.
-     */
-    private HttpHeaders createHttpHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        
-        // JSON 응답을 요청
-        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-        
-        // User-Agent 설정 (일부 API에서 필수)
-        headers.add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
-        
-        // 추가 헤더 (필요시)
-        headers.add("Accept-Language", "ko-KR,ko;q=0.9,en;q=0.8");
-        
-        logger.debug("HTTP 헤더 생성 완료");
-        return headers;
-    }
-    
-    /**
-     * 비트코인 가격을 포맷팅하여 문자열로 반환합니다.
-     */
-    public String getFormattedBitcoinPrice() {
-        Double price = getBitcoinPrice();
-        
-        if (price != null) {
-            // 천 단위 콤마 추가
-            java.text.DecimalFormat formatter = new java.text.DecimalFormat("#,###");
-            String formattedPrice = formatter.format(price);
-            
-            logger.debug("포맷팅된 비트코인 가격: {} KRW", formattedPrice);
-            return formattedPrice + " KRW";
-        } else {
-            logger.warn("비트코인 가격 정보를 가져올 수 없습니다.");
-            return "가격 정보 없음";
-        }
-    }
-    
-    /**
-     * 특정 암호화폐의 현재가를 조회합니다.
-     */
-    public Double getCryptocurrencyPrice(String marketCode) {
-        // 입력 검증
-        if (marketCode == null || marketCode.trim().isEmpty()) {
-            logger.error("마켓 코드가 비어있습니다.");
-            throw new IllegalArgumentException("마켓 코드는 필수입니다.");
-        }
-        
-        logger.info("{} 가격 조회 요청", marketCode);
-        
-        List<BitcoinTickerDTO> tickers = getMultipleTickers(marketCode);
-        
-        if (tickers != null && !tickers.isEmpty()) {
-            BitcoinTickerDTO ticker = tickers.get(0);
-            Double price = ticker.getTradePrice();
-            
-            logger.info("{} 현재가: {} KRW", marketCode, price);
-            return price;
-        } else {
-            logger.warn("{} 가격 조회 실패", marketCode);
-            return null;
-        }
+    public UpbitTickerDto getTickerForTest(String market) {
+        log.info("테스트용 단일 마켓 조회: {}", market);
+        List<UpbitTickerDto> tickers = getTickers(List.of(market));
+        return tickers.isEmpty() ? null : tickers.get(0);
     }
 }
