@@ -1,6 +1,5 @@
 package com.banklab.product.service.mortgage;
 
-import com.banklab.product.domain.LoanType;
 import com.banklab.product.domain.ProductType;
 import com.banklab.product.dto.mortgage.MortgageLoanWithOptionsDto;
 import com.banklab.product.dto.mortgage.MortgageLoanProductDto;
@@ -115,8 +114,7 @@ public class MortgageLoanDetailServiceImpl implements MortgageLoanDetailService 
                 .finPrdtCd(product.getFinPrdtCd())
                 .finPrdtNm(product.getFinPrdtNm())
                 .korCoNm(product.getKorCoNm())
-                .productType(ProductType.LOAN)
-                .loanType(LoanType.MORTGAGE)
+                .productType(ProductType.MORTGAGE)
                 .joinWay(product.getJoinWay())
                 .loanInciExpn(product.getLoanInciExpn())
                 .erlyRpayFee(product.getErlyRpayFee())

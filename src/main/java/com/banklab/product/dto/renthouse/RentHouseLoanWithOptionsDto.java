@@ -1,6 +1,5 @@
 package com.banklab.product.dto.renthouse;
 
-import com.banklab.product.domain.LoanType;
 import com.banklab.product.domain.ProductType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,8 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -25,7 +22,6 @@ public class RentHouseLoanWithOptionsDto {
     private String korCoNm; // 금융회사명
     private String finPrdtNm; // 금융상품명
     private ProductType productType;
-    private LoanType loanType;
 
     private String joinWay; // 가입방법
     private String loanInciExpn; // 대출부대비용

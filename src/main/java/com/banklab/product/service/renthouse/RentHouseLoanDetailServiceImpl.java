@@ -1,10 +1,8 @@
 package com.banklab.product.service.renthouse;
 
-import com.banklab.product.domain.LoanType;
 import com.banklab.product.domain.ProductType;
 import com.banklab.product.domain.renthouse.RentHouseLoanOption;
 import com.banklab.product.domain.renthouse.RentHouseLoanProduct;
-import com.banklab.product.dto.mortgage.MortgageLoanOptionDto;
 import com.banklab.product.dto.renthouse.RentHouseLoanOptionDto;
 import com.banklab.product.dto.renthouse.RentHouseLoanWithOptionsDto;
 import com.banklab.product.mapper.RentHouseLoanOptionMapper;
@@ -14,7 +12,6 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -80,8 +77,7 @@ public class RentHouseLoanDetailServiceImpl implements RentHouseLoanDetailServic
                 .finPrdtCd(product.getFinPrdtCd())
                 .korCoNm(product.getKorCoNm())
                 .finPrdtNm(product.getFinPrdtNm())
-                .productType(ProductType.LOAN)
-                .loanType(LoanType.RENT)
+                .productType(ProductType.RENTHOUSE)
                 .joinWay(product.getJoinWay())
                 .loanInciExpn(product.getLoanInciExpn())
                 .erlyRpayFee(product.getErlyRpayFee())

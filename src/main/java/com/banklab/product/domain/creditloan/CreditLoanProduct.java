@@ -26,10 +26,6 @@ public class CreditLoanProduct {
     private LocalDate dclsStrtDay;
     private LocalDate dclsEndDay;
     private LocalDateTime finCoSubmDay;
-
-    // 위험도 분석용 추가 필드들
-    private String spclCnd; // 우대조건 (분석용)
-    private String etcNote; // 기타유의사항 (분석용)
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

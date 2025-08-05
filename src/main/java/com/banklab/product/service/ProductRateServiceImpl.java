@@ -41,7 +41,7 @@ public class ProductRateServiceImpl implements ProductRateService {
             switch (productType) {
                 case DEPOSIT -> processDepositRates(productList, rateMap);
                 case SAVINGS -> processSavingsRates(productList, rateMap);
-                case LOAN -> processLoanRates(productList, rateMap);
+                case CREDITLOAN -> processLoanRates(productList, rateMap);
                 default -> log.warn("지원하지 않는 상품 타입: {}", productType);
             }
         });
@@ -116,7 +116,7 @@ public class ProductRateServiceImpl implements ProductRateService {
             // 신용대출의 경우 메타데이터가 없을 수 있으므로 기본값 사용
             if (rating.getDclsMonth() == null || rating.getFinCoNo() == null || rating.getFinPrdtCd() == null) {
                 log.warn("신용대출 상품의 메타데이터가 없어 기본 금리 사용. productId: {}", rating.getProductId());
-                setDefaultRate(rating, rateMap, ProductType.LOAN, 
+                setDefaultRate(rating, rateMap, ProductType.CREDITLOAN,
                                new BigDecimal("4.5"), new BigDecimal("8.5"));
                 continue;
             }
@@ -135,19 +135,19 @@ public class ProductRateServiceImpl implements ProductRateService {
                             .dclsMonth(rating.getDclsMonth())
                             .finCoNo(rating.getFinCoNo())
                             .finPrdtCd(rating.getFinPrdtCd())
-                            .productType(ProductType.LOAN)
+                            .productType(ProductType.CREDITLOAN)
                             .minRate(loanInfo.getMinRate())
                             .maxRate(loanInfo.getMaxRate())
                             .build());
                 } else {
                     log.warn("신용대출 상품 조회 실패 또는 금리 정보 없음: loanInfo={}", loanInfo);
-                    setDefaultRate(rating, rateMap, ProductType.LOAN, 
+                    setDefaultRate(rating, rateMap, ProductType.CREDITLOAN,
                                    new BigDecimal("4.5"), new BigDecimal("8.5"));
                 }
             } catch (Exception e) {
                 log.error("대출 상품 금리 조회 중 예외 발생: productId={}, finPrdtCd={}", 
                           rating.getProductId(), rating.getFinPrdtCd(), e);
-                setDefaultRate(rating, rateMap, ProductType.LOAN, 
+                setDefaultRate(rating, rateMap, ProductType.CREDITLOAN,
                                new BigDecimal("4.5"), new BigDecimal("8.5"));
             }
         }

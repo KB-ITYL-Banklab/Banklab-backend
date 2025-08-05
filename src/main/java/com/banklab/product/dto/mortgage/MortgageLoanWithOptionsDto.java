@@ -1,6 +1,5 @@
 package com.banklab.product.dto.mortgage;
 
-import com.banklab.product.domain.LoanType;
 import com.banklab.product.domain.ProductType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
@@ -24,7 +23,6 @@ public class MortgageLoanWithOptionsDto {
     private String finPrdtNm;
     private String korCoNm;
     private ProductType productType;
-    private LoanType loanType;
 
     private String joinWay;
     private String loanInciExpn;

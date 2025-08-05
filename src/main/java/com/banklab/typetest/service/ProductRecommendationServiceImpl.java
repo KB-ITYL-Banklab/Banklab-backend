@@ -131,7 +131,7 @@ public class ProductRecommendationServiceImpl implements ProductRecommendationSe
                             log.warn("적금 상품 조회 실패: productId={}", rating.getProductId());
                         }
                     }
-                    case LOAN -> {
+                    case CREDITLOAN -> {
                         CreditLoanProduct product = loanMap.get(rating.getProductId());
                         if (product != null) {
                             log.info("신용대출 상품 조회 성공: {}", product.getFinPrdtNm());
@@ -191,7 +191,7 @@ public class ProductRecommendationServiceImpl implements ProductRecommendationSe
         return switch (productType) {
             case DEPOSIT -> "예금 상품";
             case SAVINGS -> "적금 상품";
-            case LOAN -> "신용대출 상품";
+            case CREDITLOAN -> "신용대출 상품";
             default -> "금융 상품";
         };
     }
@@ -203,7 +203,7 @@ public class ProductRecommendationServiceImpl implements ProductRecommendationSe
         return switch (productType) {
             case DEPOSIT -> "연 2.5~3.5%";
             case SAVINGS -> "연 3.0~4.0%";
-            case LOAN -> "연 4.5~8.5%";
+            case CREDITLOAN -> "연 4.5~8.5%";
             default -> "연 2~5%";
         };
     }
