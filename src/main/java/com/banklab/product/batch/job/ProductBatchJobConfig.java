@@ -8,6 +8,8 @@ import com.banklab.product.batch.tasklet.deposit.DeleteDepositTasklet;
 import com.banklab.product.batch.tasklet.deposit.FetchAndInsertDepositTasklet;
 import com.banklab.product.batch.tasklet.mortgage.DeleteMortgageLoanTasklet;
 import com.banklab.product.batch.tasklet.mortgage.FetchAndInsertMortgageLoanTasklet;
+import com.banklab.product.batch.tasklet.renthouse.DeleteRentHouseLoanTasklet;
+import com.banklab.product.batch.tasklet.renthouse.FetchAndInsertRentHouseLoanTasklet;
 import com.banklab.product.batch.tasklet.savings.DeleteSavingsTasklet;
 import com.banklab.product.batch.tasklet.savings.FetchAndInsertSavingsTasklet;
 import org.springframework.batch.core.Job;
@@ -66,6 +68,12 @@ public class ProductBatchJobConfig {
     private DeleteMortgageLoanTasklet deleteMortgageLoanTasklet;
     @Autowired
     private FetchAndInsertMortgageLoanTasklet fetchAndInsertMortgageLoanTasklet;
+
+    //Rent House Loan Tasklets
+    @Autowired
+    private DeleteRentHouseLoanTasklet deleteRentHouseLoanTasklet;
+    @Autowired
+    private FetchAndInsertRentHouseLoanTasklet fetchAndInsertRentHouseLoanTasklet;
 
     @Bean
     public Job depositRefreshJob() {
@@ -177,5 +185,25 @@ public class ProductBatchJobConfig {
                 .build();
     }
 
+    @Bean
+    public Job rentHouseLoanRefreshJob() {
+        return jobBuilderFactory.get("rentHouseLoanRefreshJob")
+                .start(deleteRentHouseLoanStep())
+                .next(fetchAndInsertRentHouseLoanStep())
+                .build();
+    }
 
+    @Bean
+    public Step deleteRentHouseLoanStep() {
+        return stepBuilderFactory.get("deleteRentHouseLoanStep")
+                .tasklet(deleteRentHouseLoanTasklet)
+                .build();
+    }
+
+    @Bean
+    public Step fetchAndInsertRentHouseLoanStep() {
+        return stepBuilderFactory.get("fetchAndInsertRentHouseLoanStep")
+                .tasklet(fetchAndInsertRentHouseLoanTasklet)
+                .build();
+    }
 }
