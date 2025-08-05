@@ -2,6 +2,7 @@ package com.banklab.financeContents.controller;
 
 import com.banklab.financeContents.dto.*;
 import com.banklab.financeContents.service.FinanceQuizService;
+import com.banklab.security.util.LoginUserProvider;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -24,6 +25,9 @@ public class FinanceQuizController {
 
     @Autowired
     private FinanceQuizService financeQuizService;
+    
+    @Autowired
+    private LoginUserProvider loginUserProvider;
 
     @ApiOperation(value = "헬스 체크", notes = "서비스 상태를 확인합니다.")
     @GetMapping("/health")
@@ -77,16 +81,54 @@ public class FinanceQuizController {
     @ApiOperation(value = "오늘의 퀴즈 조회", notes = "오늘 날짜 기준으로 모든 사용자에게 동일한 3문제를 제공합니다.")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "성공적으로 조회됨"),
+            @ApiResponse(code = 403, message = "이미 오늘 퀴즈를 완료함"),
             @ApiResponse(code = 500, message = "서버 오류")
     })
     @GetMapping("/today")
-    public ResponseEntity<QuizResponseDTO> getTodayQuizzes() {
+    public ResponseEntity<Map<String, Object>> getTodayQuizzes() {
         try {
+            // 로그인한 사용자 ID 가져오기 (선택사항)
+            Long memberId = null;
+            try {
+                memberId = loginUserProvider.getLoginMemberId();
+            } catch (Exception e) {
+                // 비로그인 사용자의 경우 퀴즈만 제공
+            }
+            
+            Map<String, Object> response = new HashMap<>();
+            
+            // 오늘의 퀴즈 문제들 가져오기 (완료 여부와 상관없이)
             List<FinanceQuizDTO> todayQuizzes = financeQuizService.getTodayQuizzes();
-            QuizResponseDTO response = new QuizResponseDTO(todayQuizzes);
+            
+            // 로그인 사용자의 경우 오늘 퀴즈 완료 여부 확인
+            if (memberId != null && financeQuizService.hasUserSolvedTodayQuiz(memberId)) {
+                // DB에서 오늘의 퀴즈 결과 조회
+                DailyQuizResultDTO todayResult = financeQuizService.getTodayQuizResult(memberId);
+                
+                response.put("success", false);
+                response.put("message", "오늘은 이미 퀴즈를 완료하셨습니다. 내일 다시 도전해주세요!");
+                response.put("alreadySolved", true);
+                response.put("quizzes", todayQuizzes); // 퀴즈 문제들 제공
+                
+                if (todayResult != null) {
+                    // DB에서 가져온 상세 결과 포함
+                    response.put("quizResult", todayResult);
+                }
+                
+                return ResponseEntity.status(403).body(response);
+            }
+            
+            response.put("success", true);
+            response.put("message", "오늘의 퀴즈를 성공적으로 조회했습니다.");
+            response.put("quizzes", todayQuizzes);
+            response.put("alreadySolved", false);
+            
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.status(500).build();
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "서버 오류가 발생했습니다.");
+            return ResponseEntity.status(500).body(errorResponse);
         }
     }
 
@@ -116,7 +158,7 @@ public class FinanceQuizController {
             @ApiResponse(code = 500, message = "서버 오류")
     })
     @PostMapping("/daily-result")
-    public ResponseEntity<DailyQuizResultDTO> processDailyQuizResults(@RequestBody DailyQuizRequestDTO request) {
+    public ResponseEntity<Map<String, Object>> processDailyQuizResults(@RequestBody DailyQuizRequestDTO request) {
         try {
             System.out.println("=== POST /api/quiz/daily-result 호출됨 ===");
             System.out.println("Received request: " + request);
@@ -125,15 +167,35 @@ public class FinanceQuizController {
             
             DailyQuizResultDTO result = financeQuizService.processDailyQuizResults(request);
             System.out.println("DB 저장 성공, 응답 데이터: " + result);
-            return ResponseEntity.ok(result);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "퀴즈 결과가 성공적으로 저장되었습니다.");
+            response.put("result", result);
+            
+            return ResponseEntity.ok(response);
+        } catch (IllegalStateException e) {
+            // 이미 오늘 퀴즈를 완료한 경우
+            System.out.println("IllegalStateException: " + e.getMessage());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", e.getMessage());
+            errorResponse.put("alreadySolved", true);
+            return ResponseEntity.status(403).body(errorResponse);
         } catch (IllegalArgumentException e) {
             System.out.println("IllegalArgumentException: " + e.getMessage());
             e.printStackTrace();
-            return ResponseEntity.badRequest().build();
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "잘못된 요청입니다: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
         } catch (Exception e) {
             System.out.println("Exception: " + e.getMessage());
             e.printStackTrace();
-            return ResponseEntity.status(500).build();
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "서버 오류가 발생했습니다.");
+            return ResponseEntity.status(500).body(errorResponse);
         }
     }
 
