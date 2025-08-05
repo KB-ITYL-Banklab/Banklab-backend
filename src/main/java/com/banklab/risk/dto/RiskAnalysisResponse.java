@@ -28,9 +28,13 @@ public class RiskAnalysisResponse {
     }
     
     public RiskLevel getRiskLevelEnum() {
-        if (riskLevelEnum != null) {
-            return riskLevelEnum;
+        if (this.riskLevel == null || this.riskLevel.isBlank()) {
+            return RiskLevel.MEDIUM; // 기본값
         }
-        return RiskLevel.MEDIUM;
+        try {
+            return RiskLevel.valueOf(this.riskLevel.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return RiskLevel.MEDIUM; // 변환 실패 시 기본값
+        }
     }
 }

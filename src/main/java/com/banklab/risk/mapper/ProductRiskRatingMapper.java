@@ -38,6 +38,10 @@ public interface ProductRiskRatingMapper {
     // 위험도 평가 삭제
     void deleteById(@Param("id") Long id);
     
+    // 특정 상품의 위험도 평가 삭제
+    void deleteByProductTypeAndId(@Param("productType") ProductType productType, 
+                                  @Param("productId") Long productId);
+    
     // 상품 유형에 따른 모든 위험도 평가 조회
     List<ProductRiskRating> findAll();
     
