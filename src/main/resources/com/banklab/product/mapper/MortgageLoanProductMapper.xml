@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.product.mapper.MortgageLoanProductMapper">
+    <select id="findAllMortgageLaonProducts"
+            resultType="com.banklab.product.domain.mortgage.MortgageLoanProduct">
+        SELECT *
+        FROM mortgage_loan_product
+    </select>
+
+    <select id="findById" resultType="com.banklab.product.domain.mortgage.MortgageLoanProduct">
+        SELECT
+            id,
+            dcls_month,
+            fin_co_no,
+            kor_co_nm,
+            fin_prdt_cd,
+            fin_prdt_nm,
+            join_way,
+            loan_inci_expn,
+            erly_rpay_fee,
+            dly_rate,
+            loan_lmt,
+            dcls_strt_day,
+            dcls_end_day,
+            fin_co_subm_day,
+            created_at,
+            updated_at
+        FROM mortgage_loan_product
+        WHERE id = #{id}
+    </select>
+
+    
+    <!-- 단일 주택담보대출 상품 삽입 -->
+    <insert id="insertMortgageLoanProduct" parameterType="com.banklab.product.domain.mortgage.MortgageLoanProduct"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO mortgage_loan_product (
+            dcls_month, fin_co_no, kor_co_nm, fin_prdt_cd, fin_prdt_nm, join_way,
+            loan_inci_expn, erly_rpay_fee, dly_rate, loan_lmt, 
+            dcls_strt_day, dcls_end_day, fin_co_subm_day, created_at, updated_at
+        ) VALUES (
+            #{dclsMonth}, #{finCoNo}, #{korCoNm}, #{finPrdtCd}, #{finPrdtNm}, #{joinWay},
+            #{loanInciExpn}, #{erlyRpayFee}, #{dlyRate}, #{loanLmt},
+            #{dclsStrtDay}, #{dclsEndDay}, #{finCoSubmDay}, NOW(), NOW()
+        )
+    </insert>
+    <delete id="deleteAllMortgageLoanProduct">
+        DELETE FROM mortgage_loan_product
+    </delete>
+
+    <select id="findByProductKey" resultType="com.banklab.product.domain.mortgage.MortgageLoanProduct">
+        SELECT
+            id,
+            dcls_month,
+            fin_co_no,
+            kor_co_nm,
+            fin_prdt_cd,
+            fin_prdt_nm,
+            join_way,
+            loan_inci_expn,
+            erly_rpay_fee,
+            dly_rate,
+            loan_lmt,
+            dcls_strt_day,
+            dcls_end_day,
+            fin_co_subm_day,
+            created_at,
+            updated_at
+        FROM mortgage_loan_product
+        WHERE dcls_month = #{dclsMonth}
+        AND fin_co_no = #{finCoNo}
+        AND fin_prdt_cd = #{finPrdtCd}
+    </select>
+</mapper>
