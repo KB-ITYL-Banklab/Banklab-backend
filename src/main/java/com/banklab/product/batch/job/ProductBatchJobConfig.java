@@ -6,12 +6,15 @@ import com.banklab.product.batch.tasklet.creditloan.DeleteCreditLoanTasklet;
 import com.banklab.product.batch.tasklet.creditloan.FetchAndInsertCreditLoanTasklet;
 import com.banklab.product.batch.tasklet.deposit.DeleteDepositTasklet;
 import com.banklab.product.batch.tasklet.deposit.FetchAndInsertDepositTasklet;
+import com.banklab.product.batch.tasklet.mortgage.DeleteMortgageLoanTasklet;
+import com.banklab.product.batch.tasklet.mortgage.FetchAndInsertMortgageLoanTasklet;
 import com.banklab.product.batch.tasklet.savings.DeleteSavingsTasklet;
 import com.banklab.product.batch.tasklet.savings.FetchAndInsertSavingsTasklet;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -57,6 +60,12 @@ public class ProductBatchJobConfig {
 
     @Autowired
     private FetchAndInsertAnnuityTasklet fetchAndInsertAnnuityTasklet;
+
+    //Mortgage Loan Tasklets
+    @Autowired
+    private DeleteMortgageLoanTasklet deleteMortgageLoanTasklet;
+    @Autowired
+    private FetchAndInsertMortgageLoanTasklet fetchAndInsertMortgageLoanTasklet;
 
     @Bean
     public Job depositRefreshJob() {
@@ -143,6 +152,28 @@ public class ProductBatchJobConfig {
     public Step fetchAndInsertAnnuityStep() {
         return stepBuilderFactory.get("fetchAndInsertAnnuityStep")
                 .tasklet(fetchAndInsertAnnuityTasklet)
+                .build();
+    }
+
+    @Bean
+    public Job mortgageLoanRefreshJob() {
+        return jobBuilderFactory.get("mortgageLoanRefreshJob")
+                .start(deleteMortgageLoanStep())
+                .next(fetchAndInsertMortgageLoanStep())
+                .build();
+    }
+
+    @Bean
+    public Step deleteMortgageLoanStep() {
+        return stepBuilderFactory.get("deleteMortgageLoanStep")
+                .tasklet(deleteMortgageLoanTasklet)
+                .build();
+    }
+
+    @Bean
+    public Step fetchAndInsertMortgageLoanStep() {
+        return stepBuilderFactory.get("fetchAndInsertMortgageLoanStep")
+                .tasklet(fetchAndInsertMortgageLoanTasklet)
                 .build();
     }
 
