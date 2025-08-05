@@ -199,7 +199,7 @@ public class RiskAnalysisService {
         log.info("오늘 업데이트된 연금 상품: {}개", todayAnnuityProducts.size());
         
         // 오늘 업데이트된 주택담보대출 상품
-        List<MortgageLoanProduct> todayMortgageProducts = mortgageLoanProductMapper.findAllMortgageLaonProducts()
+        List<MortgageLoanProduct> todayMortgageProducts = mortgageLoanProductMapper.findAllMortgageLoanProducts()
                 .stream()
                 .filter(product -> product.getUpdatedAt() != null && 
                          product.getUpdatedAt().toLocalDate().equals(today))
@@ -343,7 +343,7 @@ public class RiskAnalysisService {
         }
         
         // 주택담보대출 상품
-        List<MortgageLoanProduct> mortgageProducts = mortgageLoanProductMapper.findAllMortgageLaonProducts();
+        List<MortgageLoanProduct> mortgageProducts = mortgageLoanProductMapper.findAllMortgageLoanProducts();
         for (MortgageLoanProduct product : mortgageProducts) {
             String etcNote = String.format("대출부대비용: %s, 중도상환수수료: %s, 연체이자율: %s, 대출한도: %s",
                     product.getLoanInciExpn() != null ? product.getLoanInciExpn() : "미지정",
@@ -517,7 +517,7 @@ public class RiskAnalysisService {
     public void batchAnalyzeMortgageLoanProductsRisk() {
         log.info("주택담보대출 상품에 대한 배치 위험도 분석 시작...");
         List<BatchRiskAnalysisRequest> requests = new ArrayList<>();
-        List<MortgageLoanProduct> products = mortgageLoanProductMapper.findAllMortgageLaonProducts();
+        List<MortgageLoanProduct> products = mortgageLoanProductMapper.findAllMortgageLoanProducts();
         for (MortgageLoanProduct product : products) {
             String etcNote = String.format("대출부대비용: %s, 중도상환수수료: %s, 연체이자율: %s, 대출한도: %s",
                     product.getLoanInciExpn() != null ? product.getLoanInciExpn() : "미지정",

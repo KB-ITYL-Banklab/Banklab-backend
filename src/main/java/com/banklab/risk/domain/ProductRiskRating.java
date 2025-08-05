@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ProductRiskRating {
     private Long id;
-    private ProductType productType; // DEPOSIT, SAVINGS, LOAN
+    private ProductType productType; // DEPOSIT, SAVINGS, CREDITLOAN, ANNUITY, MORTGAGE, RENTHOUSE
     private Long productId;
     private RiskLevel riskLevel; // LOW, MEDIUM, HIGH
     private String riskReason;

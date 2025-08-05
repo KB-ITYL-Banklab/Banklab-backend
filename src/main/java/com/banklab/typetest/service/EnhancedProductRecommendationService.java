@@ -207,6 +207,7 @@ public class EnhancedProductRecommendationService {
         if (profile.getPriority() == Priority.SAFETY) {
             if (product.getRiskLevel() != null && "LOW".equals(product.getRiskLevel().name())) score += 15;
             if (product.getProductType() == ProductType.DEPOSIT) score += 10;
+            if (product.getProductType() == ProductType.MORTGAGE || product.getProductType() == ProductType.RENTHOUSE) score += 5; // 주택담보/전세자금대출도 안전 우선
         } else if (profile.getPriority() == Priority.RETURN) {
             if (product.getRiskLevel() != null && !"LOW".equals(product.getRiskLevel().name())) score += 10;
         }
@@ -221,8 +222,10 @@ public class EnhancedProductRecommendationService {
         // 투자 기간 매칭
         if (profile.getInvestmentPeriodRange() == PeriodRange.SHORT_TERM) {
             if (product.getProductType() == ProductType.DEPOSIT) score += 5;
+            if (product.getProductType() == ProductType.RENTHOUSE) score += 5; // 전세자금대출 단기 선호
         } else {
             if (product.getProductType() == ProductType.SAVINGS) score += 5;
+            if (product.getProductType() == ProductType.MORTGAGE) score += 5; // 주택담보대출 장기 선호
         }
 
         return score;
@@ -374,7 +377,8 @@ public class EnhancedProductRecommendationService {
         return switch (productType) {
             case "DEPOSIT" -> "정기예금";
             case "SAVINGS" -> "적금";
-            case "LOAN" -> "대출";
+            case "CREDITLOAN", "MORTGAGE", "RENTHOUSE" -> "대출";
+            case "ANNUITY" -> "연금";
             default -> "기타";
         };
     }
