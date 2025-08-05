@@ -11,8 +11,8 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class AnnuityProduct {
     private Long id;
     private String dclsMonth;           // 공시 제출월

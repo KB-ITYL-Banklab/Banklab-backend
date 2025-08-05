@@ -22,7 +22,7 @@
                                                updated_at = NOW()
             WHERE id = #{id}
     </update>
-    <select id="findAllMortgageLaonProducts"
+    <select id="findAllMortgageLoanProducts"
             resultType="com.banklab.product.domain.mortgage.MortgageLoanProduct">
         SELECT *
         FROM mortgage_loan_product

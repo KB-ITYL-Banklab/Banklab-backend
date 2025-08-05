@@ -9,7 +9,7 @@ import java.util.List;
 
 @Mapper
 public interface MortgageLoanProductMapper {
-    List<MortgageLoanProduct> findAllMortgageLaonProducts();
+    List<MortgageLoanProduct> findAllMortgageLoanProducts();
 
     void insertMortgageLoanProduct(MortgageLoanProduct mortgageLoanProduct);
     void deleteAllMortgageLoanProduct();
