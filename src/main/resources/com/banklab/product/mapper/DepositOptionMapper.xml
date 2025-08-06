@@ -4,14 +4,14 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.banklab.product.mapper.DepositOptionMapper">
-    <insert id="insertDepositOption" parameterType="com.banklab.product.domain.DepositOption">
+    <insert id="insertDepositOption" parameterType="com.banklab.product.domain.deposit.DepositOption">
         INSERT INTO deposit_option (
-            dcls_month, fin_co_no, fin_prdt_cd, intr_rate_type, intr_rate_type_nm, save_trm, intr_rate, intr_rate2
+            dcls_month, fin_co_no, fin_prdt_cd, intr_rate_type, intr_rate_type_nm, save_trm, intr_rate, intr_rate2, created_at, updated_at
         ) VALUES (
-            #{dclsMonth}, #{finCoNo}, #{finPrdtCd}, #{intrRateType}, #{intrRateTypeNm}, #{saveTrm}, #{intrRate}, #{intrRate2}
+            #{dclsMonth}, #{finCoNo}, #{finPrdtCd}, #{intrRateType}, #{intrRateTypeNm}, #{saveTrm}, #{intrRate}, #{intrRate2}, NOW(), NOW()
         )
     </insert>
-    <select id="findAllDepositOptions" resultType="com.banklab.product.domain.DepositOption">
+    <select id="findAllDepositOptions" resultType="com.banklab.product.domain.deposit.DepositOption">
         SELECT * FROM deposit_option
     </select>
     <delete id="deleteAllDepositOptions">
@@ -19,7 +19,7 @@
     </delete>
     
     <!-- 특정 상품의 모든 옵션 조회 -->
-    <select id="findOptionsByProduct" resultType="com.banklab.product.domain.DepositOption">
+    <select id="findOptionsByProduct" resultType="com.banklab.product.domain.deposit.DepositOption">
         SELECT 
             id,
             dcls_month as dclsMonth,
@@ -29,12 +29,49 @@
             intr_rate_type_nm as intrRateTypeNm,
             save_trm as saveTrm,
             intr_rate as intrRate,
-            intr_rate2 as intrRate2
+            intr_rate2 as intrRate2,
+            created_at as createdAt,
+            updated_at as updatedAt
         FROM deposit_option
         WHERE dcls_month = #{dclsMonth}
           AND fin_co_no = #{finCoNo}
           AND fin_prdt_cd = #{finPrdtCd}
         ORDER BY save_trm, intr_rate_type
     </select>
+
+    <select id="findByOptionKey" resultType="com.banklab.product.domain.deposit.DepositOption">
+        SELECT 
+            id,
+            dcls_month as dclsMonth,
+            fin_co_no as finCoNo,
+            fin_prdt_cd as finPrdtCd,
+            intr_rate_type as intrRateType,
+            intr_rate_type_nm as intrRateTypeNm,
+            save_trm as saveTrm,
+            intr_rate as intrRate,
+            intr_rate2 as intrRate2,
+            created_at as createdAt,
+            updated_at as updatedAt
+        FROM deposit_option
+        WHERE dcls_month = #{dclsMonth}
+          AND fin_co_no = #{finCoNo}
+          AND fin_prdt_cd = #{finPrdtCd}
+          AND intr_rate_type = #{intrRateType}
+          AND save_trm = #{saveTrm}
+    </select>
+
+    <update id="updateDepositOption" parameterType="com.banklab.product.domain.deposit.DepositOption">
+        UPDATE deposit_option SET
+            dcls_month = #{dclsMonth},
+            fin_co_no = #{finCoNo},
+            fin_prdt_cd = #{finPrdtCd},
+            intr_rate_type = #{intrRateType},
+            intr_rate_type_nm = #{intrRateTypeNm},
+            save_trm = #{saveTrm},
+            intr_rate = #{intrRate},
+            intr_rate2 = #{intrRate2},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
 
 </mapper>

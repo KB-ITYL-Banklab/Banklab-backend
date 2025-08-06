@@ -2,9 +2,11 @@ package com.banklab.calculator.service;
 
 import com.banklab.calculator.domain.TaxType;
 import com.banklab.calculator.domain.LoanType;
+import com.banklab.calculator.dto.request.AnnuityCalculateRequest;
 import com.banklab.calculator.dto.request.DepositCalculateRequest;
 import com.banklab.calculator.dto.request.SavingsCalculateRequest;
 import com.banklab.calculator.dto.request.LoanCalculateRequest;
+import com.banklab.calculator.dto.response.AnnuityCalculateResponse;
 import com.banklab.calculator.dto.response.DepositCalculateResponse;
 import com.banklab.calculator.dto.response.SavingsCalculateResponse;
 import com.banklab.calculator.dto.response.LoanCalculateResponse;
@@ -419,4 +421,71 @@ public class CalculatorServiceImpl implements CalculatorService {
         
         return Math.round(estimatedPayment);
     }
+    @Override
+    public AnnuityCalculateResponse calculateAnnuity(AnnuityCalculateRequest request) {
+        Long monthlySaving = request.getMonthlySaving();    // 월 적립
+        Long lumpSum = request.getLumpSum();                // 거치금
+        Integer savingYears = request.getSavingYears();     // 투자 기간 (년)
+        Double rate = request.getRate() / 100.0;            // 연이율 (소수로 변환)
+        Integer paymentYears = request.getPaymentYears();   // 연금 수령 기간 (년)
+
+        double monthlyRate = rate / 12.0;
+        int totalSavingMonths = savingYears * 12;
+
+        // 1. 월 적립금 복리 계산 (선취 기준, 월초 납입)
+        double savingFV = 0;
+        for (int i = 1; i <= totalSavingMonths; i++) {
+            int remainingMonths = totalSavingMonths - i + 1;
+            savingFV += monthlySaving * Math.pow(1 + monthlyRate, remainingMonths);
+        }
+
+        // 2. 거치금 복리 계산
+        double lumpSumFV = lumpSum * Math.pow(1 + monthlyRate, totalSavingMonths);
+
+        // 3. 총 만기 금액 (세전)
+        double totalPrincipal = savingFV + lumpSumFV;
+
+        // 4. 총 투자 원금
+        double totalInvested = monthlySaving * totalSavingMonths + lumpSum;
+
+        // 5. 이자 수익
+        double interestEarned = totalPrincipal - totalInvested;
+
+        // 6. 세금 계산 (일반과세 15.4%)
+        double taxAmount = interestEarned * TaxType.GENERAL.getRate();
+
+        // 7. 세후 만기 금액
+        double principalAfterTax = totalPrincipal - taxAmount;
+
+        // 8. 연금 수령 개월 수
+        int paymentMonths = paymentYears * 12;
+
+        // 9. 월 수령액 계산 (월복리 연금 지급 공식)
+        double monthlyPayout = principalAfterTax * (monthlyRate / (1 - Math.pow(1 + monthlyRate, -paymentMonths)));
+        double totalPayout = monthlyPayout * paymentMonths;
+
+        // 10. 응답 생성
+        AnnuityCalculateResponse.InputConditions inputConditions =
+                AnnuityCalculateResponse.InputConditions.builder()
+                        .monthlySaving(monthlySaving)
+                        .lumpSum(lumpSum)
+                        .savingYears(savingYears)
+                        .rate(request.getRate())
+                        .paymentYears(paymentYears)
+                        .build();
+
+        AnnuityCalculateResponse.AnnuityResults results =
+                AnnuityCalculateResponse.AnnuityResults.builder()
+                        .totalPayout(Math.round(totalPayout))
+                        .totalMonths(paymentMonths)
+                        .monthlyPayout(Math.round(monthlyPayout))
+                        .build();
+
+        return AnnuityCalculateResponse.builder()
+                .inputConditions(inputConditions)
+                .results(results)
+                .build();
+    }
+
+
 }

@@ -19,13 +19,25 @@
     </select>
     <!-- UserInvestmentType 데이터 삽입 -->
     <insert id="insertUserInvestmentType" parameterType="com.banklab.typetest.domain.UserInvestmentType">
-        INSERT INTO user_investment_type (user_id, investment_type_id, evaluation_date)
-        VALUES (#{userId}, #{investmentTypeId}, #{evaluationDate})
+        INSERT INTO user_investment_type (
+            user_id,
+            investment_type_id,
+            cumulative_views,
+            created_at,
+            updated_at
+        )
+        VALUES (
+                   #{userId},
+                   #{investmentTypeId},
+                    1,
+                   NOW(),
+                   NOW()
+               )
     </insert>
     <!-- UserInvestmentType 데이터 수정 -->
     <update id="updateUserInvestmentType" parameterType="com.banklab.typetest.domain.UserInvestmentType">
         UPDATE user_investment_type
-        SET investment_type_id = #{investmentTypeId}, evaluation_date = #{evaluationDate}
+        SET investment_type_id = #{investmentTypeId}, cumulative_views = #{cumulativeViews}
         WHERE user_id = #{userId}
     </update>
 </mapper>

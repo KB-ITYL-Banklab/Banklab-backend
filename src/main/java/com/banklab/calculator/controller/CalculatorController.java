@@ -1,12 +1,10 @@
 package com.banklab.calculator.controller;
 
+import com.banklab.calculator.dto.request.AnnuityCalculateRequest;
 import com.banklab.calculator.dto.request.DepositCalculateRequest;
 import com.banklab.calculator.dto.request.SavingsCalculateRequest;
 import com.banklab.calculator.dto.request.LoanCalculateRequest;
-import com.banklab.calculator.dto.response.DepositCalculateResponse;
-import com.banklab.calculator.dto.response.SavingsCalculateResponse;
-import com.banklab.calculator.dto.response.LoanCalculateResponse;
-import com.banklab.calculator.dto.response.UserInvestmentProfileResponse;
+import com.banklab.calculator.dto.response.*;
 import com.banklab.calculator.service.CalculatorService;
 import com.banklab.calculator.service.UserProfileService;
 
@@ -92,6 +90,20 @@ public class CalculatorController {
         LoanCalculateResponse response = calculatorService.calculateLoan(request);
 
         log.info("대출 계산 결과: 총비용={}, 총이자={}", response.getResults().getTotalCost(), response.getResults().getTotalInterest());
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 연금 계산기
+     * @param request
+     * @return
+     */
+    @PostMapping("/annuity")
+    public ResponseEntity<AnnuityCalculateResponse> calculateAnnuity(
+            @RequestBody AnnuityCalculateRequest request) {
+
+        AnnuityCalculateResponse response = calculatorService.calculateAnnuity(request);
 
         return ResponseEntity.ok(response);
     }

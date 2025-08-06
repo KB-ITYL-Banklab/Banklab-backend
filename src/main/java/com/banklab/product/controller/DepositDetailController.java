@@ -1,7 +1,7 @@
 package com.banklab.product.controller;
 
 import com.banklab.product.dto.deposit.DepositWithOptionsDto;
-import com.banklab.product.service.DepositDetailService;
+import com.banklab.product.service.deposit.DepositDetailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

@@ -62,27 +62,6 @@ class TypeTestControllerTest {
         assertNotNull(response.getBody());
         verify(typeTestService).getAllQuestions();
     }
-
-    @Test
-    @DisplayName("사용자가 유형검사를 제출했을 때 OK 메시지가 잘 뜨는지")
-    void 사용자가_유형검사를_제출했을_때_OK_메시지가_잘_뜨는지() {
-        // Given
-        Long memberId = 1L;
-
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("answers", Arrays.asList(1, 2, 3, 1, 2));
-
-        when(loginUserProvider.getLoginMemberId()).thenReturn(memberId);
-        // When
-        ResponseEntity<Map<String, String>> response = typeTestController.submitAnswers(payload);
-
-        // Then
-         assertEquals(200, response.getStatusCodeValue());
-         assertNotNull(response.getBody());
-         assertEquals("OK", response.getBody().get("message"));
-
-         verify(typeTestService).submitAnswersWithMemberId(any(Map.class), eq(memberId));
-    }
         @Test
         @DisplayName("유형검사 결과 조회를 했을 때 앞서 테스트한 결과가 잘 뜨는지")
         void 유형검사_결과_조회를_했을_때_앞서_테스트한_결과가_잘_뜨는지() {

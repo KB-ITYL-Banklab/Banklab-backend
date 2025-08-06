@@ -54,32 +54,32 @@
             CASE 
                 WHEN prr.product_type = 'DEPOSIT' THEN dp.fin_prdt_nm
                 WHEN prr.product_type = 'SAVINGS' THEN sp.fin_prdt_nm
-                WHEN prr.product_type = 'LOAN' THEN clp.fin_prdt_nm
+                WHEN prr.product_type = 'CREDITLOAN' THEN clp.fin_prdt_nm
             END as product_name,
             CASE 
                 WHEN prr.product_type = 'DEPOSIT' THEN dp.kor_co_nm
                 WHEN prr.product_type = 'SAVINGS' THEN sp.kor_co_nm
-                WHEN prr.product_type = 'LOAN' THEN clp.kor_co_nm
+                WHEN prr.product_type = 'CREDITLOAN' THEN clp.kor_co_nm
             END as company_name,
             CASE
                 WHEN prr.product_type = 'DEPOSIT' THEN dp.dcls_month
                 WHEN prr.product_type = 'SAVINGS' THEN sp.dcls_month
-                WHEN prr.product_type = 'LOAN' THEN clp.dcls_month
+                WHEN prr.product_type = 'CREDITLOAN' THEN clp.dcls_month
             END as dcls_month,
             CASE
                 WHEN prr.product_type = 'DEPOSIT' THEN dp.fin_co_no
                 WHEN prr.product_type = 'SAVINGS' THEN sp.fin_co_no
-                WHEN prr.product_type = 'LOAN' THEN clp.fin_co_no
+                WHEN prr.product_type = 'CREDITLOAN' THEN clp.fin_co_no
             END as fin_co_no,
             CASE
                 WHEN prr.product_type = 'DEPOSIT' THEN dp.fin_prdt_cd
                 WHEN prr.product_type = 'SAVINGS' THEN sp.fin_prdt_cd
-                WHEN prr.product_type = 'LOAN' THEN clp.fin_prdt_cd
+                WHEN prr.product_type = 'CREDITLOAN' THEN clp.fin_prdt_cd
             END as fin_prdt_cd
         FROM product_risk_rating prr
         LEFT JOIN deposit_product dp ON prr.product_type = 'DEPOSIT' AND prr.product_id = dp.id
         LEFT JOIN savings_product sp ON prr.product_type = 'SAVINGS' AND prr.product_id = sp.id
-        LEFT JOIN credit_loan_product clp ON prr.product_type = 'LOAN' AND prr.product_id = clp.id
+        LEFT JOIN credit_loan_product clp ON prr.product_type = 'CREDITLOAN' AND prr.product_id = clp.id
         WHERE prr.product_type = #{productType} AND prr.product_id = #{productId}
         ORDER BY prr.evaluated_at DESC
         LIMIT 1
@@ -124,6 +124,12 @@
         WHERE id = #{id}
     </delete>
 
+    <!-- 특정 상품의 위험도 평가 삭제 -->
+    <delete id="deleteByProductTypeAndId">
+        DELETE FROM product_risk_rating 
+        WHERE product_type = #{productType} AND product_id = #{productId}
+    </delete>
+
     <!-- 상품 타입에 따른 모든 위험도 평가 조회 -->
     <select id="findAll" resultMap="productRiskRatingMap">
         SELECT 
@@ -131,35 +137,50 @@
             CASE 
                 WHEN prr.product_type = 'DEPOSIT' THEN dp.fin_prdt_nm
                 WHEN prr.product_type = 'SAVINGS' THEN sp.fin_prdt_nm
-                WHEN prr.product_type = 'LOAN' THEN clp.fin_prdt_nm
+                WHEN prr.product_type = 'CREDITLOAN' THEN clp.fin_prdt_nm
+                WHEN prr.product_type = 'ANNUITY' THEN ap.fin_prdt_nm
+                WHEN prr.product_type = 'MORTGAGE' THEN mlp.fin_prdt_nm
+                WHEN prr.product_type = 'RENTHOUSE' THEN rhlp.fin_prdt_nm
             END as product_name,
             CASE 
                 WHEN prr.product_type = 'DEPOSIT' THEN dp.kor_co_nm
                 WHEN prr.product_type = 'SAVINGS' THEN sp.kor_co_nm
-                WHEN prr.product_type = 'LOAN' THEN clp.kor_co_nm
+                WHEN prr.product_type = 'CREDITLOAN' THEN clp.kor_co_nm
+                WHEN prr.product_type = 'ANNUITY' THEN ap.kor_co_nm
+                WHEN prr.product_type = 'MORTGAGE' THEN mlp.kor_co_nm
+                WHEN prr.product_type = 'RENTHOUSE' THEN rhlp.kor_co_nm
             END as company_name,
             CASE
                 WHEN prr.product_type = 'DEPOSIT' THEN dp.dcls_month
                 WHEN prr.product_type = 'SAVINGS' THEN sp.dcls_month
-                WHEN prr.product_type = 'LOAN' THEN clp.dcls_month
-                WHEN prr.product_type = 'CREDIT_LOAN' THEN clp.dcls_month
+                WHEN prr.product_type = 'CREDITLOAN' THEN clp.dcls_month
+                WHEN prr.product_type = 'ANNUITY' THEN ap.dcls_month
+                WHEN prr.product_type = 'MORTGAGE' THEN mlp.dcls_month
+                WHEN prr.product_type = 'RENTHOUSE' THEN rhlp.dcls_month
             END as dcls_month,
             CASE
                 WHEN prr.product_type = 'DEPOSIT' THEN dp.fin_co_no
                 WHEN prr.product_type = 'SAVINGS' THEN sp.fin_co_no
-                WHEN prr.product_type = 'LOAN' THEN clp.fin_co_no
-                WHEN prr.product_type = 'CREDIT_LOAN' THEN clp.fin_co_no
+                WHEN prr.product_type = 'CREDITLOAN' THEN clp.fin_co_no
+                WHEN prr.product_type = 'ANNUITY' THEN ap.fin_co_no
+                WHEN prr.product_type = 'MORTGAGE' THEN mlp.fin_co_no
+                WHEN prr.product_type = 'RENTHOUSE' THEN rhlp.fin_co_no
             END as fin_co_no,
             CASE
                 WHEN prr.product_type = 'DEPOSIT' THEN dp.fin_prdt_cd
                 WHEN prr.product_type = 'SAVINGS' THEN sp.fin_prdt_cd
-                WHEN prr.product_type = 'LOAN' THEN clp.fin_prdt_cd
-                WHEN prr.product_type = 'CREDIT_LOAN' THEN clp.fin_prdt_cd
+                WHEN prr.product_type = 'CREDITLOAN' THEN clp.fin_prdt_cd
+                WHEN prr.product_type = 'ANNUITY' THEN ap.fin_prdt_cd
+                WHEN prr.product_type = 'MORTGAGE' THEN mlp.fin_prdt_cd
+                WHEN prr.product_type = 'RENTHOUSE' THEN rhlp.fin_prdt_cd
             END as fin_prdt_cd
         FROM product_risk_rating prr
         LEFT JOIN deposit_product dp ON prr.product_type = 'DEPOSIT' AND prr.product_id = dp.id
         LEFT JOIN savings_product sp ON prr.product_type = 'SAVINGS' AND prr.product_id = sp.id
-        LEFT JOIN credit_loan_product clp ON prr.product_type = 'LOAN' AND prr.product_id = clp.id
+        LEFT JOIN credit_loan_product clp ON prr.product_type = 'CREDITLOAN' AND prr.product_id = clp.id
+        LEFT JOIN annuity_product ap ON prr.product_type = 'ANNUITY' AND prr.product_id = ap.id
+        LEFT JOIN mortgage_loan_product mlp ON prr.product_type = 'MORTGAGE' AND prr.product_id = mlp.id
+        LEFT JOIN rent_house_loan_product rhlp ON prr.product_type = 'RENTHOUSE' AND prr.product_id = rhlp.id
         ORDER BY prr.evaluated_at DESC
     </select>
 

@@ -26,11 +26,17 @@ public class BatchClaudeAiAnalysisService {
     private final RestTemplate restTemplate;
     private final String apiKey;
     private final String apiUrl = "https://api.anthropic.com/v1/messages";
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
     
     public BatchClaudeAiAnalysisService(@Value("${ai.claude.api-key}") String apiKey) {
         this.apiKey = apiKey;
         this.restTemplate = new RestTemplate();
+        
+        // ObjectMapper 설정을 더 관대하게 구성
+        this.objectMapper = new ObjectMapper();
+        this.objectMapper.configure(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER, true);
+        this.objectMapper.configure(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_UNQUOTED_CONTROL_CHARS, true);
+        this.objectMapper.configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
     
     /**
@@ -40,8 +46,8 @@ public class BatchClaudeAiAnalysisService {
         log.info("배치 위험도 분석 시작 - 상품 수: {}", requests.size());
         
         try {
-            // 배치 크기 제한 (Claude 토큰 제한 고려) - 테스트를 위해 작게 설정
-            int batchSize = Math.min(requests.size(), 5); // 테스트용으로 5개로 제한
+            // 배치 크기 제한 (Claude API 안정성 고려) - 5개로 다시 축소
+            int batchSize = Math.min(requests.size(), 5);
             
             if (requests.size() <= batchSize) {
                 return processBatch(requests);
@@ -66,7 +72,7 @@ public class BatchClaudeAiAnalysisService {
                 List<BatchRiskAnalysisRequest> batch = requests.subList(start, end);
                 
                 try {
-                    Thread.sleep(200); // 배치 간 딜레이
+                    Thread.sleep(5000); // 배치 간 딜레이 증가 (2000ms -> 5000ms)
                     return processBatch(batch);
                 } catch (Exception e) {
                     log.error("배치 {} 처리 실패", i, e);
@@ -100,38 +106,24 @@ public class BatchClaudeAiAnalysisService {
     private String buildBatchPrompt(List<BatchRiskAnalysisRequest> requests) {
         StringBuilder prompt = new StringBuilder();
         prompt.append("""
-            당신은 매우 보수적인 금융상품 위험도 분석 전문가입니다. 고객 보호를 최우선으로 하며, 작은 위험 요소라도 중요하게 평가하여
-            아래 여러 금융상품들을 한 번에 분석하여 각각의 위험도를 평가해주세요.
+            당신은 금융상품 위험도 분석 전문가입니다. 고객 보호를 최우선으로 하여 아래 상품들의 위험도를 평가해주세요.
             
-            ## 매우 보수적인 위험도 분류 기준 (고객 보호 최우선)
-            **LOW (저위험)**: 
-            - 예금/적금: 기본적인 해당 사항
-            - 대출: 해당 없음 
+            ## 위험도 분류 기준
+            **LOW**: 예금/적금 기본 상품만 해당
             
-            **MEDIUM (중위험)**: 
-            - 예금/적금: 다음 중 세 개 이상 해당하면 중위험
-              * 우대조건 존재 (추가 거래 요구, 잔액 조건 등)
-              * 복합적 가입방법 (온라인 전용, 특정 채널 제한)
-              * 특정 대상 제한 (직장인, 연령 제한, 소득 조건 등)
-              * 만기 제약 (중도해지 불이익, 자동연장 조건)
-              * 금리 변동 요소 (단계별 금리, 조건부 금리)
-              * 최소/최대 한도 제약
-            - 대출: 해당 없음 
+            **MEDIUM**: 
+            - 예금/적금: 우대조건, 가입제한, 금리변동 등 3개 이상 조건
+            - 연금: 보장수익률 낮음(3%미만), 장기유지(10년이상), 복잡구조
             
-            **HIGH (고위험)**: 
-            - 예금/적금: 다음 중 하나라도 해당하면 고위험
-              * 매우 복잡한 조건부 상품 (다단계 우대조건)
-              * 높은 변동성 (시장연동형, 복잡한 금리 구조)
-              * 매우 제한적 대상 (까다로운 자격 조건)
-              * 심각한 해지 제약 (높은 중도해지 수수료, 장기 구속)
-            - 대출: 모든 대출 상품 (특히 고금리, 복잡한 조건, 담보 위험 등)
-           
+            **HIGH**: 
+            - 모든 대출상품 (신용대출, 주택담보대출, 전세자금대출)
+            - 연금: 변액연금, 보장수익률 없음, 원금손실위험
+            - 예금/적금: 매우 복잡한 조건, 높은 변동성
             
-            ## 매우 엄격한 평가 원칙
-            - **대출 상품은 모두 HIGH 이상**: 개인신용대출도 최소 HIGH (상환 부담, 연체 위험, 신용등급 영향)
-            - **예금/적금도 조건이 있으면 즉시 MEDIUM**: 우대조건, 가입 제한, 온라인 전용 등 조건이 세 개 이상 존재하면 MEDIUM
-            - **복잡하거나 이해하기 어려운 모든 요소는 위험 요소**: 고객이 완전히 이해하지 못할 수 있는 모든 조건
-            - **"간편함"보다 "안전함"을 우선**: 조금이라도 복잡하면 위험으로 간주
+            ## 평가원칙
+            - 대출상품은 모두 HIGH
+            - 연금상품은 기본 MEDIUM 이상
+            - 복잡한 조건은 위험요소로 간주
             
             ## 분석할 상품들
             """);
@@ -163,23 +155,17 @@ public class BatchClaudeAiAnalysisService {
         prompt.append("""
             
             ## 응답 형식
-          
-            각 상품에 대해 아래 JSON 배열 형식으로 순서대로 응답해주세요:
+            JSON 배열로만 응답하세요:
             
             [
               {
                 "product_index": 1,
                 "risk_level": "LOW|MEDIUM|HIGH",
-                "risk_reason": "매우 보수적 관점에서 발견한 위험 요소들을 구체적으로 나열하여 설명"
-              },
-              {
-                "product_index": 2,
-                "risk_level": "LOW|MEDIUM|HIGH", 
-                "risk_reason": "매우 보수적 관점에서 발견한 위험 요소들을 구체적으로 나열하여 설명"
+                "risk_reason": "위험 요소를 간단히 설명"
               }
             ]
             
-            JSON 배열만 응답하고 다른 텍스트는 포함하지 마세요.
+            다른 텍스트 없이 JSON만 응답하세요.
             """);
         
         return prompt.toString();
@@ -190,88 +176,166 @@ public class BatchClaudeAiAnalysisService {
     }
     
     private String callClaudeApi(String prompt) {
-        try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("x-api-key", apiKey);
-            headers.set("anthropic-version", "2023-06-01");
-            
-            Map<String, Object> requestBody = Map.of(
-                "model", "claude-3-haiku-20240307", // 가장 저렴한 모델
-                "max_tokens", 4000, // 배치 처리를 위해 토큰 증가
-                "messages", List.of(
-                    Map.of("role", "user", "content", prompt)
-                )
-            );
-            
-            log.debug("Claude API 호출 시작 - 모델: claude-3-haiku-20240307, 토큰: 4000");
-            
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-            ResponseEntity<Map> response = restTemplate.postForEntity(apiUrl, entity, Map.class);
-            
-            if (response.getStatusCode() != HttpStatus.OK) {
-                throw new RuntimeException("Claude API 호출 실패 - HTTP 상태: " + response.getStatusCode());
+        int maxRetries = 5;
+        long baseDelay = 3000; // 3초
+        
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                headers.set("x-api-key", apiKey);
+                headers.set("anthropic-version", "2023-06-01");
+                
+                Map<String, Object> requestBody = Map.of(
+                    "model", "claude-3-haiku-20240307",
+                    "max_tokens", 4000,
+                    "messages", List.of(
+                        Map.of("role", "user", "content", prompt)
+                    )
+                );
+                
+                log.debug("Claude API 호출 시작 - 시도 {}/{}", attempt, maxRetries);
+                
+                HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+                ResponseEntity<Map> response = restTemplate.postForEntity(apiUrl, entity, Map.class);
+                
+                if (response.getStatusCode() != HttpStatus.OK) {
+                    throw new RuntimeException("Claude API 호출 실패 - HTTP 상태: " + response.getStatusCode());
+                }
+                
+                Map<String, Object> responseBody = response.getBody();
+                if (responseBody == null) {
+                    throw new RuntimeException("Claude API 응답 본문이 null입니다");
+                }
+                
+                List<Map<String, Object>> content = (List<Map<String, Object>>) responseBody.get("content");
+                if (content == null || content.isEmpty()) {
+                    throw new RuntimeException("Claude API 응답에 content가 없습니다");
+                }
+                
+                String responseText = (String) content.get(0).get("text");
+                log.info("Claude API 호출 성공 - 응답 길이: {} chars (시도 {})", 
+                        responseText != null ? responseText.length() : 0, attempt);
+                
+                return responseText;
+                
+            } catch (org.springframework.web.client.HttpServerErrorException e) {
+                log.warn("Claude API 서버 오류 - 시도 {}/{}: {}", attempt, maxRetries, e.getMessage());
+                
+                if (e.getRawStatusCode() == 529) { // Overloaded
+                    if (attempt < maxRetries) {
+                        long delay = baseDelay * attempt; // 지수 백오프
+                        log.info("API 과부하로 {}ms 대기 후 재시도...", delay);
+                        try {
+                            Thread.sleep(delay);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            throw new RuntimeException("재시도 대기 중 인터럽트 발생", ie);
+                        }
+                        continue;
+                    }
+                }
+                throw new RuntimeException("Claude API 호출 실패 (서버 오류)", e);
+                
+            } catch (Exception e) {
+                log.error("Claude API 호출 중 오류 발생 - 시도 {}/{}", attempt, maxRetries, e);
+                
+                if (attempt < maxRetries) {
+                    long delay = baseDelay * attempt;
+                    log.info("{}ms 대기 후 재시도...", delay);
+                    try {
+                        Thread.sleep(delay);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException("재시도 대기 중 인터럽트 발생", ie);
+                    }
+                    continue;
+                }
+                throw new RuntimeException("Claude API 호출 실패", e);
             }
-            
-            Map<String, Object> responseBody = response.getBody();
-            if (responseBody == null) {
-                throw new RuntimeException("Claude API 응답 본문이 null입니다");
-            }
-            
-            List<Map<String, Object>> content = (List<Map<String, Object>>) responseBody.get("content");
-            if (content == null || content.isEmpty()) {
-                throw new RuntimeException("Claude API 응답에 content가 없습니다");
-            }
-            
-            String responseText = (String) content.get(0).get("text");
-            log.info("Claude API 호출 성공 - 응답 길이: {} chars", responseText != null ? responseText.length() : 0);
-            
-            return responseText;
-            
-        } catch (Exception e) {
-            log.error("Claude API 호출 중 오류 발생", e);
-            throw new RuntimeException("Claude API 호출 실패", e);
         }
+        
+        throw new RuntimeException("Claude API 호출 최대 재시도 횟수 초과");
     }
     
     private List<RiskAnalysisResponse> parseBatchResponse(String response, int expectedCount) {
         try {
             log.info("=== PARSING RESPONSE ===");
             log.info("Expected count: {}", expectedCount);
-            log.info("Raw response: {}", response);
+            log.info("Raw response length: {} chars", response.length());
+            log.debug("Raw response preview: {}", response.length() > 500 ? response.substring(0, 500) + "..." : response);
 
             String jsonPart = extractJsonFromResponse(response);
-            jsonPart = sanitizeJson(jsonPart);
-            log.info("Extracted JSON: {}", jsonPart);
+            log.info("Extracted JSON length: {} chars", jsonPart.length());
             
-            List<Map<String, Object>> results = objectMapper.readValue(
-                jsonPart,
-                new TypeReference<List<Map<String, Object>>>() {}
-            );
-            
-            log.info("Parsed results count: {}", results.size());
-            
-            List<RiskAnalysisResponse> responses = results.stream()
-                .map(this::mapToRiskAnalysisResponse)
-                .toList();
+            // JSON이 이미 올바른 형태인지 먼저 확인
+            List<Map<String, Object>> results;
+            try {
+                // 첫 번째 시도: 원본 JSON 그대로 파싱
+                results = objectMapper.readValue(
+                    jsonPart,
+                    new TypeReference<List<Map<String, Object>>>() {}
+                );
+                log.info("JSON parsing successful (원본) - parsed {} results", results.size());
                 
-            // 개수가 맞지 않으면 부족한 만큼 기본값 추가
-            if (responses.size() < expectedCount) {
-                List<RiskAnalysisResponse> allResponses = new java.util.ArrayList<>(responses);
-                for (int i = responses.size(); i < expectedCount; i++) {
-                    allResponses.add(createSafeRiskAnalysisResponse("MEDIUM", "응답 개수 부족으로 인한 기본 평가"));
+            } catch (Exception firstParseError) {
+                log.warn("원본 JSON 파싱 실패, 정제 후 재시도: {}", firstParseError.getMessage());
+                
+                try {
+                    // 두 번째 시도: 정제 후 파싱
+                    String sanitizedJson = sanitizeJson(jsonPart);
+                    log.info("Sanitized JSON length: {} chars", sanitizedJson.length());
+                    log.debug("Sanitized JSON preview: {}", sanitizedJson.length() > 1000 ? sanitizedJson.substring(0, 1000) + "..." : sanitizedJson);
+                    
+                    results = objectMapper.readValue(
+                        sanitizedJson,
+                        new TypeReference<List<Map<String, Object>>>() {}
+                    );
+                    log.info("JSON parsing successful (정제 후) - parsed {} results", results.size());
+                    
+                } catch (Exception secondParseError) {
+                    log.error("정제 후에도 JSON 파싱 실패", secondParseError);
+                    log.error("Failed JSON content: {}", jsonPart);
+                    
+                    // 파싱 완전 실패 - 빈 배열로 처리
+                    results = new ArrayList<>();
                 }
-                return allResponses;
             }
             
+            List<RiskAnalysisResponse> responses = new ArrayList<>();
+            
+            for (int i = 0; i < results.size(); i++) {
+                try {
+                    Map<String, Object> result = results.get(i);
+                    RiskAnalysisResponse mapped = mapToRiskAnalysisResponse(result);
+                    responses.add(mapped);
+                    log.debug("Successfully mapped result #{}: {}", i + 1, mapped.getRiskLevel());
+                } catch (Exception e) {
+                    log.warn("Failed to map result #{}: {}", i + 1, results.get(i), e);
+                    // 매핑 실패 시 기본값 추가
+                    responses.add(createSafeRiskAnalysisResponse("MEDIUM", "응답 매핑 실패로 인한 기본 평가"));
+                }
+            }
+                
+            // 개수가 맞지 않으면 부족한 만큼 기본값 추가
+            while (responses.size() < expectedCount) {
+                responses.add(createSafeRiskAnalysisResponse("MEDIUM", "응답 개수 부족으로 인한 기본 평가"));
+                log.warn("Added default response for missing result #{}", responses.size());
+            }
+            
+            log.info("Final response count: {} (expected: {})", responses.size(), expectedCount);
             return responses;
                 
         } catch (Exception e) {
-            log.error("배치 AI 응답 파싱 실패 - 응답: {}", response, e);
-            // 파싱 실패 시 기본값들 반환
-            return IntStream.range(0, expectedCount)
-                .mapToObj(i -> createSafeRiskAnalysisResponse("MEDIUM", "응답 파싱 실패로 인한 기본 평가"))
-                .toList();
+            log.error("전체 배치 AI 응답 파싱 실패", e);
+            log.error("Response that failed: {}", response.length() > 500 ? response.substring(0, 500) + "..." : response);
+            
+            // 파싱 실패 시 모든 항목에 대해 기본값들 반환
+            List<RiskAnalysisResponse> fallbackResponses = new ArrayList<>();
+            for (int i = 0; i < expectedCount; i++) {
+                fallbackResponses.add(createSafeRiskAnalysisResponse("MEDIUM", "응답 파싱 실패로 인한 기본 평가: " + e.getMessage()));
+            }
+            return fallbackResponses;
         }
     }
     
@@ -307,83 +371,136 @@ public class BatchClaudeAiAnalysisService {
     
     private String extractJsonFromResponse(String response) {
         try {
+            log.debug("원본 응답에서 JSON 추출 시작 - 길이: {} chars", response.length());
+            
             // 마크다운 코드 블록 제거
             if (response.contains("```json")) {
                 int start = response.indexOf("```json") + 7;
                 int end = response.indexOf("```", start);
                 if (end > start) {
                     response = response.substring(start, end).trim();
+                    log.debug("```json 블록에서 추출: {} chars", response.length());
                 }
             } else if (response.contains("```")) {
                 int start = response.indexOf("```") + 3;
                 int end = response.indexOf("```", start);
                 if (end > start) {
                     response = response.substring(start, end).trim();
+                    log.debug("``` 블록에서 추출: {} chars", response.length());
                 }
             }
             
-            // JSON 배열 추출
+            // JSON 배열 추출 시도
             int start = response.indexOf("[");
             int end = response.lastIndexOf("]") + 1;
             if (start >= 0 && end > start) {
-                return response.substring(start, end);
+                String jsonArray = response.substring(start, end);
+                log.debug("JSON 배열 추출 성공: {} chars", jsonArray.length());
+                return jsonArray;
             }
             
-            // 배열이 아닌 경우 객체들을 찾아서 배열로 만들기
+            // 배열이 아닌 경우 객체들을 찾아서 수동으로 배열 구성
             List<String> jsonObjects = new ArrayList<>();
             int objectStart = 0;
-            while (true) {
+            int objectCount = 0;
+            
+            while (objectStart < response.length() && objectCount < 50) { // 최대 50개 객체까지만
                 objectStart = response.indexOf("{", objectStart);
                 if (objectStart == -1) break;
                 
                 int braceCount = 1;
                 int pos = objectStart + 1;
+                
                 while (pos < response.length() && braceCount > 0) {
                     char c = response.charAt(pos);
-                    if (c == '{') braceCount++;
-                    else if (c == '}') braceCount--;
+                    if (c == '{') {
+                        braceCount++;
+                    } else if (c == '}') {
+                        braceCount--;
+                    } else if (c == '"') {
+                        // 문자열 내부의 중괄호는 무시
+                        pos++;
+                        while (pos < response.length() && response.charAt(pos) != '"') {
+                            if (response.charAt(pos) == '\\') {
+                                pos++; // 이스케이프 문자 건너뛰기
+                            }
+                            pos++;
+                        }
+                    }
                     pos++;
                 }
                 
                 if (braceCount == 0) {
-                    jsonObjects.add(response.substring(objectStart, pos));
+                    String jsonObject = response.substring(objectStart, pos);
+                    // 기본적인 JSON 객체 유효성 검사
+                    if (jsonObject.contains("product_index") && jsonObject.contains("risk_level")) {
+                        jsonObjects.add(jsonObject);
+                        objectCount++;
+                        log.debug("JSON 객체 #{} 추출: {} chars", objectCount, jsonObject.length());
+                    }
                     objectStart = pos;
                 } else {
-                    break;
+                    break; // 불완전한 객체
                 }
             }
             
             if (!jsonObjects.isEmpty()) {
-                return "[" + String.join(",", jsonObjects) + "]";
+                String result = "[" + String.join(",", jsonObjects) + "]";
+                log.debug("수동으로 {} 개 객체를 배열로 구성: {} chars", jsonObjects.size(), result.length());
+                return result;
             }
             
-            log.warn("JSON을 찾을 수 없음: {}", response);
+            log.warn("JSON을 찾을 수 없음 - 원본 응답: {}", response.substring(0, Math.min(200, response.length())));
             return "[]"; // 빈 배열 반환
             
         } catch (Exception e) {
-            log.error("JSON 추출 중 오류 발생", e);
+            log.error("JSON 추출 중 오류 발생 - 응답: {}", response.substring(0, Math.min(200, response.length())), e);
             return "[]";
         }
     }
     private String sanitizeJson(String response) {
-        // 1. 앞뒤 공백 제거
-        String sanitized = response.trim();
+        try {
+            // 1. 앞뒤 공백 제거
+            String sanitized = response.trim();
 
-        // 2. 바깥쪽 큰따옴표로 감싸져 있으면 제거
-        if (sanitized.startsWith("\"") && sanitized.endsWith("\"") && sanitized.length() > 1) {
-            sanitized = sanitized.substring(1, sanitized.length() - 1);
+            // 2. 바깥쪽 큰따옴표로 감싸져 있으면 제거
+            if (sanitized.startsWith("\"") && sanitized.endsWith("\"") && sanitized.length() > 1) {
+                sanitized = sanitized.substring(1, sanitized.length() - 1);
+            }
+            
+            // 3. JSON이 이미 올바른 형태인지 확인 - 간단한 유효성 검사
+            if (sanitized.startsWith("[") && sanitized.endsWith("]")) {
+                // 이미 올바른 JSON 배열 형태라면 최소한의 처리만
+                log.debug("JSON이 이미 올바른 형태입니다 - 최소 처리만 수행");
+                
+                // 위험한 제어 문자만 제거 (ASCII 0-8, 11-12, 14-31, 127)
+                // 단, 일반적인 줄바꿈(\n=10), 캐리지리턴(\r=13), 탭(\t=9)은 유지
+                sanitized = sanitized.replaceAll("[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\x7F]", "");
+                
+                return sanitized;
+            }
+            
+            // 4. JSON이 손상된 경우에만 복구 시도
+            log.debug("JSON 복구 시도 중...");
+            
+            // 이중 이스케이프된 문자들 복구
+            sanitized = sanitized.replaceAll("\\\\\\\\n", "\\\\n");
+            sanitized = sanitized.replaceAll("\\\\\\\\t", "\\\\t");
+            sanitized = sanitized.replaceAll("\\\\\\\\r", "\\\\r");
+            sanitized = sanitized.replaceAll("\\\\\\\\\"", "\\\\\"");
+            
+            // 위험한 제어 문자 제거
+            sanitized = sanitized.replaceAll("[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\x7F]", "");
+            
+            log.debug("JSON 복구 완료 - 길이: {}", sanitized.length());
+            
+            return sanitized;
+            
+        } catch (Exception e) {
+            log.error("JSON 정제 중 오류 발생 - 원본 반환", e);
+            // 정제 실패 시 원본 그대로 반환
+            return response.trim();
         }
-        
-        // 3. 이중 이스케이프된 문자들만 정리
-        sanitized = sanitized.replaceAll("\\\\n", "\n");
-        sanitized = sanitized.replaceAll("\\\\t", "\t");
-        sanitized = sanitized.replaceAll("\\\\\"", "\"");
-        
-        // 4. 불필요한 백슬래시 제거
-        // JSON에서 필요한 백슬래시는 유지하면서 불필요한 것만 제거
-        sanitized = sanitized.replaceAll("\\\\(?![\"\\\\nrtbfuU])", "");
-
-        return sanitized;
     }
 }
 

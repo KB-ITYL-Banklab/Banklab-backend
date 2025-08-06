@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.product.mapper.AnnuityOptionMapper">
+
+    <resultMap id="annuityOptionResultMap" type="com.banklab.product.domain.annuity.AnnuityOption">
+        <id property="id" column="id"/>
+        <result property="dclsMonth" column="dcls_month"/>
+        <result property="finCoNo" column="fin_co_no"/>
+        <result property="finPrdtCd" column="fin_prdt_cd"/>
+        <result property="pnsnRecpTrm" column="pnsn_recp_trm"/>
+        <result property="pnsnRecpTrmNm" column="pnsn_recp_trm_nm"/>
+        <result property="pnsnEntrAge" column="pnsn_entr_age"/>
+        <result property="pnsnEntrAgeNm" column="pnsn_entr_age_nm"/>
+        <result property="monPaymAtm" column="mon_paym_atm"/>
+        <result property="monPaymAtmNm" column="mon_paym_atm_nm"/>
+        <result property="paymPrd" column="paym_prd"/>
+        <result property="paymPrdNm" column="paym_prd_nm"/>
+        <result property="pnsnStrtAge" column="pnsn_strt_age"/>
+        <result property="pnsnStrtAgeNm" column="pnsn_strt_age_nm"/>
+        <result property="pnsnRecpAmt" column="pnsn_recp_amt"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="findAllAnnuityOptions" resultMap="annuityOptionResultMap">
+        SELECT 
+            id, dcls_month, fin_co_no, fin_prdt_cd, pnsn_recp_trm, pnsn_recp_trm_nm,
+            pnsn_entr_age, pnsn_entr_age_nm, mon_paym_atm, mon_paym_atm_nm,
+            paym_prd, paym_prd_nm, pnsn_strt_age, pnsn_strt_age_nm, pnsn_recp_amt,
+            created_at, updated_at
+        FROM annuity_option
+        ORDER BY fin_prdt_cd, pnsn_entr_age, mon_paym_atm, paym_prd, pnsn_strt_age
+    </select>
+
+    <insert id="insertAnnuityOption" parameterType="com.banklab.product.domain.annuity.AnnuityOption">
+        INSERT INTO annuity_option (
+            dcls_month, fin_co_no, fin_prdt_cd, pnsn_recp_trm, pnsn_recp_trm_nm,
+            pnsn_entr_age, pnsn_entr_age_nm, mon_paym_atm, mon_paym_atm_nm,
+            paym_prd, paym_prd_nm, pnsn_strt_age, pnsn_strt_age_nm, pnsn_recp_amt,
+            created_at, updated_at
+        ) VALUES (
+            #{dclsMonth}, #{finCoNo}, #{finPrdtCd}, #{pnsnRecpTrm}, #{pnsnRecpTrmNm},
+            #{pnsnEntrAge}, #{pnsnEntrAgeNm}, #{monPaymAtm}, #{monPaymAtmNm},
+            #{paymPrd}, #{paymPrdNm}, #{pnsnStrtAge}, #{pnsnStrtAgeNm}, #{pnsnRecpAmt},
+            NOW(), NOW()
+        )
+    </insert>
+    <delete id="deleteAllAnnuityOptions">
+        DELETE FROM annuity_option
+    </delete>
+
+    <select id="findOptionsByProduct" resultMap="annuityOptionResultMap">
+        SELECT
+            id,
+            dcls_month,
+            fin_co_no,
+            fin_prdt_cd,
+            pnsn_recp_trm,
+            pnsn_recp_trm_nm,
+            pnsn_entr_age,
+            pnsn_entr_age_nm,
+            mon_paym_atm,
+            mon_paym_atm_nm,
+            paym_prd,
+            paym_prd_nm,
+            pnsn_strt_age,
+            pnsn_strt_age_nm,
+            pnsn_recp_amt,
+            created_at,
+            updated_at
+        FROM annuity_option
+        WHERE dcls_month = #{dclsMonth}
+          AND fin_co_no = #{finCoNo}
+          AND fin_prdt_cd = #{finPrdtCd}
+        ORDER BY pnsn_entr_age, mon_paym_atm, paym_prd, pnsn_strt_age
+    </select>
+
+    <select id="findByOptionKey" resultMap="annuityOptionResultMap">
+        SELECT
+            id,
+            dcls_month,
+            fin_co_no,
+            fin_prdt_cd,
+            pnsn_recp_trm,
+            pnsn_recp_trm_nm,
+            pnsn_entr_age,
+            pnsn_entr_age_nm,
+            mon_paym_atm,
+            mon_paym_atm_nm,
+            paym_prd,
+            paym_prd_nm,
+            pnsn_strt_age,
+            pnsn_strt_age_nm,
+            pnsn_recp_amt,
+            created_at,
+            updated_at
+        FROM annuity_option
+        WHERE dcls_month = #{dclsMonth}
+          AND fin_co_no = #{finCoNo}
+          AND fin_prdt_cd = #{finPrdtCd}
+          AND pnsn_recp_trm = #{pnsnRecpTrm}
+          AND pnsn_entr_age = #{pnsnEntrAge}
+          AND mon_paym_atm = #{monPaymAtm}
+          AND paym_prd = #{paymPrd}
+          AND pnsn_strt_age = #{pnsnStrtAge}
+    </select>
+
+    <update id="updateAnnuityOption" parameterType="com.banklab.product.domain.annuity.AnnuityOption">
+        UPDATE annuity_option SET
+            dcls_month = #{dclsMonth},
+            fin_co_no = #{finCoNo},
+            fin_prdt_cd = #{finPrdtCd},
+            pnsn_recp_trm = #{pnsnRecpTrm},
+            pnsn_recp_trm_nm = #{pnsnRecpTrmNm},
+            pnsn_entr_age = #{pnsnEntrAge},
+            pnsn_entr_age_nm = #{pnsnEntrAgeNm},
+            mon_paym_atm = #{monPaymAtm},
+            mon_paym_atm_nm = #{monPaymAtmNm},
+            paym_prd = #{paymPrd},
+            paym_prd_nm = #{paymPrdNm},
+            pnsn_strt_age = #{pnsnStrtAge},
+            pnsn_strt_age_nm = #{pnsnStrtAgeNm},
+            pnsn_recp_amt = #{pnsnRecpAmt},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

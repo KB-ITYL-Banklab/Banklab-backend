@@ -1,5 +1,5 @@
 package com.banklab.product.domain;
 
 public enum ProductType {
-    DEPOSIT, SAVINGS, LOAN
+    DEPOSIT, SAVINGS, CREDITLOAN, ANNUITY, MORTGAGE, RENTHOUSE
 }

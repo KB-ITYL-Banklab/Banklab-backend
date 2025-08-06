@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.product.mapper.MortgageLoanOptionMapper">
+    
+    <!-- 단일 주택담보대출 옵션 삽입 -->
+    <insert id="insertMortgageLoanOption" parameterType="com.banklab.product.domain.mortgage.MortgageLoanOption"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO mortgage_loan_option (
+            dcls_month, fin_co_no, fin_prdt_cd, mrtg_type, mrtg_type_nm, 
+            rpay_type, rpay_type_nm, lend_rate_type, lend_rate_type_nm,
+            lend_rate_min, lend_rate_max, lend_rate_avg, created_at, updated_at
+        ) VALUES (
+            #{dclsMonth}, #{finCoNo}, #{finPrdtCd}, #{mrtgType}, #{mrtgTypeNm},
+            #{rpayType}, #{rpayTypeNm}, #{lendRateType}, #{lendRateTypeNm},
+            #{lendRateMin}, #{lendRateMax}, #{lendRateAvg}, NOW(), NOW()
+        )
+    </insert>
+    
+    <!-- 모든 주택담보대출 옵션 삭제 -->
+    <delete id="deleteAllMortgageLoanOptions">
+        DELETE FROM mortgage_loan_option
+    </delete>
+    <select id="findAllMortgageLoanOptions"
+            resultType="com.banklab.product.domain.mortgage.MortgageLoanOption">
+        SELECT
+            id, dcls_month, fin_co_no, fin_prdt_cd, mrtg_type, mrtg_type_nm,
+            rpay_type, rpay_type_nm, lend_rate_type, lend_rate_type_nm,
+            lend_rate_min, lend_rate_max, lend_rate_avg, created_at, updated_at
+        FROM mortgage_loan_option
+
+    </select>
+
+    <select id="findOptionsByProduct" resultType="com.banklab.product.domain.mortgage.MortgageLoanOption">
+        SELECT
+            id, dcls_month, fin_co_no, fin_prdt_cd, mrtg_type, mrtg_type_nm,
+            rpay_type, rpay_type_nm, lend_rate_type, lend_rate_type_nm,
+            lend_rate_min, lend_rate_max, lend_rate_avg, created_at, updated_at
+        FROM mortgage_loan_option
+        WHERE dcls_month = #{dclsMonth}
+          AND fin_co_no = #{finCoNo}
+          AND fin_prdt_cd = #{finPrdtCd}
+    </select>
+
+    <select id="findByOptionKey" resultType="com.banklab.product.domain.mortgage.MortgageLoanOption">
+        SELECT
+            id, dcls_month, fin_co_no, fin_prdt_cd, mrtg_type, mrtg_type_nm,
+            rpay_type, rpay_type_nm, lend_rate_type, lend_rate_type_nm,
+            lend_rate_min, lend_rate_max, lend_rate_avg, created_at, updated_at
+        FROM mortgage_loan_option
+        WHERE dcls_month = #{dclsMonth}
+          AND fin_co_no = #{finCoNo}
+          AND fin_prdt_cd = #{finPrdtCd}
+          AND mrtg_type = #{mrtgType}
+          AND rpay_type = #{rpayType}
+          AND lend_rate_type = #{lendRateType}
+    </select>
+
+    <update id="updateMortgageLoanOption" parameterType="com.banklab.product.domain.mortgage.MortgageLoanOption">
+        UPDATE mortgage_loan_option SET
+            dcls_month = #{dclsMonth},
+            fin_co_no = #{finCoNo},
+            fin_prdt_cd = #{finPrdtCd},
+            mrtg_type = #{mrtgType},
+            mrtg_type_nm = #{mrtgTypeNm},
+            rpay_type = #{rpayType},
+            rpay_type_nm = #{rpayTypeNm},
+            lend_rate_type = #{lendRateType},
+            lend_rate_type_nm = #{lendRateTypeNm},
+            lend_rate_min = #{lendRateMin},
+            lend_rate_max = #{lendRateMax},
+            lend_rate_avg = #{lendRateAvg},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+</mapper>

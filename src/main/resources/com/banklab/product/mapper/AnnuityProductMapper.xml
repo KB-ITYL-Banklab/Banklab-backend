@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.product.mapper.AnnuityProductMapper">
+
+    <resultMap id="annuityProductResultMap" type="com.banklab.product.domain.annuity.AnnuityProduct">
+        <id property="id" column="id"/>
+        <result property="dclsMonth" column="dcls_month"/>
+        <result property="finCoNo" column="fin_co_no"/>
+        <result property="finPrdtCd" column="fin_prdt_cd"/>
+        <result property="korCoNm" column="kor_co_nm"/>
+        <result property="finPrdtNm" column="fin_prdt_nm"/>
+        <result property="joinWay" column="join_way"/>
+        <result property="pnsnKind" column="pnsn_kind"/>
+        <result property="pnsnKindNm" column="pnsn_kind_nm"/>
+        <result property="saleStrtDay" column="sale_strt_day"/>
+        <result property="mntnCnt" column="mntn_cnt"/>
+        <result property="prdtType" column="prdt_type"/>
+        <result property="prdtTypeNm" column="prdt_type_nm"/>
+        <result property="avgPrftRate" column="avg_prft_rate"/>
+        <result property="dclsRate" column="dcls_rate"/>
+        <result property="guarRate" column="guar_rate"/>
+        <result property="btrmPrftRate1" column="btrm_prft_rate_1"/>
+        <result property="btrmPrftRate2" column="btrm_prft_rate_2"/>
+        <result property="btrmPrftRate3" column="btrm_prft_rate_3"/>
+        <result property="etc" column="etc"/>
+        <result property="saleCo" column="sale_co"/>
+        <result property="dclsStrtDay" column="dcls_strt_day"/>
+        <result property="dclsEndDay" column="dcls_end_day"/>
+        <result property="finCoSubmDay" column="fin_co_subm_day"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="findAllAnnuityProducts" resultMap="annuityProductResultMap">
+        SELECT  *
+        FROM annuity_product
+    </select>
+
+    <select id="findById" parameterType="long" resultMap="annuityProductResultMap">
+        SELECT 
+            id, dcls_month, fin_co_no, fin_prdt_cd, kor_co_nm, fin_prdt_nm,
+            join_way, pnsn_kind, pnsn_kind_nm, sale_strt_day, mntn_cnt,
+            prdt_type, prdt_type_nm, avg_prft_rate, dcls_rate, guar_rate,
+            btrm_prft_rate_1, btrm_prft_rate_2, btrm_prft_rate_3, etc, sale_co,
+            dcls_strt_day, dcls_end_day, fin_co_subm_day, created_at, updated_at
+        FROM annuity_product
+        WHERE id = #{id}
+    </select>
+
+    <insert id="insertAnnuityProduct" parameterType="com.banklab.product.domain.annuity.AnnuityProduct">
+        INSERT INTO annuity_product (
+            dcls_month, fin_co_no, fin_prdt_cd, kor_co_nm, fin_prdt_nm,
+            join_way, pnsn_kind, pnsn_kind_nm, sale_strt_day, mntn_cnt,
+            prdt_type, prdt_type_nm, avg_prft_rate, dcls_rate, guar_rate,
+            btrm_prft_rate_1, btrm_prft_rate_2, btrm_prft_rate_3, etc, sale_co,
+            dcls_strt_day, dcls_end_day, fin_co_subm_day, created_at, updated_at
+        ) VALUES (
+            #{dclsMonth}, #{finCoNo}, #{finPrdtCd}, #{korCoNm}, #{finPrdtNm},
+            #{joinWay}, #{pnsnKind}, #{pnsnKindNm}, #{saleStrtDay}, #{mntnCnt},
+            #{prdtType}, #{prdtTypeNm}, #{avgPrftRate}, #{dclsRate}, #{guarRate},
+            #{btrmPrftRate1}, #{btrmPrftRate2}, #{btrmPrftRate3}, #{etc}, #{saleCo},
+            #{dclsStrtDay}, #{dclsEndDay}, #{finCoSubmDay}, NOW(), NOW()
+        )
+    </insert>
+
+    <delete id="deleteAllAnnuityProducts">
+        DELETE FROM annuity_product
+    </delete>
+    <select id="findByProductKey" resultType="com.banklab.product.domain.annuity.AnnuityProduct">
+            SELECT
+                id,
+                dcls_month,
+                fin_co_no,
+                fin_prdt_cd,
+                kor_co_nm,
+                fin_prdt_nm,
+                join_way,
+                pnsn_kind,
+                pnsn_kind_nm,
+                sale_strt_day,
+                mntn_cnt,
+                prdt_type,
+                prdt_type_nm,
+                avg_prft_rate,
+                dcls_rate,
+                guar_rate,
+                btrm_prft_rate_1,
+                btrm_prft_rate_2,
+                btrm_prft_rate_3,
+                etc,
+                sale_co,
+                dcls_strt_day,
+                dcls_end_day,
+                fin_co_subm_day,
+                created_at,
+                updated_at
+            FROM annuity_product
+            WHERE dcls_month = #{dclsMonth}
+              AND fin_co_no = #{finCoNo}
+              AND fin_prdt_cd = #{finPrdtCd}
+    </select>
+
+    <update id="updateAnnuityProduct" parameterType="com.banklab.product.domain.annuity.AnnuityProduct">
+        UPDATE annuity_product SET
+            dcls_month = #{dclsMonth},
+            fin_co_no = #{finCoNo},
+            fin_prdt_cd = #{finPrdtCd},
+            kor_co_nm = #{korCoNm},
+            fin_prdt_nm = #{finPrdtNm},
+            join_way = #{joinWay},
+            pnsn_kind = #{pnsnKind},
+            pnsn_kind_nm = #{pnsnKindNm},
+            sale_strt_day = #{saleStrtDay},
+            mntn_cnt = #{mntnCnt},
+            prdt_type = #{prdtType},
+            prdt_type_nm = #{prdtTypeNm},
+            avg_prft_rate = #{avgPrftRate},
+            dcls_rate = #{dclsRate},
+            guar_rate = #{guarRate},
+            btrm_prft_rate_1 = #{btrmPrftRate1},
+            btrm_prft_rate_2 = #{btrmPrftRate2},
+            btrm_prft_rate_3 = #{btrmPrftRate3},
+            etc = #{etc},
+            sale_co = #{saleCo},
+            dcls_strt_day = #{dclsStrtDay},
+            dcls_end_day = #{dclsEndDay},
+            fin_co_subm_day = #{finCoSubmDay},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

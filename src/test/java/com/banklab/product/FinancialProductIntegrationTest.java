@@ -8,9 +8,9 @@ import com.banklab.product.domain.ProductType;
 import com.banklab.product.dto.creditloan.CreditLoanWithOptionsDto;
 import com.banklab.product.dto.deposit.DepositWithOptionsDto;
 import com.banklab.product.dto.savings.SavingsWithOptionsDto;
-import com.banklab.product.service.CreditLoanDetailService;
-import com.banklab.product.service.DepositDetailService;
-import com.banklab.product.service.SavingsDetailService;
+import com.banklab.product.service.creditloan.CreditLoanDetailService;
+import com.banklab.product.service.deposit.DepositDetailService;
+import com.banklab.product.service.savings.SavingsDetailService;
 import com.banklab.risk.dto.BatchRiskAnalysisRequest;
 import com.banklab.risk.dto.RiskAnalysisResponse;
 import com.banklab.risk.service.BatchClaudeAiAnalysisService;
@@ -28,7 +28,6 @@ import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -412,7 +411,7 @@ class FinancialProductIntegrationTest {
                 .spclCnd("신용등급 1~3등급, 소득증빙 필수")
                 .mtrtInt("변동금리")
                 .etcNote("중도상환수수료 있음, 연체 시 신용등급 하락")
-                .productType(ProductType.LOAN)
+                .productType(ProductType.CREDITLOAN)
                 .build());
         
         return requests;
