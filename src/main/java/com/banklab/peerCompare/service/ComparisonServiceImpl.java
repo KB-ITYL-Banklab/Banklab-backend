@@ -3,17 +3,15 @@ package com.banklab.peerCompare.service;
 import com.banklab.category.dto.CategoryExpenseDTO;
 import com.banklab.member.service.MemberService;
 import com.banklab.peerCompare.dto.CategoryComparisonDTO;
+import com.banklab.peerCompare.dto.PeerComparisonResponseDTO;
 import com.banklab.peerCompare.mapper.ComparisonMapper;
 import com.banklab.transaction.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.comparator.Comparators;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -27,7 +25,7 @@ public class ComparisonServiceImpl implements ComparisonService{
 
     @Override
     @Transactional(readOnly = true)
-    public List<CategoryComparisonDTO> getPeerCategoryCompare(Long memberId, String email, Date startDate, Date endDate) {
+    public PeerComparisonResponseDTO getPeerCategoryCompare(Long memberId, String email, Date startDate, Date endDate) {
         LocalDate now = LocalDate.now();
         if (startDate == null) {
             startDate = java.sql.Date.valueOf(now.withDayOfMonth(1));
@@ -43,6 +41,7 @@ public class ComparisonServiceImpl implements ComparisonService{
         int ageTo = ageFrom+4;
 
         try {
+            // 또래 카테고리별 평균 지출
             List<CategoryComparisonDTO> peerCategoryExpense = comparisonMapper.getPeerCategoryExpense(
                     memberId,
                     startDate,
@@ -51,6 +50,16 @@ public class ComparisonServiceImpl implements ComparisonService{
                     ageTo
             );
             
+            // 또래 평균 전체 지출
+            Long peerAvgTotalExpense = comparisonMapper.getPeerTotalAvgExpense(
+                    memberId,
+                    startDate,
+                    endDate,
+                    ageFrom,
+                    ageTo
+            );
+
+
             // 정렬 코드는 여기서 수행
             peerCategoryExpense.sort((a, b) -> {
                 int cmp = Double.compare(b.getAvgExpense(), a.getAvgExpense()); // 내림차순
@@ -60,11 +69,20 @@ public class ComparisonServiceImpl implements ComparisonService{
                 return cmp;
             });
 
-            return  peerCategoryExpense;
+            return PeerComparisonResponseDTO.builder()
+                    .categoryComparisons(peerCategoryExpense)
+                    .peerAvgTotalExpense(peerAvgTotalExpense)
+                    .build();
+
         }catch (Exception e){
             log.error("또래 조회 중 오류 발생", e);
             throw new RuntimeException("또래 조회 중 오류 발생");
         }
+    }
+
+    @Override
+    public PeerComparisonResponseDTO compareWithPeer(Long memberId, String startDate, String endDate) {
+        return null;
     }
 
     public List<CategoryExpenseDTO> getMyCategoryCompare(Long memberId,Date startDate, Date endDate){

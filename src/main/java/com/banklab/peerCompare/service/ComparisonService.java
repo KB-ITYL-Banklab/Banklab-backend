@@ -1,17 +1,16 @@
 package com.banklab.peerCompare.service;
 
-import com.banklab.category.dto.CategoryExpenseDTO;
-import com.banklab.peerCompare.dto.CategoryComparisonDTO;
+import com.banklab.peerCompare.dto.PeerComparisonResponseDTO;
 
 import java.util.Date;
-import java.util.List;
 
 public interface ComparisonService {
-    List<CategoryComparisonDTO> getPeerCategoryCompare(
+    PeerComparisonResponseDTO getPeerCategoryCompare(
             Long memberId,
             String email,
             Date startDate,
             Date endDate);
 
-    List<CategoryExpenseDTO> getMyCategoryCompare(Long memberId,Date startDate, Date endDate);
+    PeerComparisonResponseDTO compareWithPeer(Long memberId, String startDate, String endDate);
+//    List<CategoryExpenseDTO> getMyCategoryCompare(Long memberId,Date startDate, Date endDate);
 }
