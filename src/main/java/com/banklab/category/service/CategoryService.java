@@ -36,20 +36,48 @@ public class CategoryService {
     public void categorizeTransactions(List<TransactionHistoryVO> transactions, String key) {
         List<String> descriptions = transactions.stream()
                 .map(TransactionHistoryVO::getDescription)
+                .filter(Objects::nonNull) // null 방어
+                .map(String::trim)        // 앞뒤 공백 제거
+                .filter(s -> !s.isEmpty())// 빈 문자열 제거
                 .distinct()
                 .toList();
 
-        // 상호명 -> 분류 결과를 비동기적으로 담을 맵
+        // 상호명 -> 분류 결과를 담을 맵
         Map<String, Long> descMap = new HashMap<>();
         log.info("[START] 카테고리 분류 시작:  Thread: {}", Thread.currentThread().getName());
         
         // 프론트에 현재 카테고리 분류 알림 (TTL 2분)
         redisService.set(key, "CLASSIFYING_CATEGORIES",2);
+        List<String> toClassifyViaKakaoApi = new ArrayList<>();
 
-        for (int i = 0; i < descriptions.size(); i++) {
-            String desc = descriptions.get(i);
+        // 먼저 매핑
+        for(String desc : descriptions){
+            String redisKey = "category::"+desc;
+            // 1. Redis 캐시 확인
+            Long categoryId = kakaoMapService.isStoredInRedis(redisKey);
+            if (categoryId!=null){
+                descMap.put(desc, categoryId);
+                continue;
+            }
+
+            // 2.내부 필터링
+            categoryId = kakaoMapService.mapToInternalCategory(desc);
+            if (categoryId != 8) {
+                kakaoMapService.storeInRedis(redisKey, String.valueOf(categoryId));
+                descMap.put(desc, categoryId);
+                continue;
+            }
+            // 3. Redis에도 없고 내부 매핑도 못한 애들만 모음
+            toClassifyViaKakaoApi.add(desc);
+        }
+
+        log.info("API 호출로 분류해야 하는 상호명 개수: {}", toClassifyViaKakaoApi.size());
+        log.info("===================여기서 최대 3분 소요됩니다.===================");
+
+        for(String desc : toClassifyViaKakaoApi){
+            String redisKey = "category::"+desc;
             try{
-                Long categoryId = getCategoryWithCache(desc);
+                long categoryId = kakaoMapService.getCategoryByDesc(redisKey, desc);
                 descMap.put(desc, categoryId);
             }catch (Exception e){
                 log.error("카테고리 분류 중 에러 발생");
@@ -80,30 +108,6 @@ public class CategoryService {
 //        return allDone.thenRun(() -> saveCategories(transactions, descMap));
     }
 
-    /**
-     *
-     * @param keyword 해당 상호명 Redis 저장 확인
-     * @return  저장된 경우 Redis 값 반환, 아니면 상호면 분류
-     */
-    public Long getCategoryWithCache(String keyword){
-        String redisKey = "category::"+keyword;
-        // 1. Redis 캐시 확인
-        Long categoryId = kakaoMapService.isStoredInRedis(redisKey);
-        if (categoryId!=null){
-            return categoryId;
-        }
-
-        // 2. 기타 카테고리가 아닌 경우 캐시에 저장 후 반환
-        categoryId = kakaoMapService.mapToInternalCategory(keyword);
-        if (categoryId != 8) {
-            kakaoMapService.storeInRedis(redisKey, String.valueOf(categoryId));
-            return categoryId;
-        }
-
-        //3. 기타로 분류된 경우 외부 API 호출
-        categoryId = kakaoMapService.getCategoryByDesc(redisKey, keyword);
-        return categoryId;
-    }
     /**
      * @param transactions CODEF에서 받아온 거래 내역
      * @param descMap   KEY: 상호명, VALUE: 카테고리
