@@ -411,7 +411,7 @@ class FinancialProductIntegrationTest {
                 .spclCnd("신용등급 1~3등급, 소득증빙 필수")
                 .mtrtInt("변동금리")
                 .etcNote("중도상환수수료 있음, 연체 시 신용등급 하락")
-                .productType(ProductType.LOAN)
+                .productType(ProductType.CREDITLOAN)
                 .build());
         
         return requests;

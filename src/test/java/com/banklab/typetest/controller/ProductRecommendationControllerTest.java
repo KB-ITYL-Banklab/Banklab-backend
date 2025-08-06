@@ -105,7 +105,7 @@ class ProductRecommendationControllerTest {
                 RecommendedProductDTO.builder()
                         .productId(5L)
                         .productName("신용대출")
-                        .productType(ProductType.LOAN)
+                        .productType(ProductType.CREDITLOAN)
                         .riskLevel(RiskLevel.HIGH)
                         .interestRate("연 10.0%")
                         .build()
@@ -121,7 +121,7 @@ class ProductRecommendationControllerTest {
         assertEquals(1, actualProducts.size());
         assertEquals("신용대출", actualProducts.get(0).getProductName());
         assertEquals(RiskLevel.HIGH, actualProducts.get(0).getRiskLevel());
-        assertEquals(ProductType.LOAN, actualProducts.get(0).getProductType());
+        assertEquals(ProductType.CREDITLOAN, actualProducts.get(0).getProductType());
 
         verify(productRecommendationService).getRecommendedProducts(investmentTypeId);
     }
