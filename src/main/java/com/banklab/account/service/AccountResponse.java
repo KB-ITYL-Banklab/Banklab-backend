@@ -31,6 +31,7 @@ public class AccountResponse {
 
 
         String result = ApiRequest.request(urlPath, bodyMap);
+        log.info("🔍 CODEF API 전체 응답: " + result);
 
         // Json Parsing
         JsonNode root = mapper.readTree(result);
@@ -50,12 +51,18 @@ public class AccountResponse {
             accountDTO.setResAccountName(node.get("resAccountName").asText());
             accountDTO.setResAccountDisplay(node.get("resAccountDisplay").asText());
             accountDTO.setResAccountBalance(node.get("resAccountBalance").asText());
+            accountDTO.setResAccountDeposit(node.get("resAccountDeposit").asText());
+            accountDTO.setResAccountEndDate(node.get("resAccountEndDate").asText());
+            accountDTO.setResAccountStartDate(node.get("resAccountStartDate").asText());
 
             // 출력 (디버깅용)
             log.info("계좌명: {}", accountDTO.getResAccountName());
             log.info("계좌번호: {}", accountDTO.getResAccount());
             log.info("표시용 번호: {}", accountDTO.getResAccountDisplay());
             log.info("잔액: {}", accountDTO.getResAccountBalance());
+            log.info("예금구분: {}", accountDTO.getResAccountDeposit());
+            log.info("가입일: {}", accountDTO.getResAccountStartDate());
+            log.info("만기일: {}", accountDTO.getResAccountEndDate());
             log.info("---");
 
             // DTO → VO 변환 (비즈니스 정보 추가)

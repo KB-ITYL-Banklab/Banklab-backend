@@ -25,6 +25,5 @@ class StockResponseTest {
 
         requestStocks(1L, "0240", connectedId, account, "");
 
-
     }
 }
