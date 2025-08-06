@@ -166,4 +166,80 @@ public class StockController {
             return ResponseEntity.status(500).body(errorResponse);
         }
     }
+
+    /**
+     * 종목코드로 개별 주식 정보 조회
+     *
+     * @param stockCode 6자리 종목코드 (예: 005930)
+     * @return 주식 정보
+     */
+    @GetMapping("temp")
+    @ApiOperation(value = "종목코드로 개별 주식 정보 조회",
+            notes = "쿼리 파라미터 'code'에 6자리 종목코드를 입력하여 조회")
+    public ResponseEntity<Map<String, Object>> getStockByCode(
+            @ApiParam(value = "6자리 종목코드", example = "005930", required = true)
+            @RequestParam("code") String stockCode) {
+
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            log.info("🔍 임시 API - 종목 {} 조회 요청", stockCode);
+
+            // 입력값 검증
+            if (stockCode == null || stockCode.trim().isEmpty()) {
+                response.put("error", "종목코드가 필요합니다");
+                response.put("message", "쿼리 파라미터 'code'에 6자리 종목코드를 입력해주세요. 예: ?code=005930");
+                response.put("example", "GET /api/stocks/temp?code=005930");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // 종목코드 형식 검증 (6자리 숫자)
+            String cleanCode = stockCode.trim();
+            if (!cleanCode.matches("\\d{6}")) {
+                response.put("error", "잘못된 종목코드 형식");
+                response.put("message", "종목코드는 6자리 숫자여야 합니다");
+                response.put("input", cleanCode);
+                response.put("example", "005930, 000660, 035420");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // 주식 정보 조회
+            StockSecurityInfoDto stock = publicDataStockService.getStockInfoByCode(cleanCode);
+
+            if (stock != null) {
+                response.put("success", true);
+                response.put("data", stock);
+                response.put("stockCode", cleanCode);
+                response.put("stockName", stock.getItemName());
+                response.put("currentPrice", stock.getClosePrice());
+                response.put("baseDate", stock.getBaseDate());
+                response.put("message", "종목 정보 조회 성공");
+
+                log.info("✅ 임시 API - 종목 {} ({}) 조회 성공: {}원",
+                        cleanCode, stock.getItemName(), stock.getClosePrice());
+
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("error", "종목을 찾을 수 없습니다");
+                response.put("stockCode", cleanCode);
+                response.put("message", "해당 종목코드의 데이터가 없거나 최근 7일간 거래되지 않았습니다");
+                response.put("suggestion", "다음을 확인해주세요: 1) 종목코드 정확성, 2) 상장폐지 여부, 3) 거래정지 여부");
+
+                log.warn("⚠️ 임시 API - 종목 {} 조회 실패: 데이터 없음", cleanCode);
+
+                return ResponseEntity.status(404).body(response);
+            }
+
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("error", "서버 오류가 발생했습니다");
+            response.put("message", e.getMessage());
+            response.put("stockCode", stockCode);
+
+            log.error("❌ 임시 API - 종목 {} 조회 중 오류: {}", stockCode, e.getMessage(), e);
+
+            return ResponseEntity.status(500).body(response);
+        }
+    }
 }

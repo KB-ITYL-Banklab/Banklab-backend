@@ -21,6 +21,9 @@ public class AccountVO {
     private String resAccount;     // 계좌번호 (000000)
     private String resAccountDisplay;  // 계좌번호 표시용 (00-00-00)
     private String resAccountBalance;  // 잔액
+    private String resAccountDeposit;   // 예금구분 (10:미분류, 11:수시입출금, 12:정기/적금, 13:신탁, 14:미분류)
+    private String resAccountEndDate;     // 만기일 (적금인 경우)
+    private String resAccountStartDate;   // 신규일
     private Date createdAt;
 
 }
