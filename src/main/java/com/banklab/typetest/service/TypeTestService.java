@@ -42,5 +42,5 @@ public interface TypeTestService {
      * @param userId
      * @return
      */
-    Map<String, Object> getUserInvestmentType(Long userId);
+    TypeTestResultDTO getUserInvestmentType(Long userId);
 }
