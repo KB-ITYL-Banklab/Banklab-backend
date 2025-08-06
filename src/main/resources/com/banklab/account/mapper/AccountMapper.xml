@@ -14,6 +14,9 @@
         <result property="resAccount" column="resAccount"/>
         <result property="resAccountDisplay" column="resAccountDisplay"/>
         <result property="resAccountBalance" column="resAccountBalance"/>
+        <result property="resAccountDeposit" column="resAccountDeposit"/>
+        <result property="resAccountEndDate" column="resAccountEndDate"/>
+        <result property="resAccountStartDate" column="resAccountStartDate"/>
         <result property="createdAt" column="created_at"/>
     </resultMap>
 
@@ -27,6 +30,9 @@
             resAccount,
             resAccountDisplay,
             resAccountBalance,
+            resAccountDeposit,
+            resAccountEndDate,
+            resAccountStartDate,
             created_at
         ) VALUES (
                      #{memberId},
@@ -36,6 +42,9 @@
                      #{resAccount},
                      #{resAccountDisplay},
                      #{resAccountBalance},
+                     #{resAccountDeposit},
+                     #{resAccountEndDate},
+                     #{resAccountStartDate},
                      NOW()
                  )
     </insert>
