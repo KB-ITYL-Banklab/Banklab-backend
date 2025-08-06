@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.financeContents.mapper.FinanceStockMapper">
+
+    <!-- 주식 정보 결과 매핑 -->
+    <resultMap id="FinanceStockResultMap" type="com.banklab.financeContents.domain.FinanceStockVO">
+        <id property="id" column="id"/>
+        <result property="basDt" column="basDt" javaType="java.time.LocalDate"/>
+        <result property="srtnCd" column="srtnCd"/>
+        <result property="itmsNm" column="itmsNm"/>
+        <result property="beginFltRt" column="beginFltRt"/>
+        <result property="endFltRt" column="endFltRt"/>
+        <result property="beginVs" column="beginVs"/>
+        <result property="endVs" column="endVs"/>
+        <result property="beginTrqu" column="beginTrqu"/>
+        <result property="endTrqu" column="endTrqu"/>
+        <result property="beginTrPrc" column="beginTrPrc"/>
+        <result property="endTrPrc" column="endTrPrc"/>
+        <result property="createdAt" column="createdAt" javaType="java.time.LocalDateTime"/>
+        <result property="updatedAt" column="updatedAt" javaType="java.time.LocalDateTime"/>
+    </resultMap>
+
+    <!-- 주식 정보 저장 -->
+    <insert id="insert" parameterType="com.banklab.financeContents.domain.FinanceStockVO" 
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO finance_stock (
+            basDt, srtnCd, itmsNm, beginFltRt, endFltRt, beginVs, endVs,
+            beginTrqu, endTrqu, beginTrPrc, endTrPrc, createdAt, updatedAt
+        ) VALUES (
+            #{basDt}, #{srtnCd}, #{itmsNm}, #{beginFltRt}, #{endFltRt}, #{beginVs}, #{endVs},
+            #{beginTrqu}, #{endTrqu}, #{beginTrPrc}, #{endTrPrc}, 
+            NOW(), NOW()
+        )
+    </insert>
+
+    <!-- 주식 정보 일괄 저장 -->
+    <insert id="insertBatch" parameterType="list">
+        INSERT INTO finance_stock (
+            basDt, srtnCd, itmsNm, beginFltRt, endFltRt, beginVs, endVs,
+            beginTrqu, endTrqu, beginTrPrc, endTrPrc, createdAt, updatedAt
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.basDt}, #{item.srtnCd}, #{item.itmsNm}, #{item.beginFltRt}, #{item.endFltRt}, 
+                #{item.beginVs}, #{item.endVs}, #{item.beginTrqu}, #{item.endTrqu}, 
+                #{item.beginTrPrc}, #{item.endTrPrc}, NOW(), NOW()
+            )
+        </foreach>
+    </insert>
+
+    <!-- 종목코드와 기준일자로 주식 정보 조회 -->
+    <select id="selectByCodeAndDate" resultMap="FinanceStockResultMap">
+        SELECT * FROM finance_stock
+        WHERE srtnCd = #{srtnCd} AND basDt = #{basDt}
+    </select>
+
+    <!-- 기준일자로 모든 주식 정보 조회 -->
+    <select id="selectByDate" resultMap="FinanceStockResultMap">
+        SELECT * FROM finance_stock
+        WHERE basDt = #{basDt}
+        ORDER BY srtnCd
+    </select>
+
+    <!-- 종목코드로 최신 주식 정보 조회 -->
+    <select id="selectLatestByCode" resultMap="FinanceStockResultMap">
+        SELECT * FROM finance_stock
+        WHERE srtnCd = #{srtnCd}
+        ORDER BY basDt DESC
+        LIMIT 1
+    </select>
+
+    <!-- 주식 정보 업데이트 -->
+    <update id="update" parameterType="com.banklab.financeContents.domain.FinanceStockVO">
+        UPDATE finance_stock SET
+            itmsNm = #{itmsNm},
+            beginFltRt = #{beginFltRt},
+            endFltRt = #{endFltRt},
+            beginVs = #{beginVs},
+            endVs = #{endVs},
+            beginTrqu = #{beginTrqu},
+            endTrqu = #{endTrqu},
+            beginTrPrc = #{beginTrPrc},
+            endTrPrc = #{endTrPrc},
+            updatedAt = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 중복 체크 (종목코드 + 기준일자) -->
+    <select id="existsByCodeAndDate" resultType="int">
+        SELECT COUNT(*) FROM finance_stock
+        WHERE srtnCd = #{srtnCd} AND basDt = #{basDt}
+    </select>
+
+    <!-- 기준일자의 데이터 삭제 -->
+    <delete id="deleteByDate">
+        DELETE FROM finance_stock
+        WHERE basDt = #{basDt}
+    </delete>
+
+    <!-- 전체 데이터 수 조회 -->
+    <select id="selectTotalCount" resultType="int">
+        SELECT COUNT(*) FROM finance_stock
+    </select>
+
+    <!-- 최신 N개 종목 조회 (거래대금 기준 내림차순) -->
+    <select id="selectLatestStocks" resultMap="FinanceStockResultMap">
+        SELECT * FROM finance_stock
+        WHERE basDt = (SELECT MAX(basDt) FROM finance_stock)
+        ORDER BY COALESCE(endTrPrc, 0) DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 주식명으로 검색 (부분 일치, 모든 날짜) -->
+    <select id="selectByStockName" resultMap="FinanceStockResultMap">
+        SELECT * FROM finance_stock
+        WHERE itmsNm LIKE CONCAT('%', #{stockName}, '%')
+        ORDER BY basDt DESC, COALESCE(endTrPrc, 0) DESC
+    </select>
+
+    <!-- 주식명으로 최신 데이터 검색 (부분 일치) -->
+    <select id="selectLatestByStockName" resultMap="FinanceStockResultMap">
+        SELECT * FROM finance_stock
+        WHERE itmsNm LIKE CONCAT('%', #{stockName}, '%')
+        AND basDt = (SELECT MAX(basDt) FROM finance_stock WHERE itmsNm LIKE CONCAT('%', #{stockName}, '%'))
+        ORDER BY COALESCE(endTrPrc, 0) DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 30일 이전 데이터 삭제 -->
+    <delete id="deleteOldDataBefore">
+        DELETE FROM finance_stock
+        WHERE basDt &lt; #{cutoffDate}
+    </delete>
+
+</mapper>
