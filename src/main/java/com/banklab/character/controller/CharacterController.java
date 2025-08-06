@@ -27,6 +27,14 @@ public class CharacterController {
         return ResponseEntity.ok(service.getCharacter(memberId));
     }
 
+    @PostMapping("")
+    @ApiOperation(value = "캐릭터 생성")
+    public ResponseEntity<CharacterDTO> createCharacter() {
+        Long memberId = loginUserProvider.getLoginMemberId();
+        return ResponseEntity.ok(service.createCharacter(memberId));
+    }
+
+
     @PostMapping("/sync")
     public ResponseEntity<?> syncLevelAndExp() {
         Long memberId = loginUserProvider.getLoginMemberId();

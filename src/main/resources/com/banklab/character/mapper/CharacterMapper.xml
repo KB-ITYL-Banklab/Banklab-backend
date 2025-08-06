@@ -17,12 +17,20 @@
             <result property="requiredExp" column="required_exp"/>
         </association>
     </resultMap>
-    <select id="get" resultMap="MemberCharacterResultMap">
+    <select id="getMemberCharacter" resultMap="MemberCharacterResultMap">
         SELECT member_id, exp, created_at, updated_at, level_id, name, description, required_exp
         FROM member_character mc
                  JOIN character_level cl ON mc.current_level = cl.level_id
         WHERE mc.member_id = #{memberId}
     </select>
+    <select id="getLevelInfo" resultType="CharacterLevelVO">
+        SELECT * FROM character_level
+        WHERE level_id = #{levelId}
+    </select>
+    <insert id="insertCharacter">
+        INSERT INTO member_character (member_id, current_level, exp, created_at, updated_at)
+        VALUES (#{memberId}, #{currentLevel}, #{exp}, now(), now())
+    </insert>
 </mapper>
 
 
