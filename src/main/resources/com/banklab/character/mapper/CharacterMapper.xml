@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.character.mapper.CharacterMapper">
+    <resultMap id="MemberCharacterResultMap" type="MemberCharacterVO">
+        <id property="memberId" column="member_id"/>
+        <result property="exp" column="exp"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+
+        <association property="currentLevel" javaType="CharacterLevelVO">
+            <id property="levelId" column="level_id"/>
+            <result property="name" column="name"/>
+            <result property="description" column="description"/>
+            <result property="requiredExp" column="required_exp"/>
+        </association>
+    </resultMap>
+    <select id="get" resultMap="MemberCharacterResultMap">
+        SELECT member_id, exp, created_at, updated_at, level_id, name, description, required_exp
+        FROM member_character mc
+                 JOIN character_level cl ON mc.current_level = cl.level_id
+        WHERE mc.member_id = #{memberId}
+    </select>
+</mapper>
+
+
