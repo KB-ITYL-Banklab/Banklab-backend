@@ -61,7 +61,8 @@ public class KakaoMapService {
                 return kakaoMapClient.getCategoryByDesc(desc);
             } catch (HttpClientErrorException.TooManyRequests e) {
                 retryCount++;
-                log.warn("429 Too Many Requests 발생 - {}ms 후 재시도 ({}회)", waitTime, retryCount);
+
+                log.warn("429 Too Many Requests 발생 - {}ms 후 재시도 ({}회)",e, waitTime, retryCount);
                 try {
                     Thread.sleep(waitTime);
                 } catch (InterruptedException ie) {
