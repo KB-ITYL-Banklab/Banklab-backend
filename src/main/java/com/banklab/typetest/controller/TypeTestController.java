@@ -42,13 +42,10 @@ public class TypeTestController {
      * @return OK 메시지
      */
     @PostMapping("/submit")
-    public ResponseEntity<Map<String, String>> submitAnswers(@RequestBody Map<String, Object> payload) {
+    public ResponseEntity<TypeTestResultDTO> submitAnswers(@RequestBody Map<String, Object> payload) {
         Long memberId = loginUserProvider.getLoginMemberId();
-        if (memberId == null) {
-            return ResponseEntity.badRequest().body(Map.of("message", "유효하지 않은 토큰입니다."));
-        }
-        typeTestService.submitAnswersWithMemberId(payload, memberId);
-        return ResponseEntity.ok(Map.of("message", "OK"));
+        TypeTestResultDTO result = typeTestService.submitAnswersWithMemberId(payload, memberId);
+        return ResponseEntity.ok(result);
     }
 
     /**
@@ -83,6 +80,16 @@ public class TypeTestController {
         if (result == null || result.getInvestmentTypeId() == null) {
             return ResponseEntity.ok(TypeTestResultDTO.builder().message("검사 결과가 없습니다. 먼저 검사를 진행하세요.").build());
         }
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * 사용자 투자유형 반환
+     */
+    @GetMapping("/user-type")
+    public ResponseEntity<TypeTestResultDTO> getUserInvestmentType() {
+        Long memberId = loginUserProvider.getLoginMemberId();
+        TypeTestResultDTO result = typeTestService.getUserInvestmentType(memberId);
         return ResponseEntity.ok(result);
     }
 }

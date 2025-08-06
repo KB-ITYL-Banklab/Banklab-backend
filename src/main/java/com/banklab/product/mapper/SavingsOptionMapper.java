@@ -1,6 +1,6 @@
 package com.banklab.product.mapper;
 
-import com.banklab.product.domain.SavingsOption;
+import com.banklab.product.domain.savings.SavingsOption;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -17,4 +17,19 @@ public interface SavingsOptionMapper {
     List<SavingsOption> findOptionsByProduct(@Param("dclsMonth") String dclsMonth,
                                              @Param("finCoNo") String finCoNo,
                                              @Param("finPrdtCd") String finPrdtCd);
+
+    /**
+     * 특정 옵션 조회
+     */
+    SavingsOption findByOptionKey(@Param("dclsMonth") String dclsMonth,
+                                  @Param("finCoNo") String finCoNo,
+                                  @Param("finPrdtCd") String finPrdtCd,
+                                  @Param("intrRateType") String intrRateType,
+                                  @Param("rsrvType") String rsrvType,
+                                  @Param("saveTrm") Integer saveTrm);
+
+    /**
+     * 옵션 업데이트
+     */
+    void updateSavingsOption(SavingsOption option);
 }

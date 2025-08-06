@@ -5,7 +5,7 @@
 
 <mapper namespace="com.banklab.product.mapper.SavingsOptionMapper">
     
-    <resultMap id="SavingsOptionResultMap" type="com.banklab.product.domain.SavingsOption">
+    <resultMap id="SavingsOptionResultMap" type="com.banklab.product.domain.savings.SavingsOption">
         <id property="id" column="id"/>
         <result property="dclsMonth" column="dcls_month"/>
         <result property="finCoNo" column="fin_co_no"/>
@@ -17,17 +17,19 @@
         <result property="saveTrm" column="save_trm"/>
         <result property="intrRate" column="intr_rate"/>
         <result property="intrRate2" column="intr_rate2"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
     </resultMap>
 
-    <insert id="insertSavingsOption" parameterType="com.banklab.product.domain.SavingsOption">
+    <insert id="insertSavingsOption" parameterType="com.banklab.product.domain.savings.SavingsOption">
         INSERT INTO savings_option (
             dcls_month, fin_co_no, fin_prdt_cd,
             intr_rate_type, intr_rate_type_nm, rsrv_type, rsrv_type_nm,
-            save_trm, intr_rate, intr_rate2
+            save_trm, intr_rate, intr_rate2, created_at, updated_at
         ) VALUES (
             #{dclsMonth}, #{finCoNo}, #{finPrdtCd},
             #{intrRateType}, #{intrRateTypeNm}, #{rsrvType}, #{rsrvTypeNm},
-            #{saveTrm}, #{intrRate}, #{intrRate2}
+            #{saveTrm}, #{intrRate}, #{intrRate2}, NOW(), NOW()
         )
     </insert>
 
@@ -35,11 +37,11 @@
         SELECT 
             id, dcls_month, fin_co_no, fin_prdt_cd,
             intr_rate_type, intr_rate_type_nm, rsrv_type, rsrv_type_nm,
-            save_trm, intr_rate, intr_rate2
+            save_trm, intr_rate, intr_rate2, created_at, updated_at
         FROM savings_option
         ORDER BY fin_co_no, fin_prdt_cd, save_trm
     </select>
-    <select id="findOptionsByProduct" resultType="com.banklab.product.domain.SavingsOption">
+    <select id="findOptionsByProduct" resultType="com.banklab.product.domain.savings.SavingsOption">
         SELECT
             id,
             dcls_month as dclsMonth,
@@ -51,7 +53,9 @@
             rsrv_type_nm as rsrvTypeNm,
             save_trm as saveTrm,
             intr_rate as intrRate,
-            intr_rate2 as intrRate2
+            intr_rate2 as intrRate2,
+            created_at as createdAt,
+            updated_at as updatedAt
         FROM savings_option
         WHERE dcls_month = #{dclsMonth}
           AND fin_co_no = #{finCoNo}
@@ -59,6 +63,46 @@
         ORDER BY save_trm, intr_rate_type
 
     </select>
+
+    <select id="findByOptionKey" resultType="com.banklab.product.domain.savings.SavingsOption">
+        SELECT
+            id,
+            dcls_month as dclsMonth,
+            fin_co_no as finCoNo,
+            fin_prdt_cd as finPrdtCd,
+            intr_rate_type as intrRateType,
+            intr_rate_type_nm as intrRateTypeNm,
+            rsrv_type as rsrvType,
+            rsrv_type_nm as rsrvTypeNm,
+            save_trm as saveTrm,
+            intr_rate as intrRate,
+            intr_rate2 as intrRate2,
+            created_at as createdAt,
+            updated_at as updatedAt
+        FROM savings_option
+        WHERE dcls_month = #{dclsMonth}
+          AND fin_co_no = #{finCoNo}
+          AND fin_prdt_cd = #{finPrdtCd}
+          AND intr_rate_type = #{intrRateType}
+          AND rsrv_type = #{rsrvType}
+          AND save_trm = #{saveTrm}
+    </select>
+
+    <update id="updateSavingsOption" parameterType="com.banklab.product.domain.savings.SavingsOption">
+        UPDATE savings_option SET
+            dcls_month = #{dclsMonth},
+            fin_co_no = #{finCoNo},
+            fin_prdt_cd = #{finPrdtCd},
+            intr_rate_type = #{intrRateType},
+            intr_rate_type_nm = #{intrRateTypeNm},
+            rsrv_type = #{rsrvType},
+            rsrv_type_nm = #{rsrvTypeNm},
+            save_trm = #{saveTrm},
+            intr_rate = #{intrRate},
+            intr_rate2 = #{intrRate2},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
 
     <delete id="deleteAllSavingsOptions">
         DELETE FROM savings_option

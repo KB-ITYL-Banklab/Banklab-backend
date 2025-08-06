@@ -1,18 +1,29 @@
 package com.banklab.product.batch.job;
 
-import com.banklab.product.batch.tasklet.*;
+import com.banklab.product.batch.tasklet.annuity.DeleteAnnuityTasklet;
+import com.banklab.product.batch.tasklet.annuity.FetchAndInsertAnnuityTasklet;
+import com.banklab.product.batch.tasklet.creditloan.DeleteCreditLoanTasklet;
+import com.banklab.product.batch.tasklet.creditloan.FetchAndInsertCreditLoanTasklet;
+import com.banklab.product.batch.tasklet.deposit.DeleteDepositTasklet;
+import com.banklab.product.batch.tasklet.deposit.FetchAndInsertDepositTasklet;
+import com.banklab.product.batch.tasklet.mortgage.DeleteMortgageLoanTasklet;
+import com.banklab.product.batch.tasklet.mortgage.FetchAndInsertMortgageLoanTasklet;
+import com.banklab.product.batch.tasklet.renthouse.DeleteRentHouseLoanTasklet;
+import com.banklab.product.batch.tasklet.renthouse.FetchAndInsertRentHouseLoanTasklet;
+import com.banklab.product.batch.tasklet.savings.DeleteSavingsTasklet;
+import com.banklab.product.batch.tasklet.savings.FetchAndInsertSavingsTasklet;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * 예금, 적금, 신용대출 상품들을 위한 배치 작업입니다.
- * 상품을 갱신하고, 이전 상품 정보들을 삭제합니다.
- * 이후 외부 API를 이용하여 새로운 데이터를 받아옵니다.
+ * 예금, 적금, 신용대출, 연금 저축상품들을 위한 배치 작업입니다.
+ * 이후 외부 API를 이용하여 새로운 데이터를 받아온 후 상품의 변경을 감지하여 갱신합니다.
  */
 @Configuration
 public class ProductBatchJobConfig {
@@ -44,11 +55,31 @@ public class ProductBatchJobConfig {
     @Autowired
     private FetchAndInsertCreditLoanTasklet fetchAndInsertCreditLoanTasklet;
 
+    // Annuity Tasklets
+    @Autowired
+    private DeleteAnnuityTasklet deleteAnnuityTasklet;
+
+    @Autowired
+    private FetchAndInsertAnnuityTasklet fetchAndInsertAnnuityTasklet;
+
+    //Mortgage Loan Tasklets
+    @Autowired
+    private DeleteMortgageLoanTasklet deleteMortgageLoanTasklet;
+    @Autowired
+    private FetchAndInsertMortgageLoanTasklet fetchAndInsertMortgageLoanTasklet;
+
+    //Rent House Loan Tasklets
+    @Autowired
+    private DeleteRentHouseLoanTasklet deleteRentHouseLoanTasklet;
+    @Autowired
+    private FetchAndInsertRentHouseLoanTasklet fetchAndInsertRentHouseLoanTasklet;
+
     @Bean
     public Job depositRefreshJob() {
         return jobBuilderFactory.get("depositRefreshJob")
-                .start(deleteDepositStep())
-                .next(fetchAndInsertDepositStep())
+                .start(fetchAndInsertDepositStep())
+//                .start(deleteDepositStep())
+//                .next(fetchAndInsertDepositStep())
                 .build();
     }
 
@@ -69,8 +100,9 @@ public class ProductBatchJobConfig {
     @Bean
     public Job savingsRefreshJob() {
         return jobBuilderFactory.get("savingsRefreshJob")
-                .start(deleteSavingsStep())
-                .next(fetchAndInsertSavingsStep())
+                .start(fetchAndInsertSavingsStep())
+//                .start(deleteSavingsStep())
+//                .next(fetchAndInsertSavingsStep())
                 .build();
     }
 
@@ -91,8 +123,9 @@ public class ProductBatchJobConfig {
     @Bean
     public Job creditLoanRefreshJob() {
         return jobBuilderFactory.get("creditLoanRefreshJob")
-                .start(deleteCreditLoanStep())
-                .next(fetchAndInsertCreditLoanStep())
+                .start(fetchAndInsertCreditLoanStep())
+//                .start(deleteCreditLoanStep())
+//                .next(fetchAndInsertCreditLoanStep())
                 .build();
     }
 
@@ -107,6 +140,75 @@ public class ProductBatchJobConfig {
     public Step fetchAndInsertCreditLoanStep() {
         return stepBuilderFactory.get("fetchAndInsertCreditLoanStep")
                 .tasklet(fetchAndInsertCreditLoanTasklet)
+                .build();
+    }
+
+    @Bean
+    public Job annuityRefreshJob() {
+        return jobBuilderFactory.get("annuityRefreshJob")
+                .start(fetchAndInsertAnnuityStep())
+//                .start(deleteAnnuityStep())
+//                .next(fetchAndInsertAnnuityStep())
+                .build();
+    }
+
+    @Bean
+    public Step deleteAnnuityStep() {
+        return stepBuilderFactory.get("deleteAnnuityStep")
+                .tasklet(deleteAnnuityTasklet)
+                .build();
+    }
+
+    @Bean
+    public Step fetchAndInsertAnnuityStep() {
+        return stepBuilderFactory.get("fetchAndInsertAnnuityStep")
+                .tasklet(fetchAndInsertAnnuityTasklet)
+                .build();
+    }
+
+    @Bean
+    public Job mortgageLoanRefreshJob() {
+        return jobBuilderFactory.get("mortgageLoanRefreshJob")
+                .start(fetchAndInsertMortgageLoanStep())
+//                .start(deleteMortgageLoanStep())
+//                .next(fetchAndInsertMortgageLoanStep())
+                .build();
+    }
+
+    @Bean
+    public Step deleteMortgageLoanStep() {
+        return stepBuilderFactory.get("deleteMortgageLoanStep")
+                .tasklet(deleteMortgageLoanTasklet)
+                .build();
+    }
+
+    @Bean
+    public Step fetchAndInsertMortgageLoanStep() {
+        return stepBuilderFactory.get("fetchAndInsertMortgageLoanStep")
+                .tasklet(fetchAndInsertMortgageLoanTasklet)
+                .build();
+    }
+
+    @Bean
+    public Job rentHouseLoanRefreshJob() {
+        return jobBuilderFactory.get("rentHouseLoanRefreshJob")
+                .start(fetchAndInsertRentHouseLoanStep())
+//                .start(deleteRentHouseLoanStep())
+//                .next(fetchAndInsertRentHouseLoanStep())
+                .build();
+    }
+
+    @Bean
+    public Step deleteRentHouseLoanStep() {
+        return stepBuilderFactory.get("deleteRentHouseLoanStep")
+                .tasklet(deleteRentHouseLoanTasklet)
+                .build();
+    }
+
+    @Bean
+    public Step fetchAndInsertRentHouseLoanStep() {
+        return stepBuilderFactory.get("fetchAndInsertRentHouseLoanStep")
+                .tasklet(fetchAndInsertRentHouseLoanTasklet)
                 .build();
     }
 }

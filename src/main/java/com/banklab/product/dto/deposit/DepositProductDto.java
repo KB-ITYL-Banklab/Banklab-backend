@@ -1,7 +1,7 @@
 package com.banklab.product.dto.deposit;
 
 
-import com.banklab.product.domain.DepositProduct;
+import com.banklab.product.domain.deposit.DepositProduct;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -77,6 +77,9 @@ public class DepositProductDto {
                 .mtrtInt(dto.getMtrtInt())
                 .spclCnd(dto.getSpclCnd())
                 .joinDeny(parseJoinDeny(dto.getJoinDeny()))
+                .joinMember(dto.getJoinMember())
+                .etcNote(dto.getEtcNote())
+                .maxLimit(dto.getMaxLimit())
                 .dclsStrtDay(parseDate(dto.getDclsStrtDay()))
                 .dclsEndDay(parseDate(dto.getDclsEndDay()))
                 .finCoSubmDay(parseDateTime(dto.getFinCoSubmDayr()))

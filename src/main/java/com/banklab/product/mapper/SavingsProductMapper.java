@@ -1,6 +1,6 @@
 package com.banklab.product.mapper;
 
-import com.banklab.product.domain.SavingsProduct;
+import com.banklab.product.domain.savings.SavingsProduct;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -22,4 +22,9 @@ public interface SavingsProductMapper {
      * ID로 상품 조회
      */
     SavingsProduct findById(@Param("id") Long id);
+    
+    /**
+     * 상품 업데이트
+     */
+    void updateSavingsProduct(SavingsProduct product);
 }

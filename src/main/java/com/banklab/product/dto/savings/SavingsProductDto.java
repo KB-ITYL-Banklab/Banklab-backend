@@ -1,6 +1,6 @@
 package com.banklab.product.dto.savings;
 
-import com.banklab.product.domain.SavingsProduct;
+import com.banklab.product.domain.savings.SavingsProduct;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
