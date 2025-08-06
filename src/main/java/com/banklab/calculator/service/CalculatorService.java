@@ -1,8 +1,10 @@
 package com.banklab.calculator.service;
 
+import com.banklab.calculator.dto.request.AnnuityCalculateRequest;
 import com.banklab.calculator.dto.request.DepositCalculateRequest;
 import com.banklab.calculator.dto.request.SavingsCalculateRequest;
 import com.banklab.calculator.dto.request.LoanCalculateRequest;
+import com.banklab.calculator.dto.response.AnnuityCalculateResponse;
 import com.banklab.calculator.dto.response.DepositCalculateResponse;
 import com.banklab.calculator.dto.response.SavingsCalculateResponse;
 import com.banklab.calculator.dto.response.LoanCalculateResponse;
@@ -26,4 +28,9 @@ public interface CalculatorService {
      * 대출 계산
      */
     LoanCalculateResponse calculateLoan(LoanCalculateRequest request);
+
+    /**
+     * 연금 계산
+     */
+    AnnuityCalculateResponse calculateAnnuity(AnnuityCalculateRequest request);
 }
