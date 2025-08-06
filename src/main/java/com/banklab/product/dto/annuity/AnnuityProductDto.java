@@ -80,7 +80,7 @@ public class AnnuityProductDto {
                 .prdtTypeNm(baseDto.getPrdtTypeNm())
                 .avgPrftRate(parseBigDecimal(baseDto.getAvgPrftRate()))
                 .dclsRate(parseBigDecimal(baseDto.getDclsRate()))
-                .guarRate(parseBigDecimal(baseDto.getGuarRate()))
+                .guarRate(baseDto.getGuarRate())
                 .btrmPrftRate1(parseBigDecimal(baseDto.getBtrmPrftRate1()))
                 .btrmPrftRate2(parseBigDecimal(baseDto.getBtrmPrftRate2()))
                 .btrmPrftRate3(parseBigDecimal(baseDto.getBtrmPrftRate3()))

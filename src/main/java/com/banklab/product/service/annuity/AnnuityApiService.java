@@ -31,7 +31,7 @@ public class AnnuityApiService {
     private String API_KEY;
 
     public AnnuityProductAndOptionListDto fetchProductsFromApi() {
-        String fullUrl = API_URL + "?auth=" + API_KEY + "&topFinGrpNo=060000&pageNo=1";
+        String fullUrl = API_URL + "?auth=" + API_KEY + "&topFinGrpNo=050000&pageNo=1";
 
         System.out.println("Annuity API 호출 URL: " + fullUrl);
 

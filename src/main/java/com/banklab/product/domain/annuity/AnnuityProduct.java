@@ -29,7 +29,7 @@ public class AnnuityProduct {
     private String prdtTypeNm;          // 상품 유형명
     private BigDecimal avgPrftRate;     // 평균 수익률
     private BigDecimal dclsRate;        // 공시 수익률
-    private BigDecimal guarRate;        // 보장 수익률
+    private String guarRate;        // 보장 수익률
     private BigDecimal btrmPrftRate1;   // 1개월 수익률
     private BigDecimal btrmPrftRate2;   // 3개월 수익률
     private BigDecimal btrmPrftRate3;   // 6개월 수익률
