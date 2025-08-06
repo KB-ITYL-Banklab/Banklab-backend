@@ -106,4 +106,33 @@ public interface FinanceStockMapper {
      * @return 삭제된 레코드 수
      */
     int deleteOldDataBefore(@Param("cutoffDate") LocalDate cutoffDate);
+    
+    /**
+     * 종가 기준 상위 N개 종목 조회
+     * @param limit 조회할 개수
+     * @return 종가 기준 상위 주식 정보 리스트
+     */
+    List<FinanceStockVO> selectTopByClosingPrice(@Param("limit") int limit);
+    
+    /**
+     * 시가총액 기준 상위 N개 종목 조회
+     * @param limit 조회할 개수
+     * @return 시가총액 기준 상위 주식 정보 리스트
+     */
+    List<FinanceStockVO> selectTopByMarketCap(@Param("limit") int limit);
+    
+    /**
+     * 등락률 기준 상위/하위 N개 종목 조회
+     * @param limit 조회할 개수
+     * @param orderType 정렬 방향 ("ASC": 하락률 순, "DESC": 상승률 순)
+     * @return 등락률 기준 주식 정보 리스트
+     */
+    List<FinanceStockVO> selectByFluctuationRate(@Param("limit") int limit, @Param("orderType") String orderType);
+    
+    /**
+     * 거래량 기준 상위 N개 종목 조회
+     * @param limit 조회할 개수
+     * @return 거래량 기준 상위 주식 정보 리스트
+     */
+    List<FinanceStockVO> selectTopByTradingVolume(@Param("limit") int limit);
 }

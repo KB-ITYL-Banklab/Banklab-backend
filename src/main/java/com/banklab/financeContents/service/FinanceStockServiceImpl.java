@@ -7,13 +7,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 주식 정보 데이터베이스 서비스 구현체
@@ -28,7 +35,10 @@ public class FinanceStockServiceImpl implements FinanceStockService {
     
     @Autowired
     private PublicDataStockService publicDataStockService;
-    
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
     @Override
     @Transactional
     public int saveStockDataFromApi(LocalDate baseDate) {
@@ -66,7 +76,7 @@ public class FinanceStockServiceImpl implements FinanceStockService {
                         baseDateStr, null, batchSize, page);
                     
                     if (stockPage != null && !stockPage.isEmpty()) {
-                        // 한국 주식만 필터링 (ISIN 코드가 KR로 시작)
+                        // 한국 주식만 필터링하고 거래대금 기준으로 정렬
                         List<StockSecurityInfoDto> koreanStocks = stockPage.stream()
                             .filter(stock -> stock.getIsinCode() != null && stock.getIsinCode().startsWith("KR"))
                             .filter(stock -> stock.getTradingPrice() != null && !stock.getTradingPrice().trim().isEmpty())
@@ -103,7 +113,6 @@ public class FinanceStockServiceImpl implements FinanceStockService {
                 } catch (Exception e) {
                     log.warn("⚠️ {}페이지 조회 실패: {}", page, e.getMessage());
                     // 한 페이지 실패해도 계속 진행
-                    continue;
                 }
             }
             
@@ -136,7 +145,7 @@ public class FinanceStockServiceImpl implements FinanceStockService {
             
             int totalSaved = 0;
             LocalDate endDate = LocalDate.now().minusDays(1); // 어제부터
-            LocalDate startDate = endDate.minusDays(days - 1); // N일 전까지
+            LocalDate startDate = endDate.minusDays(days); // N일 전까지
             
             log.info("📅 저장 기간: {} ~ {}", startDate, endDate);
             
@@ -156,12 +165,11 @@ public class FinanceStockServiceImpl implements FinanceStockService {
                     log.info("✅ {} 데이터 저장 완료: {}건", date, dailySaved);
                     
                     // 일별 저장 간격 조절 (API 제한 고려)
-                    Thread.sleep(2000); // 2초 대기
+                    Thread.sleep(1000); // 1초 대기
                     
                 } catch (Exception e) {
                     log.error("❌ {} 데이터 저장 실패: {}", date, e.getMessage());
                     // 한 날짜 실패해도 계속 진행
-                    continue;
                 }
             }
             
@@ -367,6 +375,7 @@ public class FinanceStockServiceImpl implements FinanceStockService {
     
     /**
      * StockSecurityInfoDto를 FinanceStockVO로 변환
+     * 새로운 테이블 구조에 맞게 매핑
      */
     private FinanceStockVO convertDtoToVo(StockSecurityInfoDto dto) {
         if (dto == null) {
@@ -377,7 +386,7 @@ public class FinanceStockServiceImpl implements FinanceStockService {
             log.debug("🔄 DTO 변환 시작: 종목코드={}, 종목명={}", dto.getShortCode(), dto.getItemName());
             
             // 기준일자 파싱 (YYYYMMDD -> LocalDate)
-            LocalDate baseDate = null;
+            LocalDate baseDate;
             if (dto.getBaseDate() != null && !dto.getBaseDate().trim().isEmpty()) {
                 try {
                     baseDate = LocalDate.parse(dto.getBaseDate(), DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -392,22 +401,29 @@ public class FinanceStockServiceImpl implements FinanceStockService {
             }
             
             FinanceStockVO vo = new FinanceStockVO();
+            
+            // 새로운 테이블 구조에 맞게 매핑
             vo.setBasDt(baseDate);
             vo.setSrtnCd(dto.getShortCode());
+            vo.setIsinCd(dto.getIsinCode());
             vo.setItmsNm(dto.getItemName());
+            vo.setMrktCtg(dto.getMarketCategory());
             
-            // 실제 StockSecurityInfoDto 필드명에 맞게 매핑
-            vo.setBeginFltRt(parseDoubleValue(dto.getFluctuationRate()));
-            vo.setEndFltRt(parseDoubleValue(dto.getFluctuationRate()));
+            // 가격 정보
+            vo.setClpr(parseLongValue(dto.getClosePrice())); // 종가
+            vo.setVs(parseLongValue(dto.getVersus())); // 전일 대비 등락
+            vo.setFltRt(parseBigDecimalValue(dto.getFluctuationRate())); // 등락률
+            vo.setMkp(parseLongValue(dto.getMarketPrice())); // 시가
+            vo.setHipr(parseLongValue(dto.getHighPrice())); // 고가
+            vo.setLopr(parseLongValue(dto.getLowPrice())); // 저가
             
-            vo.setBeginVs(parseDoubleValue(dto.getVersus()));
-            vo.setEndVs(parseDoubleValue(dto.getVersus()));
+            // 거래 정보
+            vo.setTrqu(parseLongValue(dto.getTradingQuantity())); // 거래량
+            vo.setTrPrc(parseLongValue(dto.getTradingPrice())); // 거래대금
             
-            vo.setBeginTrqu(parseLongValue(dto.getTradingQuantity()));
-            vo.setEndTrqu(parseLongValue(dto.getTradingQuantity()));
-            
-            vo.setBeginTrPrc(parseLongValue(dto.getTradingPrice()));
-            vo.setEndTrPrc(parseLongValue(dto.getTradingPrice()));
+            // 시장 정보
+            vo.setLstgStCnt(parseLongValue(dto.getListedStockCount())); // 상장주식수
+            vo.setMrktTotAmt(parseLongValue(dto.getMarketTotalAmount())); // 시가총액
             
             return vo;
                 
@@ -418,16 +434,16 @@ public class FinanceStockServiceImpl implements FinanceStockService {
     }
     
     /**
-     * 문자열을 Double로 안전하게 변환
+     * 문자열을 BigDecimal로 안전하게 변환
      */
-    private Double parseDoubleValue(String value) {
+    private BigDecimal parseBigDecimalValue(String value) {
         if (value == null || value.trim().isEmpty() || "-".equals(value.trim())) {
             return null;
         }
         try {
-            return Double.parseDouble(value.replace(",", ""));
+            return new BigDecimal(value.replace(",", ""));
         } catch (NumberFormatException e) {
-            log.warn("⚠️ Double 변환 실패: {}", value);
+            log.warn("⚠️ BigDecimal 변환 실패: {}", value);
             return null;
         }
     }

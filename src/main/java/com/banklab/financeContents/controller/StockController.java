@@ -94,18 +94,38 @@ public class StockController {
 
     // ===== 데이터베이스 저장 =====
 
+
     @PostMapping("/save/today")
     @ApiOperation(value = "오늘자 주식 정보를 API에서 가져와서 데이터베이스에 저장 (상위 200개)")
     public ResponseEntity<Map<String, Object>> saveStockDataToday() {
-        LocalDate today = LocalDate.now().minusDays(1); // 전일 데이터
-        return saveTopStockDataInternal(today, 200, "오늘자");
+        try {
+            log.info("🔵 [POST] /save/today 요청 시작");
+            
+            LocalDate yesterday = LocalDate.now().minusDays(1); // 전일 데이터
+            log.info("📅 저장 대상 날짜: {} (어제)", yesterday);
+            
+            int savedCount = financeStockService.saveTopStockDataFromApi(yesterday, 200);
+            
+            Map<String, Object> result = createSuccessResponseMap("오늘자 주식 데이터 저장 완료", null);
+            result.put("date", yesterday.toString());
+            result.put("savedCount", savedCount);
+            result.put("topCount", 200);
+            
+            log.info("✅ [POST] /save/today 완료: {}건 저장", savedCount);
+            return ResponseEntity.ok(result);
+            
+        } catch (Exception e) {
+            log.error("❌ [POST] /save/today 실패: {}", e.getMessage(), e);
+            return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, 
+                "오늘자 주식 데이터 저장 실패", e.getMessage());
+        }
     }
 
     @PostMapping("/save/recent")
     @ApiOperation(value = "최근 30일간 상위 200개 종목 데이터를 배치로 저장")
     public ResponseEntity<Map<String, Object>> saveRecentStockData() {
         try {
-            log.info("📅 최근 30일간 상위 200개 종목 데이터 저장 요청");
+            log.info("🔵 [POST] /save/recent 요청 시작 - 최근 30일간 데이터 저장");
             
             // 오래된 데이터 먼저 삭제
             int deletedCount = financeStockService.deleteOldData();
@@ -120,23 +140,14 @@ public class StockController {
             result.put("period", "30일");
             result.put("topCount", 200);
             
-            log.info("✅ 최근 30일간 데이터 저장 완료: {}건", savedCount);
+            log.info("✅ [POST] /save/recent 완료: 저장 {}건, 삭제 {}건", savedCount, deletedCount);
             return ResponseEntity.ok(result);
             
         } catch (Exception e) {
-            log.error("❌ 최근 데이터 저장 실패: {}", e.getMessage(), e);
+            log.error("❌ [POST] /save/recent 실패: {}", e.getMessage(), e);
             return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, 
                 "최근 데이터 저장 실패", e.getMessage());
         }
-    }
-
-    @PostMapping("/save/top/{topCount}")
-    @ApiOperation(value = "오늘자 상위 N개 종목 데이터 저장")
-    public ResponseEntity<Map<String, Object>> saveTopStockData(
-            @ApiParam(value = "상위 종목 수", example = "200") 
-            @PathVariable int topCount) {
-        LocalDate today = LocalDate.now().minusDays(1); // 전일 데이터
-        return saveTopStockDataInternal(today, topCount, "상위 " + topCount + "개 종목");
     }
 
     // ===== 데이터베이스 조회 =====
@@ -166,74 +177,6 @@ public class StockController {
     }
 
     // ===== 주식 검색 =====
-
-    @GetMapping("/search/simple")
-    @ApiOperation(value = "간단한 테스트")
-    public ResponseEntity<String> simpleTest() {
-        try {
-            String simpleJson = "{\"success\":true,\"message\":\"간단한 테스트\",\"data\":[{\"test\":\"한글테스트\"}]}";
-            return ResponseEntity.ok()
-                    .header("Content-Type", "application/json; charset=UTF-8")
-                    .body(simpleJson);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("{\"error\":\"" + e.getMessage() + "\"}");
-        }
-    }
-
-    @GetMapping("/search/safe")
-    @ApiOperation(value = "안전한 주식명 검색")
-    public ResponseEntity<String> safeSearchStocksByName(
-            @ApiParam(value = "검색할 주식명", example = "CJ대한통운") 
-            @RequestParam String name) {
-        try {
-            String decodedName = java.net.URLDecoder.decode(name, "UTF-8");
-            log.info("🔍 안전한 검색 요청: '{}'", decodedName);
-            
-            List<FinanceStockVO> stocks = financeStockService.searchLatestStocksByName(decodedName, 5);
-            
-            // 수동으로 안전한 JSON 문자열 생성
-            StringBuilder jsonBuilder = new StringBuilder();
-            jsonBuilder.append("{");
-            jsonBuilder.append("\"success\":true,");
-            jsonBuilder.append("\"message\":\"주식명 검색 완료\",");
-            jsonBuilder.append("\"searchKeyword\":\"").append(safeJsonString(decodedName)).append("\",");
-            jsonBuilder.append("\"count\":").append(stocks.size()).append(",");
-            jsonBuilder.append("\"data\":[");
-            
-            for (int i = 0; i < stocks.size(); i++) {
-                FinanceStockVO stock = stocks.get(i);
-                if (i > 0) jsonBuilder.append(",");
-                
-                jsonBuilder.append("{");
-                jsonBuilder.append("\"id\":").append(stock.getId() != null ? stock.getId() : "null").append(",");
-                jsonBuilder.append("\"baseDate\":\"").append(stock.getBasDt() != null ? stock.getBasDt().toString() : "").append("\",");
-                jsonBuilder.append("\"stockCode\":\"").append(safeJsonString(stock.getSrtnCd())).append("\",");
-                jsonBuilder.append("\"stockName\":\"").append(safeJsonString(stock.getItmsNm())).append("\",");
-                jsonBuilder.append("\"beginTradingPrice\":").append(stock.getBeginTrPrc() != null ? stock.getBeginTrPrc() : "null").append(",");
-                jsonBuilder.append("\"endTradingPrice\":").append(stock.getEndTrPrc() != null ? stock.getEndTrPrc() : "null").append(",");
-                jsonBuilder.append("\"beginTradingQuantity\":").append(stock.getBeginTrqu() != null ? stock.getBeginTrqu() : "null").append(",");
-                jsonBuilder.append("\"endTradingQuantity\":").append(stock.getEndTrqu() != null ? stock.getEndTrqu() : "null");
-                jsonBuilder.append("}");
-            }
-            
-            jsonBuilder.append("]}");
-            
-            String jsonResponse = jsonBuilder.toString();
-            log.info("✅ 안전한 검색 완료: {}건", stocks.size());
-            
-            return ResponseEntity.ok()
-                    .header("Content-Type", "application/json; charset=UTF-8")
-                    .body(jsonResponse);
-            
-        } catch (Exception e) {
-            log.error("❌ 안전한 검색 실패: {}", e.getMessage(), e);
-            String errorJson = "{\"success\":false,\"error\":\"검색 실패\",\"message\":\"" + safeJsonString(e.getMessage()) + "\"}";
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .header("Content-Type", "application/json; charset=UTF-8")
-                    .body(errorJson);
-        }
-    }
 
     @GetMapping("/search")
     @ApiOperation(value = "주식명으로 검색 (모든 날짜 데이터)")
@@ -335,30 +278,6 @@ public class StockController {
                   .replace("\b", "\\b")
                   .replace("\f", "\\f")
                   .replaceAll("[\\x00-\\x1F\\x7F]", ""); // 제어 문자 제거
-    }
-
-    /**
-     * 상위 종목 데이터 저장 내부 로직
-     */
-    private ResponseEntity<Map<String, Object>> saveTopStockDataInternal(LocalDate targetDate, int topCount, String description) {
-        try {
-            log.info("📅 {} 상위 {}개 종목 데이터 저장 요청", description, topCount);
-            
-            int savedCount = financeStockService.saveTopStockDataFromApi(targetDate, topCount);
-            
-            Map<String, Object> result = createSuccessResponseMap("상위 종목 데이터 저장 완료", null);
-            result.put("date", targetDate.toString());
-            result.put("savedCount", savedCount);
-            result.put("topCount", topCount);
-            
-            log.info("✅ {} 상위 {}개 종목 데이터 저장 완료: {}건", description, topCount, savedCount);
-            return ResponseEntity.ok(result);
-            
-        } catch (Exception e) {
-            log.error("❌ {} 상위 종목 데이터 저장 실패: {}", description, e.getMessage(), e);
-            return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, 
-                "상위 종목 데이터 저장 실패", e.getMessage());
-        }
     }
 
     /**
