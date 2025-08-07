@@ -16,6 +16,7 @@ public interface TransactionMapper {
 
     int saveTransactionList(List<TransactionHistoryVO> list);
 
+
     LocalDate getLastTransactionDate(@Param("memberId") Long memberId, @Param("resAccount") String resAccount);
     void updateCategories(@Param("list")List<TransactionHistoryVO> transactions);
 
@@ -47,7 +48,7 @@ public interface TransactionMapper {
 
 
     /**
-     * 계좌 ID로 거래내역 상세 조회 (DTO 반환)
+     * 카테고리 ID로 거래내역 상세 조회 (DTO 반환)
      */
     List<TransactionDetailDTO> getTransactionDetailsByCategoryId(
             @Param("memberId") Long memberId,

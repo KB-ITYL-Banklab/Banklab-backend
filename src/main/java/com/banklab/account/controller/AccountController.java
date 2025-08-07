@@ -43,6 +43,7 @@ public class AccountController {
     private final TransactionService transactionService;
     private final RedisService redisService;
 
+
     /**
      * 로그인한 사용자 정보 추출 및 검증
      */
@@ -123,11 +124,14 @@ public class AccountController {
             response.put("savedCount", savedCount);
             response.put("accounts", accountDTOList);
 
+            // 거래 내역 불러오기
+            for(AccountDTO account : accountDTOList){
+                asyncTransactionService.getTransactions(memberId,
+                        TransactionRequestDto.builder()
+                                .resAccount(account.getResAccount())
+                                .build());
+            }
 
-            asyncTransactionService.getTransactions(memberId,
-                    TransactionRequestDto.builder()
-                            .resAccount(accountDTOList.get(0).getResAccount())
-                            .build());
 
             return ResponseEntity.ok(createSuccessResponse("계좌 연동이 완료되었습니다.", response, authInfo));
 
@@ -202,6 +206,14 @@ public class AccountController {
             accountService.refreshAccountBalance(memberId, accountRequest.getBankCode(), accountRequest.getConnectedId());
             List<AccountDTO> accountList = accountService.getUserAccounts(memberId);
 
+            // 거래 내역 새로 고침
+            for(AccountDTO account : accountList){
+                asyncTransactionService.getTransactions(memberId,
+                        TransactionRequestDto.builder()
+                                .resAccount(account.getResAccount())
+                                .build());
+            }
+            
             Map<String, Object> response = new HashMap<>();
             response.put("accounts", accountList);
 

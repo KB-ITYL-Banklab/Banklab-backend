@@ -47,7 +47,7 @@ public class KakaoMapClient {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
 
-        String url = KEYWORD_SEARCH_URI + "?query=" + desc;
+        String url = KEYWORD_SEARCH_URI + "?page=1&size=1&sort=accuracy&query=" + desc;
         
         HttpEntity<?> entity = new HttpEntity<>(headers);
         ResponseEntity<KakaoMapSearchResponseDto> response = restTemplate.exchange(
