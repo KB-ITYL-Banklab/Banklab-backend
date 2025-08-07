@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,10 +56,12 @@ public class SummaryBatchServiceImpl implements SummaryBatchService {
      */
     @Override
     @Transactional
-    public void initDailySummary(Long memberId, AccountVO account) {
+    public void initDailySummary(Long memberId, AccountVO account, String startDate) {
         // 1. 마지막 집계 일자 구하기
         LocalDate today = LocalDate.now();
-        LocalDate lastDay = today.minusYears(2);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        LocalDate lastDay = LocalDate.parse(startDate, formatter);
 
         // 2. 마지막 일부터 오늘까지 집계테이블 저장
         while (!lastDay.isAfter(today)) {

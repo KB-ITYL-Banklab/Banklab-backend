@@ -11,13 +11,12 @@ import com.banklab.transaction.summary.service.SummaryBatchService;
 import com.google.common.util.concurrent.RateLimiter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,81 +24,121 @@ import java.util.stream.Collectors;
 @Log4j2
 public class CategoryService {
 
+    @Qualifier("asyncExecutor")
+    private final Executor asyncExecutor;
+
+
     private final CategoryMapper categoryMapper;
     private final TransactionMapper transactionMapper;
     private final KakaoMapService kakaoMapService;
     private final RedisService redisService;
 
-    @Async
-    public  CompletableFuture<Void> categorizeTransactions(List<TransactionHistoryVO> transactions, String key) {
+    public void categorizeTransactions(List<TransactionHistoryVO> transactions, String key) {
         List<String> descriptions = transactions.stream()
                 .map(TransactionHistoryVO::getDescription)
+                .filter(Objects::nonNull) // null 방어
+                .map(String::trim)        // 앞뒤 공백 제거
+                .filter(s -> !s.isEmpty())// 빈 문자열 제거
                 .distinct()
                 .toList();
 
-        Map<String, CompletableFuture<Long>> descMap = new HashMap<>();
-
+        // 상호명 -> 분류 결과를 담을 맵
+        Map<String, Long> descMap = new HashMap<>();
         log.info("[START] 카테고리 분류 시작:  Thread: {}", Thread.currentThread().getName());
+        
+        // 프론트에 현재 카테고리 분류 알림 (TTL 2분)
+        redisService.set(key, "CLASSIFYING_CATEGORIES",2);
+        List<String> toClassifyViaKakaoApi = new ArrayList<>();
 
-        // 순차적으로 요청 보내기
-        redisService.setBySeconds(key, "CLASSIFYING_CATEGORIES",20);
-        RateLimiter rateLimiter = RateLimiter.create(1.2);
+        // 먼저 매핑
+        for(String desc : descriptions){
+            String redisKey = "category::"+desc;
+            // 1. Redis 캐시 확인
+            Long categoryId = kakaoMapService.isStoredInRedis(redisKey);
+            if (categoryId!=null){
+                descMap.put(desc, categoryId);
+                continue;
+            }
 
-        for (int i = 0; i < descriptions.size(); i++) {
-            String desc = descriptions.get(i);
-            long delay = 800L * i; // 0ms, 700ms, 1400ms, ...
+            // 2.내부 필터링
+            categoryId = kakaoMapService.mapToInternalCategory(desc);
+            if (categoryId != 8) {
+                kakaoMapService.storeInRedis(redisKey, String.valueOf(categoryId));
+                descMap.put(desc, categoryId);
+                continue;
+            }
+            // 3. Redis에도 없고 내부 매핑도 못한 애들만 모음
+            toClassifyViaKakaoApi.add(desc);
+        }
 
+        log.info("API 호출로 분류해야 하는 상호명 개수: {}", toClassifyViaKakaoApi.size());
+        log.info("===================여기서 최대 3분 소요됩니다.===================");
+
+        for(String desc : toClassifyViaKakaoApi){
+            String redisKey = "category::"+desc;
+            try{
+                long categoryId = kakaoMapService.getCategoryByDesc(redisKey, desc);
+                descMap.put(desc, categoryId);
+            }catch (Exception e){
+                log.error("카테고리 분류 중 에러 발생");
+            }
+            /** 비동기 처리
             descMap.put(desc,
                     CompletableFuture.supplyAsync(() -> {
-                        rateLimiter.acquire();  // Blocking으로 호출 간격 조절
                         try {
-                            return getCategoryWithCache(desc);
+                            // 동시에 실행되는 작업이 10개 초과인 경우 대기 (병렬 제한)
+                            concurrentLimit.acquire();
+                            rateLimiter.acquire();  // 초당 요청 수 제한 (속도 제한)
+                            getCategoryWithCache(desc);
+                            return getCategoryWithCache(desc);  // 실제 분류
                         } catch (Exception e) {
                             log.error("카테고리 분류 api 호출 중 에러 발생", e);
                             throw new RuntimeException(e);
+                        }finally {
+                            concurrentLimit.release();
                         }
-                    }, CompletableFuture.delayedExecutor(delay, TimeUnit.MILLISECONDS))
+                    }, asyncExecutor)
             );
+             */
         }
-
-
-        CompletableFuture<Void> allDone = CompletableFuture.allOf(descMap.values().toArray(new CompletableFuture[0]));
-        return allDone.thenRun(() -> saveCategories(transactions, descMap));
+        // 이제 모든 분류 끝났으니 바로 저장 호출
+        saveCategories(transactions, descMap);
+//        // 비동기 작업이 다 끝난 경우 DB 저장 (전체 분류가 다 끝난 경우)
+//        CompletableFuture<Void> allDone = CompletableFuture.allOf(descMap.values().toArray(new CompletableFuture[0]));
+//        return allDone.thenRun(() -> saveCategories(transactions, descMap));
     }
 
     /**
-     *
      * @param transactions CODEF에서 받아온 거래 내역
      * @param descMap   KEY: 상호명, VALUE: 카테고리
      */
-    private void saveCategories(List<TransactionHistoryVO> transactions, Map<String, CompletableFuture<Long>> descMap) {
+    private void saveCategories(List<TransactionHistoryVO> transactions, Map<String, Long> descMap) {
         log.info("[START] 카테고리 저장 시작 : Thread: {}", Thread.currentThread().getName());
+
         for (TransactionHistoryVO tx : transactions) {
             String desc = tx.getDescription();
-            tx.setCategory_id(descMap.get(desc).join());
+            Long categoryId = descMap.get(desc);
+
+            if (categoryId == null) {
+                log.warn("descMap에 결과 없음: {}", desc);
+                tx.setCategory_id(8L);  // fallback: 기타 카테고리
+                continue;
+            }
+            try {
+                tx.setCategory_id(categoryId);
+            } catch (CompletionException e) {   // 내부 작업에서 예외 발생 시
+                log.warn("카테고리 분류 실패: {}, fallback 적용", desc, e.getCause());
+                tx.setCategory_id(8L);
+            } catch (Exception e) {     // 혹시 모를 다른 예외 처리
+                log.error("카테고리 저장 중 예기치 못한 에러 발생: {}", desc, e);
+                tx.setCategory_id(8L);
+            }
         }
         transactionMapper.updateCategories(transactions);
         log.info("[END] 카테고리 저장 완료 : Thread: {}", Thread.currentThread().getName());
     }
 
 
-    /**
-     * 
-     * @param keyword 해당 상호명 Redis 저장 확인
-     * @return  저장된 경우 Redis 값 반환, 아니면 상호면 분류
-     */
-    public Long getCategoryWithCache(String keyword){
-        String redisKey = "category::"+keyword;
-
-        // 1. Redis 캐시 확인
-        Long categoryId = kakaoMapService.isStoredInRedis(redisKey);
-        if (categoryId!=null){
-            return categoryId;
-        }
-
-        categoryId = kakaoMapService.getCategoryByDesc(redisKey, keyword);
-        return categoryId;
-    }
 
     public List<CategoryDTO> findAll() {
         return categoryMapper.findAll().stream()

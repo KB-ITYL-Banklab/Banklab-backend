@@ -16,10 +16,12 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletionException;
 
 @Service
@@ -33,60 +35,74 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
     private final SummaryBatchService summaryBatchService;
     private final RedisService redisService;
 
-
-
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     @Async
     public void getTransactions(long memberId, TransactionRequestDto request){
-        String key = RedisKeyUtil.transaction(memberId,request.getResAccount());
         log.info("[START] 거래 내역 불러오기 시작 : Thread: {}",Thread.currentThread().getName());
         List<AccountVO> userAccounts=new ArrayList<>();
 
         // 계좌가 특정되지 않은 경우 (Batch 처리 || 전체 계좌 update)
-        if(request==null||request.getResAccount().isBlank()){
+        if(request==null || request.getResAccount() == null ||request.getResAccount().isBlank()){
             userAccounts= accountMapper.selectAccountsByUserId(memberId);
         }else{
             // 특정 계좌가 들어온 경우
             AccountVO account = accountMapper.getAccountByAccountNumber(request.getResAccount());
             userAccounts.add(account);
         }
-
         //2. 계좌별 거래 내역 조회 api 호출
         for (AccountVO account : userAccounts) {
-            // 2-1. 해당 계좌의 거래 내역 존재 확인
-            checkIsPresent(memberId, account, request);
+            String key = RedisKeyUtil.transaction(memberId,account.getResAccount());
 
-            TransactionDTO dto = makeTransactionDTO(account, request);
-            List<TransactionHistoryVO> transactions;
+            // 동일 계좌 중복 처리 방지 Redis : 5분간 유지
+            boolean isFirst = redisService.setIfAbsent(key, "FETCHING_TRANSACTIONS", Duration.ofMinutes(5));
+            if(isFirst){
+                log.info("이미 처리 중인 계좌입니다. {}", account.getResAccount());
+                continue;
+            }
 
             try {
-                // 1. CODEF API 호출
-                transactions = TransactionResponse.requestTransactions(memberId,dto);
+                // 0. 거래 내역 확인
+                checkIsPresent(memberId, account, request);
+                TransactionDTO dto = makeTransactionDTO(account, request);
 
-                log.info("[START] 거래 내역 db 저장 시작");
+                // 1. CODEF API 호출
+                List<TransactionHistoryVO> transactions = TransactionResponse.requestTransactions(memberId,dto);
+                if(transactions.isEmpty()) return;
+
                 // 2. DB에 거래 내역 저장
-                redisService.setBySeconds(key, "FETCHING_TRANSACTIONS",15);
+                log.info("[START] 거래 내역 db 저장 시작");
                 transactionService.saveTransactionList(memberId,account, transactions );
                 log.info("[END] 거래 내역 db 저장 종료");
 
                 // 3. 상호명 -> 카테고리 분류 실행
-                categoryService.categorizeTransactions(transactions, key).join();
+                boolean isCategorized = false;
+                try {
+                    categoryService.categorizeTransactions(transactions, key);
+                    isCategorized=true;
+                }catch (Exception e){
+                    log.error("카테고리 분류 중 에러 발생",e);
+                }
 
-                log.info("[START] 집계 내역 db 저장 시작");
-                // 4. 집계 업데이트
-                redisService.setBySeconds(key, "ANALYZING_DATA",20);
-                summaryBatchService.initDailySummary(memberId,account);
-                log.info("[END] 집계 내역 db 저장 종료");
-                redisService.setBySeconds(key, "DONE",20);
+                // 4. 카테고리 분류 완료 후
+                if(isCategorized) {
+                    // 4. 집계 업데이트
+                    log.info("[START] 집계 내역 db 저장 시작");
+                    redisService.setBySeconds(key, "ANALYZING_DATA", 30);
+                    summaryBatchService.initDailySummary(memberId, account, request.getStartDate());
+                    log.info("[END] 집계 내역 db 저장 종료");
 
+                    redisService.set(key, "DONE", 1);
+                }else{
+                    redisService.set(key, "FAILED", 1);
+                }
 
             } catch (IOException | InterruptedException e) {
                 log.error("거래 내역 불러오는 중 오류 발생");
                 redisService.set(key, "FAILED",1);
                 throw new RuntimeException(e);
             }catch (CompletionException e){
-                log.error("카테고리 분류 비동기 처리 중 에러 발생");
+                log.error("카테고리 분류 비동기 처리 중  에러 발생");
                 throw e;
             }
             log.info("[END] 모든 함수 종료: Thread: {}",Thread.currentThread().getName());
@@ -99,7 +115,7 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
 
         if(lastTransactionDate!=null){
             if (req == null) req = new TransactionRequestDto();
-            req.setStartDate(lastTransactionDate.plusDays(1).format(formatter));
+            req.setStartDate(lastTransactionDate.format(formatter));
         }
     }
 
