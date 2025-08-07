@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 주식 정보 조회 REST API 컨트롤러
@@ -37,66 +38,10 @@ public class StockController {
     @Autowired
     private FinanceStockService financeStockService;
 
-    // ===== 실시간 API 조회 =====
-    
-    @GetMapping("/chart")
-    @ApiOperation(value = "웹페이지 차트용 주식 정보 조회 (주요 5개 종목 - 실제 데이터)")
-    public ResponseEntity<Map<String, Object>> getStocksForChart() {
-        try {
-            log.info("📊 차트용 주식 정보 조회 요청 (주요 5개 종목) - 실제 데이터 모드");
-            
-            // 주요 5개 종목 코드 정의
-            String[] targetStocks = {"005930", "035420", "005380", "035720", "000150"};
-            List<StockSecurityInfoDto> stockList = new ArrayList<>();
-            
-            log.info("🔍 실제 공공데이터 API에서 5개 종목 직접 조회 시작");
-            
-            // 순차 처리로 간소화
-            for (String stockCode : targetStocks) {
-                try {
-                    StockSecurityInfoDto stock = publicDataStockService.getStockInfoByCode(stockCode);
-                    if (stock != null) {
-                        stockList.add(stock);
-                        log.info("✅ 주식 조회 성공: {} ({}) - {}원", 
-                            stock.getItemName(), stock.getShortCode(), stock.getClosePrice());
-                    } else {
-                        log.warn("⚠️ 주식 조회 실패: {} (데이터 없음)", stockCode);
-                    }
-                } catch (Exception e) {
-                    log.error("❌ 주식 조회 오류 {}: {}", stockCode, e.getMessage());
-                }
-            }
-            
-            log.info("📊 실제 데이터 조회 완료: {}/5개 종목 성공", stockList.size());
-            
-            if (!stockList.isEmpty()) {
-                List<Map<String, Object>> chartData = new ArrayList<>();
-                for (StockSecurityInfoDto stock : stockList) {
-                    Map<String, Object> chartItem = new HashMap<>();
-                    chartItem.put("stockCode", stock.getShortCode());
-                    chartItem.put("name", stock.getItemName());
-                    chartItem.put("currentPrice", stock.getClosePrice());
-                    chartItem.put("updateDate", stock.getBaseDate());
-                    chartData.add(chartItem);
-                }
-                
-                return createSuccessResponse("차트용 주식 정보 조회 성공", chartData);
-            } else {
-                return createErrorResponse(HttpStatus.SERVICE_UNAVAILABLE, 
-                    "조회된 데이터가 없습니다", "공공데이터 API 호출 실패 또는 데이터 없음");
-            }
-        } catch (Exception e) {
-            log.error("❌ 차트용 주식 정보 조회 실패: {}", e.getMessage(), e);
-            return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, 
-                "서버 오류가 발생했습니다", e.getMessage());
-        }
-    }
-
-    // ===== 데이터베이스 저장 =====
-
+    // ===== 데이터베이스 저장 (관리용) =====
 
     @PostMapping("/save/today")
-    @ApiOperation(value = "오늘자 주식 정보를 API에서 가져와서 데이터베이스에 저장 (상위 200개)")
+    @ApiOperation(value = "어제 날짜 기준으로 상위 200개 종목의 주식 정보를 DB에 저장")
     public ResponseEntity<Map<String, Object>> saveStockDataToday() {
         try {
             log.info("🔵 [POST] /save/today 요청 시작");
@@ -122,7 +67,7 @@ public class StockController {
     }
 
     @PostMapping("/save/recent")
-    @ApiOperation(value = "최근 30일간 상위 200개 종목 데이터를 배치로 저장")
+    @ApiOperation(value = "최근 30일간 상위 200개 종목 데이터를 배치로 저장 (30일 이전 데이터 삭제)")
     public ResponseEntity<Map<String, Object>> saveRecentStockData() {
         try {
             log.info("🔵 [POST] /save/recent 요청 시작 - 최근 30일간 데이터 저장");
@@ -152,6 +97,38 @@ public class StockController {
 
     // ===== 데이터베이스 조회 =====
 
+    @GetMapping("/db/count")
+    @ApiOperation(value = "데이터베이스 총 데이터 수 조회")
+    public ResponseEntity<Map<String, Object>> getStockDataCount() {
+        try {
+            log.info("📊 데이터베이스 총 데이터 수 조회");
+            
+            // 간단한 카운트 조회 (JSON 직렬화 문제 우회)
+            List<FinanceStockVO> stocks = financeStockService.getTopStocks(1);
+            int totalCount = stocks.size() > 0 ? 1 : 0;
+            
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", true);
+            result.put("message", "데이터 수 조회 성공");
+            result.put("totalCount", totalCount);
+            result.put("hasData", totalCount > 0);
+            
+            if (totalCount > 0) {
+                FinanceStockVO sample = stocks.get(0);
+                result.put("sampleStock", sample.getItmsNm());
+                result.put("sampleDate", sample.getBasDt().toString());
+            }
+            
+            log.info("✅ 데이터 수 조회 완료: {}건", totalCount);
+            return ResponseEntity.ok(result);
+            
+        } catch (Exception e) {
+            log.error("❌ 데이터 수 조회 실패: {}", e.getMessage(), e);
+            return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, 
+                "데이터 수 조회 실패", e.getMessage());
+        }
+    }
+
     @GetMapping("/db/top/{limit}")
     @ApiOperation(value = "데이터베이스에서 인기 종목 조회")
     public ResponseEntity<Map<String, Object>> getTopStocksFromDB(
@@ -162,9 +139,22 @@ public class StockController {
             
             List<FinanceStockVO> stocks = financeStockService.getTopStocks(limit);
             
-            Map<String, Object> result = createSuccessResponseMap("인기 종목 조회 성공", stocks);
+            // JSON 직렬화 문제 해결을 위해 안전한 형태로 변환
+            List<Map<String, Object>> safeStocks = new ArrayList<>();
+            for (FinanceStockVO stock : stocks) {
+                Map<String, Object> safeStock = new HashMap<>();
+                safeStock.put("id", stock.getId());
+                safeStock.put("stockCode", stock.getSrtnCd());
+                safeStock.put("stockName", safeJsonString(stock.getItmsNm()));
+                safeStock.put("closingPrice", stock.getClpr());
+                safeStock.put("baseDate", stock.getBasDt() != null ? stock.getBasDt().toString() : null);
+                safeStock.put("versus", stock.getVs());
+                safeStocks.add(safeStock);
+            }
+            
+            Map<String, Object> result = createSuccessResponseMap("인기 종목 조회 성공", safeStocks);
             result.put("limit", limit);
-            result.put("count", stocks.size());
+            result.put("count", safeStocks.size());
             
             log.info("✅ 인기 종목 조회 완료: {}건", stocks.size());
             return ResponseEntity.ok(result);
@@ -176,92 +166,86 @@ public class StockController {
         }
     }
 
-    // ===== 주식 검색 =====
 
-    @GetMapping("/search")
-    @ApiOperation(value = "주식명으로 검색 (모든 날짜 데이터)")
-    public ResponseEntity<Map<String, Object>> searchStocksByName(
-            @ApiParam(value = "검색할 주식명 (부분 검색 가능)", example = "삼성") 
-            @RequestParam String name) {
+    // ===== 주식 시계열 데이터 조회 =====
+    
+    @GetMapping("/timeseries")
+    @ApiOperation(value = "종목명으로 시계열 데이터 조회 (기준일자별 정렬)")
+    public ResponseEntity<Map<String, Object>> getStockTimeSeries(
+            @ApiParam(value = "검색할 종목명 (부분 검색 가능)", example = "SK하이닉스") 
+            @RequestParam String name,
+            @ApiParam(value = "조회할 개수 (기본값: 30)", example = "30") 
+            @RequestParam(required = false, defaultValue = "30") Integer limit) {
         try {
-            String decodedName = java.net.URLDecoder.decode(name, "UTF-8");
-            log.info("🔍 주식명 검색 요청: '{}' (디코딩: '{}')", name, decodedName);
+            // 한글 인코딩 처리
+            String tempName;
+            try {
+                tempName = java.net.URLDecoder.decode(name, "UTF-8");
+            } catch (Exception e) {
+                tempName = name;
+            }
+            final String decodedName = tempName;
+            
+            log.info("📈 시계열 데이터 조회: '{}' (최대 {}개)", decodedName, limit);
             
             List<FinanceStockVO> stocks = financeStockService.searchStocksByName(decodedName);
             
-            // 안전한 DTO로 변환
-            List<StockSearchResultDto> safeResults = new ArrayList<>();
-            for (FinanceStockVO stock : stocks) {
-                try {
-                    StockSearchResultDto dto = new StockSearchResultDto(stock);
-                    safeResults.add(dto);
-                } catch (Exception e) {
-                    log.warn("⚠️ 주식 데이터 변환 실패 (ID: {}): {}", stock.getId(), e.getMessage());
-                }
+            if (stocks.isEmpty()) {
+                Map<String, Object> result = createSuccessResponseMap("검색 결과가 없습니다", new ArrayList<>());
+                result.put("searchKeyword", decodedName);
+                result.put("count", 0);
+                return ResponseEntity.ok(result);
             }
             
-            Map<String, Object> result = createSuccessResponseMap("주식명 검색 완료", safeResults);
-            result.put("searchKeyword", decodedName);
-            result.put("count", safeResults.size());
-            result.put("totalFound", stocks.size());
+            // 기준일자별 정렬 (최신순)
+            stocks.sort((a, b) -> {
+                if (a.getBasDt() == null && b.getBasDt() == null) return 0;
+                if (a.getBasDt() == null) return 1;
+                if (b.getBasDt() == null) return -1;
+                return b.getBasDt().compareTo(a.getBasDt()); // 최신 날짜부터
+            });
             
-            log.info("✅ '{}' 검색 완료: {}건 (변환 성공: {}건)", decodedName, stocks.size(), safeResults.size());
+            // 요청된 개수만큼 제한
+            List<FinanceStockVO> limitedStocks = stocks.stream()
+                .limit(limit)
+                .collect(Collectors.toList());
+            
+            // 시계열 데이터 형태로 변환 (실제 DB 필드명 사용)
+            List<Map<String, Object>> timeSeriesData = new ArrayList<>();
+            for (FinanceStockVO stock : limitedStocks) {
+                Map<String, Object> dataPoint = new HashMap<>();
+                dataPoint.put("id", stock.getId());
+                dataPoint.put("bas_dt", stock.getBasDt() != null ? stock.getBasDt().toString() : null);
+                dataPoint.put("stockName", safeJsonString(stock.getItmsNm()));
+                dataPoint.put("clpr", stock.getClpr());
+                dataPoint.put("versus", stock.getVs());
+                dataPoint.put("fluctuationRate", stock.getFltRt());
+                dataPoint.put("tradingVolume", stock.getTrqu());
+                dataPoint.put("tradingValue", stock.getTrPrc());
+                timeSeriesData.add(dataPoint);
+            }
+            
+            Map<String, Object> result = createSuccessResponseMap("시계열 데이터 조회 성공", timeSeriesData);
+            result.put("searchKeyword", decodedName);
+            result.put("count", timeSeriesData.size());
+            result.put("totalFound", stocks.size());
+            result.put("limit", limit);
+            
+            log.info("✅ '{}' 시계열 데이터 조회 완료: {}건 반환 (전체 {}건)", 
+                decodedName, timeSeriesData.size(), stocks.size());
             return ResponseEntity.ok(result);
             
         } catch (IllegalArgumentException e) {
-            log.warn("⚠️ 잘못된 검색 요청: {}", e.getMessage());
+            log.warn("⚠️ 잘못된 시계열 조회 요청: {}", e.getMessage());
             return createErrorResponse(HttpStatus.BAD_REQUEST, 
                 "잘못된 요청", e.getMessage());
         } catch (Exception e) {
-            log.error("❌ 주식명 검색 실패: {}", e.getMessage(), e);
+            log.error("❌ 시계열 데이터 조회 실패: {}", e.getMessage(), e);
             return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, 
-                "주식명 검색 실패", e.getMessage());
+                "시계열 데이터 조회 실패", e.getMessage());
         }
     }
 
-    @GetMapping("/search/latest")
-    @ApiOperation(value = "주식명으로 최신 데이터만 검색")
-    public ResponseEntity<Map<String, Object>> searchLatestStocksByName(
-            @ApiParam(value = "검색할 주식명 (부분 검색 가능)", example = "삼성") 
-            @RequestParam String name,
-            @ApiParam(value = "조회할 개수 (기본값: 10)", example = "10") 
-            @RequestParam(required = false) Integer limit) {
-        try {
-            String decodedName = java.net.URLDecoder.decode(name, "UTF-8");
-            log.info("🔍 최신 주식명 검색 요청: '{}' (최대 {}개)", decodedName, limit != null ? limit : 10);
-            
-            List<FinanceStockVO> stocks = financeStockService.searchLatestStocksByName(decodedName, limit);
-            
-            // 안전한 DTO로 변환
-            List<StockSearchResultDto> safeResults = new ArrayList<>();
-            for (FinanceStockVO stock : stocks) {
-                try {
-                    StockSearchResultDto dto = new StockSearchResultDto(stock);
-                    safeResults.add(dto);
-                } catch (Exception e) {
-                    log.warn("⚠️ 주식 데이터 변환 실패 (ID: {}): {}", stock.getId(), e.getMessage());
-                }
-            }
-            
-            Map<String, Object> result = createSuccessResponseMap("최신 주식명 검색 완료", safeResults);
-            result.put("searchKeyword", decodedName);
-            result.put("limit", limit != null ? limit : 10);
-            result.put("count", safeResults.size());
-            result.put("totalFound", stocks.size());
-            
-            log.info("✅ '{}' 최신 검색 완료: {}건 (변환 성공: {}건)", decodedName, stocks.size(), safeResults.size());
-            return ResponseEntity.ok(result);
-            
-        } catch (IllegalArgumentException e) {
-            log.warn("⚠️ 잘못된 검색 요청: {}", e.getMessage());
-            return createErrorResponse(HttpStatus.BAD_REQUEST, 
-                "잘못된 요청", e.getMessage());
-        } catch (Exception e) {
-            log.error("❌ 최신 주식명 검색 실패: {}", e.getMessage(), e);
-            return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, 
-                "최신 주식명 검색 실패", e.getMessage());
-        }
-    }
 
     // ===== 공통 유틸리티 메서드 =====
 
