@@ -11,10 +11,13 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Log4j2
@@ -109,80 +112,68 @@ public class TransactionServiceImpl implements TransactionService {
      * @param endDate   종료일
      * @return 주간별 지출 내역
      */
-
     public List<WeeklyExpenseDTO> getWeeklyExpense(List<DailyExpenseDTO> dailyList, Date startDate, Date endDate) {
-        List<WeeklyExpenseDTO> weeklyExpenselist = new ArrayList<>();
+        List<WeeklyExpenseDTO> weeklyExpenseList = new ArrayList<>();
 
-        // 일별 지출 정보가 없는 경우 빈 list 반환
-        if (dailyList == null || dailyList.isEmpty()) return weeklyExpenselist;
+        if (dailyList == null || dailyList.isEmpty()) return weeklyExpenseList;
 
-        //1. 기간의 시작, 마지막 일 구하기
+        // 1. Date -> LocalDate 변환
         LocalDate periodStart = toLocalDate(startDate);
         LocalDate periodEnd = toLocalDate(endDate);
 
+        // 2. 일자별 지출 합산 맵 생성
+        Map<LocalDate, Long> expenseByDate = dailyList.stream()
+                .collect(Collectors.toMap(
+                        dto -> toLocalDate(dto.getDate()),
+                        DailyExpenseDTO::getTotalExpense,
+                        Long::sum // 동일 날짜 합산
+                ));
 
-        Map<String, Integer> monthToWeekCounter = new HashMap<>();
+        // 3. 처리 시작일
+        LocalDate cursor = periodStart;
 
-        // 주차 기준 시작
-        LocalDate weekStart = periodStart;
-        LocalDate weekEnd = weekStart.plusDays(6);
+        while (!cursor.isAfter(periodEnd)) {
+            // 현재 달 기준
+            LocalDate firstDayOfMonth = cursor.withDayOfMonth(1);
+            LocalDate lastDayOfMonth = cursor.withDayOfMonth(cursor.lengthOfMonth());
 
-        if (weekEnd.isAfter(periodEnd)) weekEnd = periodEnd;
+            int weekNumber = 1;
 
-        WeeklyExpenseDTO curWeek = null;
-        long totalExpense = 0;
-        for (DailyExpenseDTO daily : dailyList) {
-            LocalDate localDate = toLocalDate(daily.getDate());
+            // 4. 첫 주: 1일부터 첫 토요일까지
+            LocalDate weekStart = firstDayOfMonth;
+            LocalDate weekEnd = weekStart.with(TemporalAdjusters.nextOrSame(DayOfWeek.SATURDAY));
+            if (weekEnd.isAfter(lastDayOfMonth)) weekEnd = lastDayOfMonth;  // 이번 달의 마지막 날짜를 넘긴 경우, 마지막 날짜로 지정
 
-            // 월 정보 (예: "2025-07")
-            String yearMonth = localDate.format(DateTimeFormatter.ofPattern("yyyy-MM"));
+            while (!weekStart.isAfter(lastDayOfMonth)) {
+                long totalExpense = 0;
+                LocalDate temp = weekStart;
 
-            // 주차 초기화
-            if (curWeek == null || localDate.isAfter(weekEnd)) {
-                // 현재 주차 종료
-                if (curWeek != null) {
-                    curWeek.setTotalExpense(totalExpense);
-                    weeklyExpenselist.add(curWeek);
-                    totalExpense = 0;
+                while (!temp.isAfter(weekEnd)) {
+                    totalExpense += expenseByDate.getOrDefault(temp, 0L);
+                    temp = temp.plusDays(1);
                 }
 
-                // 새로운 주차 시작일 계산
-                weekStart = localDate;
-                // 현재 월 마지막 날짜
-                LocalDate currentMonthLastDay = weekStart.withDayOfMonth(weekStart.lengthOfMonth());
-
-
-                // 주차 끝 날짜 후보 계산
-                weekEnd = weekStart.plusDays(6);
-                if (weekEnd.isAfter(periodEnd)) {
-                    weekEnd = periodEnd;
-                }
-                if (weekEnd.isAfter(currentMonthLastDay)) {
-                    weekEnd = currentMonthLastDay;
-                }
-
-                // 주차 번호 계산
-                int weekNum = monthToWeekCounter.getOrDefault(yearMonth, 0) + 1;
-                monthToWeekCounter.put(yearMonth, weekNum);
-
-                curWeek = WeeklyExpenseDTO.builder()
-                        .weekNumber(weekNum)
-                        .yearMonth(yearMonth)
+                weeklyExpenseList.add(WeeklyExpenseDTO.builder()
+                        .weekNumber(weekNumber)
+                        .yearMonth(weekStart.format(DateTimeFormatter.ofPattern("yyyy-MM")))
                         .startDate(toDate(weekStart))
                         .endDate(toDate(weekEnd))
-                        .build();
+                        .totalExpense(totalExpense)
+                        .build());
+
+                // 다음 주 준비
+                weekStart = weekEnd.plusDays(1);
+                weekEnd = weekStart.plusDays(6);
+                if (weekEnd.isAfter(lastDayOfMonth)) weekEnd = lastDayOfMonth;
+
+                weekNumber++;
             }
 
-            totalExpense += daily.getTotalExpense();
+            // 다음 달로 이동
+            cursor = lastDayOfMonth.plusDays(1);
         }
 
-        // 마지막 주차 추가
-        if (curWeek != null) {
-            curWeek.setTotalExpense(totalExpense);
-            weeklyExpenselist.add(curWeek);
-        }
-
-        return weeklyExpenselist;
+        return weeklyExpenseList;
     }
 
     private LocalDate toLocalDate(Date date) {
