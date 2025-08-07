@@ -97,7 +97,7 @@ class AsyncTransactionServiceTest {
         // given: 특정 계좌 조회 시, 모의 객체들이 반환할 데이터를 설정합니다.
         when(accountMapper.getAccountByAccountNumber(testRequest.getResAccount())).thenReturn(testAccount);
         when(transactionMapper.getLastTransactionDate(memberId, testAccount.getResAccount())).thenReturn(null);
-        when(categoryService.categorizeTransactions(any(), anyString())).thenReturn(CompletableFuture.completedFuture(null));
+        doNothing().when(categoryService).categorizeTransactions(any(), anyString());
 
         // TransactionResponse의 정적(static) 메서드인 requestTransactions를 모의 처리합니다.
         try (MockedStatic<TransactionResponse> mockedStatic = mockStatic(TransactionResponse.class)) {
@@ -127,7 +127,7 @@ class AsyncTransactionServiceTest {
         when(transactionMapper.getLastTransactionDate(memberId, testAccount.getResAccount())).thenReturn(null);
         
         // [수정] categorizeTransactions는 2개의 인자를 받으므로, any()와 anyString()으로 모의 설정합니다.
-        when(categoryService.categorizeTransactions(any(), anyString())).thenReturn(CompletableFuture.completedFuture(null));
+        doNothing().when(categoryService).categorizeTransactions(any(), anyString());
 
         try (MockedStatic<TransactionResponse> mockedStatic = mockStatic(TransactionResponse.class)) {
             mockedStatic.when(() -> TransactionResponse.requestTransactions(eq(memberId), any(TransactionDTO.class)))
