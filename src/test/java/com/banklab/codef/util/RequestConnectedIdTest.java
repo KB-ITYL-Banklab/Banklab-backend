@@ -1,6 +1,7 @@
 package com.banklab.codef.util;
 
 import com.banklab.codef.service.RequestConnectedId;
+import com.banklab.config.MailConfig;
 import com.banklab.config.RedisConfig;
 import com.banklab.config.RootConfig;
 import com.banklab.security.config.SecurityConfig;
@@ -18,7 +19,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @Method 커넥티드_아이디_삭제 : 커넥티드 아이디를 삭제합니다.
  */
 @Log4j2
-@ContextConfiguration(classes = {RootConfig.class, SecurityConfig.class, RedisConfig.class, CommonConstant.class })
+@ContextConfiguration(classes = {RootConfig.class, SecurityConfig.class, RedisConfig.class, CommonConstant.class, MailConfig.class})
 @ExtendWith(SpringExtension.class)
 class RequestConnectedIdTest {
 
@@ -33,18 +34,18 @@ class RequestConnectedIdTest {
         String id = ""; // 은행 아이디
         String password = ""; // 은행 비밀번호
 
-
-        String connected_id = RequestConnectedId.createConnectedId(id, password, "0270");
+        // 아아디, 패스워드, 기관코드, 비즈니스 타입(은행 BK, 증권 ST, 카드 CD), 고객구분 [은행(개인) P, 증권(통합) A]
+        String connected_id = RequestConnectedId.createConnectedId(id, password, "0240", "ST", "A");
         log.info("Connected ID: " + connected_id);
 
     }
 
     @Test
     void 커넥티드_아이디_삭제() throws Exception {
-        String connected_id = "81NVpRPDQoy8jVmbx6HmP7"; // 커넥티드 아이디
-        String bankCode = "0004"; // 기관코드(은행코드 ex. 0004)
+        String connected_id = "wB8bOelQyq8EDMHUTV-Tu"; // 커넥티드 아이디
+        String bankCode = "0240"; // 기관코드(은행코드 ex. 0004)
 
-        RequestConnectedId.deleteConnectedId(connected_id, bankCode);
+        RequestConnectedId.deleteConnectedId(connected_id, bankCode, "ST","A");
 
     }
 }

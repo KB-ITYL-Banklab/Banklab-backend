@@ -5,31 +5,36 @@
 
 <mapper namespace="com.banklab.transaction.mapper.TransactionMapper">
 
-    <insert id="saveTransaction" parameterType="com.banklab.transaction.domain.TransactionHistoryVO">
-        INSERT INTO transaction_history (
-            resAccount,
-            transaction_date,
-            transaction_time,
-            resAccountOut,
-            resAccountIn,
-            resAfterTranBalance,
-            description,
-            category_id
+    <insert id="saveTransaction" parameterType="com.banklab.transaction.domain.TransactionHistoryVO"
+            useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT IGNORE INTO transaction_history (
+        member_id,
+        resAccount,
+        transaction_date,
+        transaction_time,
+        resAccountOut,
+        resAccountIn,
+        resAfterTranBalance,
+        description,
+        category_id
         )
-        VALUES(
-               #{resAccount},
-               STR_TO_DATE(#{transactionDate}, '%Y%m%d'),
-               TIME_FORMAT(#{transactionTime}, '%H%i%s'),
-               #{resAccountOut},
-               #{resAccountIn},
-               #{resAfterTranBalance},
-               #{description},
-               #{category_id}
-              )
+        VALUES
+            (
+            #{memberId},
+            #{resAccount},
+            STR_TO_DATE(#{transactionDate}, '%Y%m%d'),
+            TIME_FORMAT(#{transactionTime}, '%H%i%s'),
+            #{resAccountOut},
+            #{resAccountIn},
+            #{resAfterTranBalance},
+            #{description},
+            #{category_id}
+            )
     </insert>
 
-    <insert id="saveTransactionList"  parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO transaction_history (
+    <insert id="saveTransactionList" parameterType="java.util.List">
+        INSERT IGNORE INTO transaction_history (
         member_id,
         resAccount,
         transaction_date,
@@ -55,6 +60,21 @@
             )
         </foreach>
     </insert>
+
+    <select id="findInsertedTransactions"
+            resultType="com.banklab.transaction.domain.TransactionHistoryVO"
+            parameterType="map">
+        SELECT id, member_id, resAccount, description, transaction_date
+        FROM transaction_history
+        WHERE member_id = #{memberId}
+        AND transaction_date = STR_TO_DATE(#{transactionDate}, '%Y%m%d')
+        AND description IN
+        <foreach collection="descriptions" item="desc" open="(" separator="," close=")">
+            #{desc}
+        </foreach>
+    </select>
+
+
 
 
     <update id="updateCategories" parameterType="list">
@@ -165,7 +185,8 @@
         SELECT
             s.category_id,
             name as categoryName,
-            SUM(total_expense) AS totalExpense
+            SUM(total_expense) AS totalExpense,
+            COUNT(DISTINCT s.date) AS expenseDays
         FROM daily_user_expense_summary s
         JOIN category ON s.category_id = category.id
         WHERE member_id = #{memberId}

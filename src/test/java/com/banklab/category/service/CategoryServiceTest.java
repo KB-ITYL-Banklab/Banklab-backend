@@ -133,7 +133,7 @@ class CategoryServiceTest {
         when(kakaoMapService.getCategoryByDesc(anyString(), anyString())).thenReturn(1L); // API 호출로 카테고리 ID 1 반환
 
         // when: 실제 테스트할 메서드 호출 - 비동기 메서드이므로 CompletableFuture 반환
-        CompletableFuture<Void> result = categoryService.categorizeTransactions(testTransactions);
+        CompletableFuture<Void> result = categoryService.categorizeTransactions(testTransactions, anyString());
         result.get(); // 비동기 작업 완료까지 대기 (블로킹)
 
         // then: 결과 검증
@@ -153,7 +153,7 @@ class CategoryServiceTest {
         when(kakaoMapService.isStoredInRedis(anyString())).thenReturn(1L); // 캐시 적중 - 카테고리 ID 1 반환
 
         // when: 비동기 카테고리 분류 메서드 호출
-        CompletableFuture<Void> result = categoryService.categorizeTransactions(testTransactions);
+        CompletableFuture<Void> result = categoryService.categorizeTransactions(testTransactions,anyString());
         result.get(); // 비동기 작업 완료 대기
 
         // then: 결과 검증
@@ -172,7 +172,7 @@ class CategoryServiceTest {
         List<TransactionHistoryVO> emptyTransactions = Collections.emptyList();
 
         // when: 빈 리스트로 카테고리 분류 메서드 호출
-        CompletableFuture<Void> result = categoryService.categorizeTransactions(emptyTransactions);
+        CompletableFuture<Void> result = categoryService.categorizeTransactions(emptyTransactions, anyString());
         result.get(); // 비동기 작업 완료 대기
 
         // then: 결과 검증

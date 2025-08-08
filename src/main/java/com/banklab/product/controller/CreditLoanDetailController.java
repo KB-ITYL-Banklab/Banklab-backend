@@ -1,7 +1,7 @@
 package com.banklab.product.controller;
 
 import com.banklab.product.dto.creditloan.CreditLoanWithOptionsDto;
-import com.banklab.product.service.CreditLoanDetailService;
+import com.banklab.product.service.creditloan.CreditLoanDetailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

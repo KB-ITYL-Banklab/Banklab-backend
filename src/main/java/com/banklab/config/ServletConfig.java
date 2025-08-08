@@ -25,9 +25,12 @@ import java.util.List;
         "com.banklab.product.controller",
         "com.banklab.transaction.summary",
         "com.banklab.transaction.controller",
-        "com.banklab.category.controller",
-        "com.banklab.perplexity.controller",
-        "com.banklab.verification.controller"
+        "com.banklab.category.perplexity.controller",
+        "com.banklab.peerCompare.controller",
+        "com.banklab.verification.controller",
+        "com.banklab.stock.controller",
+        "com.banklab.verification.controller",
+        "com.banklab.calculator.controller"
 })
 public class ServletConfig implements WebMvcConfigurer {
 

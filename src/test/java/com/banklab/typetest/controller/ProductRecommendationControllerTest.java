@@ -31,9 +31,6 @@ class ProductRecommendationControllerTest {
     @Mock
     private ProductRecommendationService productRecommendationService;
 
-    @Mock
-    private JwtProcessor jwtProcessor;
-
     @BeforeEach
     void setUp() {
         // 테스트 설정
@@ -108,7 +105,7 @@ class ProductRecommendationControllerTest {
                 RecommendedProductDTO.builder()
                         .productId(5L)
                         .productName("신용대출")
-                        .productType(ProductType.LOAN)
+                        .productType(ProductType.CREDITLOAN)
                         .riskLevel(RiskLevel.HIGH)
                         .interestRate("연 10.0%")
                         .build()
@@ -124,7 +121,7 @@ class ProductRecommendationControllerTest {
         assertEquals(1, actualProducts.size());
         assertEquals("신용대출", actualProducts.get(0).getProductName());
         assertEquals(RiskLevel.HIGH, actualProducts.get(0).getRiskLevel());
-        assertEquals(ProductType.LOAN, actualProducts.get(0).getProductType());
+        assertEquals(ProductType.CREDITLOAN, actualProducts.get(0).getProductType());
 
         verify(productRecommendationService).getRecommendedProducts(investmentTypeId);
     }
@@ -188,38 +185,4 @@ class ProductRecommendationControllerTest {
         verify(productRecommendationService).getRecommendedProducts(invalidInvestmentTypeId);
     }
 
-    @Test
-    @DisplayName("JWT 토큰에서 memberId 추출 테스트")
-    void JWT_토큰에서_memberId_추출_테스트() {
-        // Given
-        String validToken = "valid-jwt-token";
-        Long expectedMemberId = 1L;
-
-        when(jwtProcessor.getMemberId(validToken)).thenReturn(expectedMemberId);
-
-        // When
-        Long actualMemberId = jwtProcessor.getMemberId(validToken);
-
-        // Then
-        assertEquals(expectedMemberId, actualMemberId);
-
-        verify(jwtProcessor).getMemberId(validToken);
-    }
-
-    @Test
-    @DisplayName("잘못된 JWT 토큰에서 null 반환 테스트")
-    void 잘못된_JWT_토큰에서_null_반환_테스트() {
-        // Given
-        String invalidToken = "invalid-jwt-token";
-
-        when(jwtProcessor.getMemberId(invalidToken)).thenReturn(null);
-
-        // When
-        Long actualMemberId = jwtProcessor.getMemberId(invalidToken);
-
-        // Then
-        assertNull(actualMemberId);
-
-        verify(jwtProcessor).getMemberId(invalidToken);
-    }
 }

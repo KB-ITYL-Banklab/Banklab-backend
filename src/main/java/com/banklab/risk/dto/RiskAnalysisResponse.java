@@ -25,13 +25,16 @@ public class RiskAnalysisResponse {
     public RiskAnalysisResponse(String riskLevel, String riskReason) {
         this.riskLevel = riskLevel;
         this.riskReason = riskReason;
-        this.riskLevelEnum = RiskLevel.valueOf(riskLevel);
     }
     
     public RiskLevel getRiskLevelEnum() {
-        if (riskLevelEnum != null) {
-            return riskLevelEnum;
+        if (this.riskLevel == null || this.riskLevel.isBlank()) {
+            return RiskLevel.MEDIUM; // 기본값
         }
-        return RiskLevel.valueOf(riskLevel);
+        try {
+            return RiskLevel.valueOf(this.riskLevel.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return RiskLevel.MEDIUM; // 변환 실패 시 기본값
+        }
     }
 }

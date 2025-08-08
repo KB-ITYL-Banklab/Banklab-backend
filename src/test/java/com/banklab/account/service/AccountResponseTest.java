@@ -1,5 +1,7 @@
 package com.banklab.account.service;
 
+import com.banklab.codef.util.CommonConstant;
+import com.banklab.config.MailConfig;
 import com.banklab.config.RedisConfig;
 import com.banklab.config.RootConfig;
 import com.banklab.security.config.SecurityConfig;
@@ -19,12 +21,12 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @ExtendWith(SpringExtension.class)
 @Log4j2
-@ContextConfiguration(classes = {RootConfig.class, SecurityConfig.class, RedisConfig.class})
+@ContextConfiguration(classes = {RootConfig.class, SecurityConfig.class, RedisConfig.class, CommonConstant.class, MailConfig.class})
 class AccountResponseTest {
 
     @Test
     void 계좌_연동_테스트() throws Exception {
-        String connectedId = "발급된 커넥티드 아이디";
+        String connectedId = "4SiQcG3zAjuagbVaeRyH8d";
 
         requestAccounts(1L,"0004", connectedId);
     }

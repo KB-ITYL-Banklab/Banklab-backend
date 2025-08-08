@@ -3,6 +3,7 @@ package com.banklab.account.controller;
 import com.banklab.account.domain.AccountVO;
 import com.banklab.account.dto.AccountDTO;
 import com.banklab.account.dto.AccountRequestDTO;
+import com.banklab.account.dto.AccountManageRequestDTO;
 import com.banklab.account.service.AccountResponse;
 import com.banklab.account.service.AccountService;
 import com.banklab.codef.service.RequestConnectedId;
@@ -22,7 +23,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.HashMap;
@@ -42,6 +42,7 @@ public class AccountController {
     private final AsyncTransactionService asyncTransactionService;
     private final TransactionService transactionService;
     private final RedisService redisService;
+
 
     /**
      * 로그인한 사용자 정보 추출 및 검증
@@ -109,8 +110,8 @@ public class AccountController {
                     accountRequest.getBankId(),
                     accountRequest.getBankPassword(),
                     accountRequest.getBankCode(),
-                    "BK"
-            );
+                    "BK",
+                    "P");
 
             // 2. 커넥티드 아이디로 계좌 정보 조회 및 DB 저장
             List<AccountVO> accountList = AccountResponse.requestAccounts(memberId, accountRequest.getBankCode(), userConnectedId);
@@ -123,11 +124,14 @@ public class AccountController {
             response.put("savedCount", savedCount);
             response.put("accounts", accountDTOList);
 
+            // 거래 내역 불러오기
+            for(AccountDTO account : accountDTOList){
+                asyncTransactionService.getTransactions(memberId,
+                        TransactionRequestDto.builder()
+                                .resAccount(account.getResAccount())
+                                .build());
+            }
 
-            asyncTransactionService.getTransactions(memberId,
-                    TransactionRequestDto.builder()
-                            .resAccount(accountDTOList.get(0).getResAccount())
-                            .build());
 
             return ResponseEntity.ok(createSuccessResponse("계좌 연동이 완료되었습니다.", response, authInfo));
 
@@ -182,7 +186,7 @@ public class AccountController {
     @PutMapping("/refresh")
     @ApiOperation(value = "계좌 잔액 새로고침", notes = "커넥티드 아이디로 계좌 잔액을 새로고침.")
     public ResponseEntity<Map<String, Object>> refreshAccountBalance(
-            @RequestBody AccountRequestDTO accountRequest
+            @RequestBody AccountManageRequestDTO request
     ) {
         try {
             Map<String, Object> authInfo = extractAuthInfo();
@@ -190,18 +194,26 @@ public class AccountController {
             String email = (String) authInfo.get("email");
 
             log.info("계좌 잔액 새로고침 - email: {}, memberId: {}, bankCode: {}",
-                    email, memberId, accountRequest.getBankCode());
+                    email, memberId, request.getBankCode());
 
             // 권한 검증
-            if (!accountService.isConnectedIdOwner(memberId, accountRequest.getConnectedId())) {
+            if (!accountService.isConnectedIdOwner(memberId, request.getConnectedId())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(createErrorResponse("해당 계좌에 대한 권한이 없습니다.", "UNAUTHORIZED_ACCESS"));
             }
 
             // 잔액 새로고침
-            accountService.refreshAccountBalance(memberId, accountRequest.getBankCode(), accountRequest.getConnectedId());
+            accountService.refreshAccountBalance(memberId, request.getBankCode(), request.getConnectedId());
             List<AccountDTO> accountList = accountService.getUserAccounts(memberId);
 
+            // 거래 내역 새로 고침
+            for(AccountDTO account : accountList){
+                asyncTransactionService.getTransactions(memberId,
+                        TransactionRequestDto.builder()
+                                .resAccount(account.getResAccount())
+                                .build());
+            }
+            
             Map<String, Object> response = new HashMap<>();
             response.put("accounts", accountList);
 
@@ -225,8 +237,7 @@ public class AccountController {
     @DeleteMapping("/unlink")
     @ApiOperation(value = "계좌 연동 해제", notes = "로그인한 사용자의 커넥티드 아이디를 삭제하고 계좌 연동을 해제.")
     public ResponseEntity<Map<String, Object>> unlinkAccount(
-            HttpServletRequest request,
-            @RequestBody AccountRequestDTO accountRequest
+            @RequestBody AccountManageRequestDTO request
     ) {
         try {
             Map<String, Object> authInfo = extractAuthInfo();
@@ -234,22 +245,24 @@ public class AccountController {
             String email = (String) authInfo.get("email");
 
             log.info("계좌 연동 해제 - email: {}, memberId: {}, bankCode: {}",
-                    email, memberId, accountRequest.getBankCode());
+                    email, memberId, request.getBankCode());
 
             // 권한 검증
-            if (!accountService.isConnectedIdOwner(memberId, accountRequest.getConnectedId())) {
+            if (!accountService.isConnectedIdOwner(memberId, request.getConnectedId())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(createErrorResponse("해당 계좌에 대한 권한이 없습니다.", "UNAUTHORIZED_ACCESS"));
             }
 
             // 연동 해제
             boolean deleted = RequestConnectedId.deleteConnectedId(
-                    accountRequest.getConnectedId(),
-                    accountRequest.getBankCode()
+                    request.getConnectedId(),
+                    request.getBankCode(),
+                    "BK",
+                    "P"
             );
 
             if (deleted) {
-                accountService.deleteAccount(memberId, accountRequest.getConnectedId());
+                accountService.deleteAccount(memberId, request.getConnectedId());
                 return ResponseEntity.ok(createSuccessResponse("계좌 연동 해제가 완료되었습니다.", null, authInfo));
             } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -274,7 +287,6 @@ public class AccountController {
     @GetMapping("/{accountId}/transactions")
     @ApiOperation(value = "계좌 거래내역 상세 조회", notes = "특정 계좌의 기간별 거래내역 상세 정보를 조회합니다.")
     public ResponseEntity<Map<String, Object>> getAccountTransactions(
-            HttpServletRequest request,
             @PathVariable Long accountId,
             @RequestParam(value = "start", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
             @RequestParam(value = "end", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate

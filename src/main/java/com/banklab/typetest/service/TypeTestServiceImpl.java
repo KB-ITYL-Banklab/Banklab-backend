@@ -8,9 +8,12 @@ import com.banklab.typetest.dto.TypeTestResultDTO;
 import com.banklab.typetest.mapper.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -46,6 +49,15 @@ public class TypeTestServiceImpl implements TypeTestService {
     @Override
     public TypeTestResultDTO submitAnswersWithMemberId(Map<String, Object> payload, Long memberId) {
         try {
+            // 사용자 정보 확인 (updated_at 기준으로 오늘 검사했는지 확인)
+            UserInvestmentType existingData = userInvestmentTypeMapper.findByUserId(memberId);
+
+            // 오늘 검사한 경우 (updated_at이 오늘이면 아무 작업도 하지 않음)
+            if (existingData != null && existingData.getUpdatedAt().toLocalDate().isEqual(LocalDate.now())) {
+                log.info("이미 검사한 사용자");
+                return createFailResult("오늘은 이미 검사하셨습니다. 내일 다시 시도해주세요.");
+            }
+
             // 사용자의 답변을 파싱하여 처리
             List<AnswerDTO> answers = parseAnswers(payload);
 
@@ -155,6 +167,25 @@ public class TypeTestServiceImpl implements TypeTestService {
             log.error("전체 상품 조회 중 오류 발생: userId={}", userId, e);
             return createFailResult("전체 상품 조회 중 오류가 발생했습니다: " + e.getMessage());
         }
+    }
+    /**
+     * 사용자 투자유형을 반환하는 API용 메서드
+     */
+    @Override
+    public TypeTestResultDTO getUserInvestmentType(Long userId) {
+        UserInvestmentType userInvestmentType = userInvestmentTypeMapper.findByUserId(userId);
+        if (userInvestmentType == null) {
+            return TypeTestResultDTO.fail("투자유형 결과 없음");
+        }
+        InvestmentType investmentType = getInvestmentType(userInvestmentType.getInvestmentTypeId());
+        return TypeTestResultDTO.builder()
+                .userId(userId)
+                .investmentTypeId(investmentType.getId())
+                .investmentTypeName(investmentType.getInvestmentTypeName())
+                .investmentTypeDesc(investmentType.getInvestmentTypeDesc())
+                .cumulativeViews(userInvestmentType.getCumulativeViews())
+                .message("투자유형 조회 성공")
+                .build();
     }
 
     /**
@@ -444,11 +475,11 @@ public class TypeTestServiceImpl implements TypeTestService {
 
         userType.setUserId(userId);
         userType.setInvestmentTypeId(investmentTypeId);
-        userType.setEvaluationDate(LocalDate.now());
 
         if (userType.getId() == null) {
             userInvestmentTypeMapper.insertUserInvestmentType(userType);
         } else {
+            userType.setCumulativeViews(userType.getCumulativeViews() + 1);
             userInvestmentTypeMapper.updateUserInvestmentType(userType);
         }
     }

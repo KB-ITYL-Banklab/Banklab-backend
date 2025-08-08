@@ -29,6 +29,18 @@ public class ProductScheduler {
     @Qualifier("creditLoanRefreshJob")
     private Job creditLoanRefreshJob;
 
+    @Autowired
+    @Qualifier("annuityRefreshJob")
+    private Job annuityRefreshJob;
+
+    @Autowired
+    @Qualifier("mortgageLoanRefreshJob")
+    private Job mortgageLoanRefreshJob;
+
+    @Autowired
+    @Qualifier("rentHouseLoanRefreshJob")
+    private Job rentHouseLoanRefreshJob;
+
     /**
      * 예금 상품 배치 - 매일 오전 2시 실행
      */
@@ -91,4 +103,57 @@ public class ProductScheduler {
             log.error("신용대출 상품 배치 실행 중 오류 발생", e);
         }
     }
+
+    @Scheduled(cron = "0 15 2 * * *")
+    public void runAnnuityBatch() {
+        try {
+            log.info("=== 연금저축 상품 배치 시작 (02:15) ===");
+
+            JobParameters jobParameters = new JobParametersBuilder()
+                    .addLong("timestamp", System.currentTimeMillis())
+                    .toJobParameters();
+
+            jobLauncher.run(annuityRefreshJob, jobParameters);
+
+            log.info("=== 연금저축 상품 배치 완료 ===");
+
+        } catch (Exception e) {
+            log.error("연금저축 상품 배치 실행 중 오류 발생", e);
+        }
+    }
+    @Scheduled(cron = "0 20 2 * * *")
+    public void runMortgageLoanBatch() {
+        try {
+            log.info("=== 주택담보대출 상품 배치 시작 (02:15) ===");
+
+            JobParameters jobParameters = new JobParametersBuilder()
+                    .addLong("timestamp", System.currentTimeMillis())
+                    .toJobParameters();
+
+            jobLauncher.run(mortgageLoanRefreshJob, jobParameters);
+
+            log.info("=== 주택담보대출 상품 배치 완료 ===");
+
+        } catch (Exception e) {
+            log.error("주택담보대출 상품 배치 실행 중 오류 발생", e);
+        }
+    }
+    @Scheduled(cron = "0 25 2 * * *")
+    public void runRentHouseLoanBatch() {
+        try {
+            log.info("=== 전세자금대출 상품 배치 시작 (02:15) ===");
+
+            JobParameters jobParameters = new JobParametersBuilder()
+                    .addLong("timestamp", System.currentTimeMillis())
+                    .toJobParameters();
+
+            jobLauncher.run(rentHouseLoanRefreshJob, jobParameters);
+
+            log.info("=== 전세자금대출 상품 배치 완료 ===");
+
+        } catch (Exception e) {
+            log.error("전세자금대출 상품 배치 실행 중 오류 발생", e);
+        }
+    }
+
 }

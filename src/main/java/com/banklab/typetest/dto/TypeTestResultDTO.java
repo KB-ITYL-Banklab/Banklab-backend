@@ -16,6 +16,7 @@ public class TypeTestResultDTO {
     private Long investmentTypeId;
     private String investmentTypeName;
     private String investmentTypeDesc;
+    private Integer cumulativeViews;
     private String message;
     private List<RecommendedProductDTO> recommendedProducts;
 

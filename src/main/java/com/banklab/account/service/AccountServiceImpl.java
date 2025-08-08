@@ -52,6 +52,9 @@ public class AccountServiceImpl implements AccountService {
             accountDTO.setResAccountName(accountVO.getResAccountName());
             accountDTO.setResAccountDisplay(accountVO.getResAccountDisplay());
             accountDTO.setResAccountBalance(accountVO.getResAccountBalance());
+            accountDTO.setResAccountDeposit(accountVO.getResAccountDeposit());
+            accountDTO.setResAccountEndDate(accountVO.getResAccountEndDate());
+            accountDTO.setResAccountStartDate(accountVO.getResAccountStartDate());
 
             accountDTO.setConnectedId(accountVO.getConnectedId());
             accountDTO.setOrganization(accountVO.getOrganization());

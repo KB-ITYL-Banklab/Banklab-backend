@@ -12,6 +12,9 @@ public class AccountDTO {
     public String resAccountName;
     public String resAccountDisplay;
     public String resAccountBalance;
+    public String resAccountDeposit;      // 예금구분
+    public String resAccountEndDate;        // 만기일
+    public String resAccountStartDate;      // 신규일
 
     public AccountVO toVO(Long memberId, String connectedId, String organization) {
         return AccountVO.builder()
@@ -23,6 +26,9 @@ public class AccountDTO {
                 .resAccountName(resAccountName)
                 .resAccountDisplay(resAccountDisplay)
                 .resAccountBalance(resAccountBalance)
+                .resAccountDeposit(resAccountDeposit)
+                .resAccountEndDate(resAccountEndDate)
+                .resAccountStartDate(resAccountStartDate)
                 // id, createdAt은 DB에서 자동 처리
                 .build();
     }

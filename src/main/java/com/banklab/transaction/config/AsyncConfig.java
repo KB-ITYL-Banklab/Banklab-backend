@@ -15,10 +15,14 @@ public class AsyncConfig {
     @Bean(name = "asyncExecutor")
     public Executor asyncExecutor(){
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(5);
-        executor.setMaxPoolSize(10);
-        executor.setQueueCapacity(100);
+        executor.setCorePoolSize(20);      // 최소 10개
+        executor.setMaxPoolSize(30);       // 최대 30개
+        executor.setQueueCapacity(200);    // 대기열 여유 증가
         executor.setThreadNamePrefix("AsyncThread-");
+        executor.setKeepAliveSeconds(60);  // 유휴 스레드 정리 시간
+
+        // Rejected 시 작업을 호출한 스레드가 직접 처리도록 설정
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         executor.initialize();
         return executor;
     }
