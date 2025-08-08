@@ -86,6 +86,12 @@ public interface FinanceStockMapper {
     List<FinanceStockVO> selectLatestStocks(@Param("limit") int limit);
     
     /**
+     * 최신 날짜의 모든 주식 정보 조회
+     * @return 최신 날짜의 모든 주식 정보 리스트
+     */
+    List<FinanceStockVO> selectAllLatestStocks();
+    
+    /**
      * 주식명으로 검색 (부분 일치)
      * @param stockName 검색할 주식명 (부분 검색 가능)
      * @return 일치하는 주식 정보 리스트
@@ -99,6 +105,21 @@ public interface FinanceStockMapper {
      * @return 일치하는 최신 주식 정보 리스트
      */
     List<FinanceStockVO> selectLatestByStockName(@Param("stockName") String stockName, @Param("limit") int limit);
+    
+    /**
+     * 주식명으로 검색 (정확한 일치, 모든 날짜)
+     * @param stockName 검색할 주식명 (정확한 일치)
+     * @return 일치하는 주식 정보 리스트
+     */
+    List<FinanceStockVO> selectByExactStockName(@Param("stockName") String stockName);
+    
+    /**
+     * 주식명으로 최신 데이터 검색 (정확한 일치)
+     * @param stockName 검색할 주식명 (정확한 일치)
+     * @param limit 조회할 개수
+     * @return 일치하는 최신 주식 정보 리스트
+     */
+    List<FinanceStockVO> selectLatestByExactStockName(@Param("stockName") String stockName, @Param("limit") int limit);
     
     /**
      * 30일 이전 데이터 삭제

@@ -70,6 +70,12 @@ public interface FinanceStockService {
     List<FinanceStockVO> getTopStocks(int limit);
     
     /**
+     * 최신 날짜의 모든 주식 데이터 조회
+     * @return 최신 날짜의 모든 주식 정보 리스트
+     */
+    List<FinanceStockVO> getLatestStocksByDate();
+    
+    /**
      * 주식명으로 검색 (부분 일치)
      * @param stockName 검색할 주식명
      * @return 일치하는 주식 정보 리스트 (모든 날짜)
@@ -83,6 +89,21 @@ public interface FinanceStockService {
      * @return 일치하는 최신 주식 정보 리스트
      */
     List<FinanceStockVO> searchLatestStocksByName(String stockName, Integer limit);
+    
+    /**
+     * 주식명으로 검색 (정확한 일치, 모든 날짜)
+     * @param stockName 검색할 주식명
+     * @return 일치하는 주식 정보 리스트 (모든 날짜)
+     */
+    List<FinanceStockVO> searchStocksByExactName(String stockName);
+    
+    /**
+     * 주식명으로 최신 데이터만 검색 (정확한 일치)
+     * @param stockName 검색할 주식명
+     * @param limit 조회할 개수 (기본값 적용시 null 가능)
+     * @return 일치하는 최신 주식 정보 리스트
+     */
+    List<FinanceStockVO> searchLatestStocksByExactName(String stockName, Integer limit);
     
     /**
      * 주식 정보 업데이트
