@@ -12,7 +12,9 @@ public class AccessPolicy {
             new AccessRule(HttpMethod.GET, "/api/news/**", null),   // 경제뉴스 API 공개
             new AccessRule(HttpMethod.GET, "/api/gold/**", null),   // 금융차트 금 API 공개
             new AccessRule(HttpMethod.GET, "/api/stocks/**", null), // 금융차트 주식 API 공개
-            new AccessRule(HttpMethod.GET, "/api/upbit/**", null),  // 금융차트 가상화페 API 공개
+            new AccessRule(HttpMethod.POST, "/api/stocks/**", null), // 금융차트 주식 API 공개
+            new AccessRule(HttpMethod.GET, "/api/upbit/**", null),  // 금융차트 가상화페 API 공개 get 방식
+            new AccessRule(HttpMethod.POST, "/api/upbit/**", null),  // 금융차트 가상화페 API 공개 post 방식
             new AccessRule(HttpMethod.GET, "/api/exchange/**", null),   // 금융차트 외환 API 공개
             new AccessRule(HttpMethod.GET, "/api/health/**", null),     // 금융차트  API 연결여부 공개
             new AccessRule(HttpMethod.GET, "/api/terms/**", null),      // 금융용어  API  공개
