@@ -132,8 +132,6 @@ public class AccountController {
                                 .resAccount(account.getResAccount())
                                 .build());
             }
-
-
             return ResponseEntity.ok(createSuccessResponse("계좌 연동이 완료되었습니다.", response, authInfo));
 
         } catch (SecurityException e) {

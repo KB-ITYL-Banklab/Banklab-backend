@@ -97,21 +97,7 @@ dependencies {
   implementation 'javax.servlet:jstl:1.2'
 
   // Logging
-//    implementation 'org.slf4j:slf4j-api:2.0.9'
-//    runtimeOnly 'org.slf4j:jcl-over-slf4j:2.0.9'
-//    runtimeOnly 'org.slf4j:slf4j-log4j12:2.0.9'
-//    implementation 'log4j:log4j:1.2.17'
-
-  // Log4j2
-  implementation 'org.apache.logging.log4j:log4j-api:2.18.0'
-  implementation 'org.apache.logging.log4j:log4j-core:2.18.0'
-//    implementation 'org.slf4j:slf4j-api:2.0.13'
-  implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.18.0'
-
-
-  implementation 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4:1.16'
-  implementation 'org.apache.logging.log4j:log4j-api:2.0.1'
-  implementation 'org.apache.logging.log4j:log4j-core:2.0.1'
+  implementation 'org.springframework.boot:spring-boot-starter-logging:2.7.18'
 
 
   // xml내 한글 처리
@@ -158,11 +144,13 @@ dependencies {
   testImplementation 'org.assertj:assertj-core:3.24.2'
   testImplementation 'org.mockito:mockito-core:5.2.0'
   testImplementation 'org.mockito:mockito-junit-jupiter:5.2.0'
+  testImplementation 'org.mockito:mockito-inline:5.2.0'
 
   // Hamcrest for MockMvc tests   // 테스트코드 관련
   testImplementation 'org.hamcrest:hamcrest:2.2'
   testImplementation 'org.hamcrest:hamcrest-library:2.2'
 
+  testImplementation 'org.springframework.boot:spring-boot-starter-test:2.7.18'
   testImplementation 'org.springframework.boot:spring-boot-starter-log4j2:2.7.18'
 }
 

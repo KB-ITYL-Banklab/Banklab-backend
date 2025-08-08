@@ -33,7 +33,8 @@ public class AccessPolicy {
             // 소셜 로그인
             new AccessRule(null, "/login/**", null),
             new AccessRule(null, "/oauth2/**", null),
-            new AccessRule(null, "/login/oauth2/**", null)
+            new AccessRule(null, "/login/oauth2/**", null),
+            new AccessRule(null, "/api/gemini/**", null)
     );
 
     // 인증 필요 (명시적으로 지정 필요 시 사용)

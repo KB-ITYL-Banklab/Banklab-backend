@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
         "com.banklab.verification.sender",
         "com.banklab.verification.service",
         "com.banklab.common.redis",
-        "com.banklab.category.perplexity",
+        "com.banklab.category.gemini",
         "com.banklab.category.kakaomap",
         "com.banklab.calculator.service"
 })
