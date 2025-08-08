@@ -1,4 +1,4 @@
-package com.banklab.account.domain;
+package com.banklab.cash.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

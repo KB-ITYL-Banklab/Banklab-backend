@@ -1,6 +1,6 @@
-package com.banklab.account.dto;
+package com.banklab.cash.dto;
 
-import com.banklab.account.domain.CashVO;
+import com.banklab.cash.domain.CashVO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,6 +25,21 @@ public class CashDTO {
                 .id(this.id)
                 .memberId(this.memberId)
                 .cashAmount(this.cashAmount)
+                .build();
+    }
+
+    /**
+     * VO를 DTO로 변환하는 정적 메서드
+     * @param cashVO CashVO 객체
+     * @return CashDTO 객체
+     */
+    public static CashDTO fromVO(CashVO cashVO) {
+        if (cashVO == null) return null;
+
+        return CashDTO.builder()
+                .id(cashVO.getId())
+                .memberId(cashVO.getMemberId())
+                .cashAmount(cashVO.getCashAmount())
                 .build();
     }
 }

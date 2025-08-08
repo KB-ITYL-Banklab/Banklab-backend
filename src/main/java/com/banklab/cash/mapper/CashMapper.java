@@ -1,6 +1,6 @@
-package com.banklab.account.mapper;
+package com.banklab.cash.mapper;
 
-import com.banklab.account.domain.CashVO;
+import com.banklab.cash.domain.CashVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -22,21 +22,13 @@ public interface CashMapper {
      * 현금 정보 저장 (최초 생성)
      * @param cashVO 현금 정보
      */
-    void insertCash(CashVO cashVO);
+    int insertCash(CashVO cashVO);
 
     /**
      * 현금 금액 업데이트
      * @param memberId 회원 ID
      * @param cashAmount 새로운 현금 금액
-     * @return 업데이트된 레코드 수
      */
     int updateCashAmount(@Param("memberId") Long memberId, @Param("cashAmount") Long cashAmount);
-
-    /**
-     * 현금 정보 삭제
-     * @param memberId 회원 ID
-     * @return 삭제된 레코드 수
-     */
-    int deleteCash(@Param("memberId") Long memberId);
 
 }

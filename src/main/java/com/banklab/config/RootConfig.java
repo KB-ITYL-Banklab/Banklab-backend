@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
         "com.banklab.calculator.mapper",
         "com.banklab.peerCompare.mapper",
         "com.banklab.stock.mapper",
+        "com.banklab.cash.mapper"
 })
 @ComponentScan(basePackages = {
         "com.banklab.member.service",
@@ -57,7 +58,8 @@ import java.util.stream.Collectors;
         "com.banklab.common.redis",
         "com.banklab.category.gemini",
         "com.banklab.category.kakaomap",
-        "com.banklab.calculator.service"
+        "com.banklab.calculator.service",
+        "com.banklab.cash.service"
 })
 @EnableTransactionManagement
 @EnableScheduling
