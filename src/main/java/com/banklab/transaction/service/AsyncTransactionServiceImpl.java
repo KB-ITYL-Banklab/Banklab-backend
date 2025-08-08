@@ -67,7 +67,7 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
 
             // 1. CODEF API 호출
             log.info("[START] 거래 내역 불러오기 시작, 계좌번호: {}",account.getResAccount());
-            List<TransactionHistoryVO> transactions = TransactionResponse.requestTransactions(memberId, dto); // Call instance method
+            List<TransactionHistoryVO> transactions = TransactionResponse.requestTransactions(memberId, dto);
             if (transactions.isEmpty()) return;
 
             // 2. DB에 거래 내역 저장
@@ -92,7 +92,7 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
                 // 4. 집계 업데이트
                 log.info("[START] 집계 내역 db 저장 시작, 계좌번호: {}", account.getResAccount());
                 redisService.set(key, "ANALYZING_DATA", 3);
-                summaryBatchService.initDailySummary(memberId, account, request.getStartDate());
+                summaryBatchService.initDailySummary(memberId,request.getStartDate());
                 log.info("[END] 집계 내역 db 저장 종료");
 
                 redisService.set(key, "DONE", 1);

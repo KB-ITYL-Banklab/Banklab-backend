@@ -5,6 +5,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -30,15 +31,9 @@ public class RedisService {
         redisTemplate.opsForValue().set(key, value, timeoutMinutes, TimeUnit.MINUTES);
     }
 
-    // 값 저장 (prefix:key 형식, TTL 설정)
-    public void setBySeconds(String key, String value, int timeOutSeconds) {
-        redisTemplate.opsForValue().set(key, value, timeOutSeconds, TimeUnit.SECONDS);
-    }
-
     public boolean setIfAbsent(String key, String value, Duration ttl) {
         return Boolean.TRUE.equals(redisTemplate.opsForValue().setIfAbsent(key, value, ttl));
     }
-
 
     public void delete(String key) {
         redisTemplate.delete(key);
@@ -56,5 +51,29 @@ public class RedisService {
 
     public boolean exists(String key) {
         return Boolean.TRUE.equals(redisTemplate.hasKey(key));
+    }
+
+
+    /**
+     *  거래 내역 분석 시 사용할 Hash 관련 메서드
+     */
+    // 개별 상호명에 대한 분류 결과 저장
+    public void hset(String key, String field, String value) {
+        redisTemplate.opsForHash().put(key, field, value);
+    }
+
+    // 특정 상호명에 대한 분류 결과 가져오기
+    public String hget(String key, String field) {
+        return (String) redisTemplate.opsForHash().get(key, field);
+    }
+
+    // 해당 Hash key에 저장된 모든 (상호명, categoryId) 가져오기
+    public Map<Object, Object> hgetAll(String key) {
+        return redisTemplate.opsForHash().entries(key);
+    }
+
+    // 해당 Hash에 저장된 상호명 개수
+    public Long hlen(String key) {
+        return redisTemplate.opsForHash().size(key);
     }
 }

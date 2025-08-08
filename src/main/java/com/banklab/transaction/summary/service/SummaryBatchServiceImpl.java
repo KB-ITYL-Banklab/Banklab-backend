@@ -56,7 +56,7 @@ public class SummaryBatchServiceImpl implements SummaryBatchService {
      */
     @Override
     @Transactional
-    public void initDailySummary(Long memberId, AccountVO account, String startDate) {
+    public void initDailySummary(Long memberId, String startDate) {
         // 1. 마지막 집계 일자 구하기
         LocalDate today = LocalDate.now();
 

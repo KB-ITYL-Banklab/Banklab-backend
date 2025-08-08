@@ -53,6 +53,8 @@ dependencies {
 
 
 
+
+
   // 보안
   implementation("org.springframework.security:spring-security-web:${springSecurityVersion}")
   implementation("org.springframework.security:spring-security-config:${springSecurityVersion}")
@@ -80,6 +82,9 @@ dependencies {
   implementation 'org.springframework.data:spring-data-redis:2.7.5'
   implementation 'io.lettuce:lettuce-core:6.1.8.RELEASE'
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.2'
+
+  // RabbitMQ 연동 - 거래 내역 비동기 처리
+  implementation "org.springframework.amqp:spring-rabbit:2.4.17"
 
   // coolsms api (전화번호 인증)
   implementation 'net.nurigo:sdk:4.3.0'
