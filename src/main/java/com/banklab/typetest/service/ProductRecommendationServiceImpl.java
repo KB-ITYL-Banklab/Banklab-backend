@@ -259,7 +259,7 @@ public class ProductRecommendationServiceImpl implements ProductRecommendationSe
             case DEPOSIT -> "연 2.3~2.5%";
             case SAVINGS -> "연 2.5~3.5%";
             case CREDITLOAN -> "연 3.0~8.5%";
-            case ANNUITY -> "연 평균 수익률 7~8% (시장 상황에 따라 달라질 수 있음)";
+            case ANNUITY -> "연 평균 수익률 7~8%";
             case MORTGAGE -> "연 4.0~4.0%";
             case RENTHOUSE -> "연 3.5~4.5%";
             default -> "연 2~5%";
