@@ -47,3 +47,4 @@ bin/
 .claude
 /src/main/resources/application-secret.properties
 .env
+nul
