@@ -1,6 +1,7 @@
 package com.banklab.financeContents.mapper;
 
 import com.banklab.financeContents.domain.UserQuizResultVO;
+import com.banklab.financeContents.dto.UserQuizStatsDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -32,6 +33,13 @@ public interface UserQuizResultMapper {
     Integer getTotalProblemCount(@Param("memberId") Long memberId);
     
     /**
+     * 사용자 총 정답 문제 수 조회
+     * @param memberId 사용자 ID
+     * @return 총 정답 문제 수
+     */
+    Integer getTotalCorrectProblemCount(@Param("memberId") Long memberId);
+    
+    /**
      * 사용자 퀴즈 결과 업데이트
      * @param userQuizResult 업데이트할 결과
      * @return 업데이트된 행 수
@@ -51,4 +59,11 @@ public interface UserQuizResultMapper {
      * @return 오늘의 퀴즈 결과 (없으면 null)
      */
     UserQuizResultVO getTodayQuizResult(@Param("memberId") Long memberId);
+    
+    /**
+     * 사용자 퀴즈 통계 조회 (누적 정답률 포함)
+     * @param memberId 사용자 ID
+     * @return 사용자 퀴즈 통계
+     */
+    UserQuizStatsDTO getUserQuizStats(@Param("memberId") Long memberId);
 }

@@ -195,8 +195,14 @@ public class FinanceQuizServiceImpl implements FinanceQuizService {
             currentProblemCount = 0;
         }
         
+        Integer currentCorrectProblemCount = userQuizResultMapper.getTotalCorrectProblemCount(memberId);
+        if (currentCorrectProblemCount == null) {
+            currentCorrectProblemCount = 0;
+        }
+        
         // 5. 새로운 값 계산
         int newProblemCount = currentProblemCount + 3;
+        int newCorrectProblemCount = currentCorrectProblemCount + correctCount;
         int totalAccumulatedPoints = previousPoints + earnedPoints;
         
         // 6. DB에 결과 저장 (created_at, updated_at은 DB에서 자동 처리)
@@ -204,6 +210,7 @@ public class FinanceQuizServiceImpl implements FinanceQuizService {
         userQuizResult.setMemberId(memberId);
         userQuizResult.setUserAnswer(userAnswers); // "3O1" 형태로 저장
         userQuizResult.setProblem(newProblemCount);
+        userQuizResult.setCorrectProblem(newCorrectProblemCount);
         userQuizResult.setAccumulatedPoints(totalAccumulatedPoints);
         // created_at, updated_at은 DB에서 자동 설정되므로 Java에서 설정하지 않음
         
@@ -211,6 +218,7 @@ public class FinanceQuizServiceImpl implements FinanceQuizService {
         System.out.println("저장할 데이터 - memberId: " + userQuizResult.getMemberId());
         System.out.println("저장할 데이터 - userAnswer: " + userQuizResult.getUserAnswer());
         System.out.println("저장할 데이터 - problem: " + userQuizResult.getProblem());
+        System.out.println("저장할 데이터 - correctProblem: " + userQuizResult.getCorrectProblem());
         System.out.println("저장할 데이터 - accumulatedPoints: " + userQuizResult.getAccumulatedPoints());
         
         int insertResult = userQuizResultMapper.insertUserQuizResult(userQuizResult);
@@ -342,6 +350,22 @@ public class FinanceQuizServiceImpl implements FinanceQuizService {
             todayResult.getAccumulatedPoints(), // DB에서 가져온 누적 포인트
             detailResults
         );
+    }
+
+    @Override
+    public UserQuizStatsDTO getUserQuizStats(Long memberId) {
+        if (memberId == null) {
+            throw new IllegalArgumentException("memberId는 null일 수 없습니다.");
+        }
+        
+        UserQuizStatsDTO stats = userQuizResultMapper.getUserQuizStats(memberId);
+        
+        // 데이터가 없는 경우 기본값 반환
+        if (stats == null) {
+            stats = new UserQuizStatsDTO(memberId, 0, 0, 0.0, 0);
+        }
+        
+        return stats;
     }
 
     /**
