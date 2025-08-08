@@ -5,6 +5,7 @@ import com.banklab.product.batch.config.SchedulerConfig;
 import com.banklab.security.config.SecurityConfig;
 
 import com.banklab.transaction.config.AsyncConfig;
+import com.banklab.transaction.rabbitMQ.config.RabbitMQConfig;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
 public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitializer {
@@ -17,7 +18,8 @@ public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitiali
                 BatchConfig.class,
                 SchedulerConfig.class,
                 MailConfig.class,
-                AsyncConfig.class
+                AsyncConfig.class,
+                RabbitMQConfig.class
         };
     }
 

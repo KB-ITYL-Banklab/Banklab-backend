@@ -1,7 +1,11 @@
 package com.banklab.transaction.rabbitMQ.consumer;
 
 import com.banklab.account.domain.AccountVO;
+import com.banklab.common.redis.RedisKeyUtil;
+import com.banklab.common.redis.RedisService;
+import com.banklab.transaction.rabbitMQ.config.RabbitMQConfig;
 import com.banklab.transaction.domain.TransactionHistoryVO;
+import com.banklab.transaction.rabbitMQ.config.RabbitMQConstant;
 import com.banklab.transaction.rabbitMQ.message.CategorizeTransactionMessage;
 import com.banklab.transaction.rabbitMQ.message.SaveTransactionMessage;
 import com.banklab.transaction.rabbitMQ.producer.TransactionProducer;
@@ -20,7 +24,8 @@ public class SaveTransactionConsumer {
 
     private final TransactionService transactionService;
     private final TransactionProducer transactionProducer;
-    @RabbitListener(queues = "transaction.save")
+
+    @RabbitListener(queues = RabbitMQConstant.QUEUE_TRANSACTION_SAVE)
     public void handleTransactionSave(SaveTransactionMessage message){
         Long memberId = message.getMemberId();
         AccountVO account = message.getAccount();
@@ -38,8 +43,8 @@ public class SaveTransactionConsumer {
 
         // 카테고리 분류 큐에 전달
         CategorizeTransactionMessage categorizeTransactionMessage =
-                new CategorizeTransactionMessage(memberId, account.getId(),message.getStartDate(), transactions);
-        transactionProducer.sendTransactionCategorizationReqeust(categorizeTransactionMessage);
+                new CategorizeTransactionMessage(memberId, account,message.getStartDate(), transactions);
+        transactionProducer.sendInternalCategoryRequest(categorizeTransactionMessage);
 
 
         log.info("[SEND] 카테고리 분류 큐 전송 완료");

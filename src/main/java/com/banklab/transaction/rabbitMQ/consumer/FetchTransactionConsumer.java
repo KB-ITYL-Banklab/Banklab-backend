@@ -2,10 +2,13 @@ package com.banklab.transaction.rabbitMQ.consumer;
 
 import com.banklab.account.domain.AccountVO;
 import com.banklab.account.mapper.AccountMapper;
+import com.banklab.common.redis.RedisKeyUtil;
+import com.banklab.common.redis.RedisService;
 import com.banklab.transaction.domain.TransactionHistoryVO;
 import com.banklab.transaction.dto.request.TransactionDTO;
 import com.banklab.transaction.dto.request.TransactionRequestDto;
 import com.banklab.transaction.mapper.TransactionMapper;
+import com.banklab.transaction.rabbitMQ.config.RabbitMQConstant;
 import com.banklab.transaction.rabbitMQ.message.FetchTransactionMessage;
 import com.banklab.transaction.rabbitMQ.message.SaveTransactionMessage;
 import com.banklab.transaction.rabbitMQ.producer.TransactionProducer;
@@ -13,7 +16,6 @@ import com.banklab.transaction.service.TransactionResponse;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
 import org.slf4j.Logger;
@@ -29,26 +31,24 @@ public class FetchTransactionConsumer {
     private final TransactionProducer transactionProducer;
     private final TransactionMapper transactionMapper;
     private final AccountMapper accountMapper;
-
+    private final RedisService redisService;
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
-    @RabbitListener(queues = "transaction.fetch")
+    @RabbitListener(queues = RabbitMQConstant.QUEUE_TRANSACTION_FETCH)
     public void handleTransactionFetch(FetchTransactionMessage message){
         Long memberId = message.getMemberId();
         TransactionRequestDto request = message.getRequest();
 
         log.info("[RQ] 거래 내역 조회 요청 수신: account:{}", request.getResAccount());
-        if (request.getResAccount() == null || request.getResAccount().isBlank()) {
-            log.warn("유효하지 않은 요청입니다.");
-            return;
-        }
-
         AccountVO account = accountMapper.getAccountByAccountNumber(request.getResAccount());
         if(account ==null){return;}
 
         checkIsPresent(memberId, account, request);
         TransactionDTO dto = makeTransactionDTO(account, request);
+
+        String key = RedisKeyUtil.transaction(memberId, dto.getAccount());
+        redisService.set(key, "FETCHING_TRANSACTIONS", 1);
 
         try{
             // CODEF 거래 내역 조회 API 호출
@@ -58,7 +58,7 @@ public class FetchTransactionConsumer {
 
             // 저장 큐에 전달
             SaveTransactionMessage transactionSaveMessage = new SaveTransactionMessage(memberId,account,dto.getStartDate(), transactions);
-            transactionProducer.sendTransactionSaveReqeust(transactionSaveMessage);
+            transactionProducer.sendTransactionSaveRequest(transactionSaveMessage);
 
             log.info("[SEND] 거래 내역 저장 큐 전송 완료: 건수 {}", transactions.size());
         }catch (Exception e){

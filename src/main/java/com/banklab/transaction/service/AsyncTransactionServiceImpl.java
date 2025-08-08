@@ -3,42 +3,46 @@ package com.banklab.transaction.service;
 import com.banklab.account.domain.AccountVO;
 import com.banklab.account.mapper.AccountMapper;
 import com.banklab.category.service.CategoryService;
-import com.banklab.common.redis.RedisKeyUtil;
 import com.banklab.common.redis.RedisService;
-import com.banklab.transaction.domain.TransactionHistoryVO;
 import com.banklab.transaction.dto.request.TransactionDTO;
 import com.banklab.transaction.dto.request.TransactionRequestDto;
 import com.banklab.transaction.mapper.TransactionMapper;
+import com.banklab.transaction.rabbitMQ.message.FetchTransactionMessage;
+import com.banklab.transaction.rabbitMQ.producer.TransactionProducer;
 import com.banklab.transaction.summary.service.SummaryBatchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.CompletionException;
 
 @Service
 @Log4j2
 @RequiredArgsConstructor
 public class AsyncTransactionServiceImpl implements AsyncTransactionService {
     private final TransactionMapper transactionMapper;
-    private final AccountMapper accountMapper;
-    private final TransactionService transactionService;
-    private final CategoryService categoryService;
-    private final SummaryBatchService summaryBatchService;
-    private final RedisService redisService;
+//    private final AccountMapper accountMapper;
+//    private final TransactionService transactionService;
+//    private final CategoryService categoryService;
+//    private final SummaryBatchService summaryBatchService;
+//    private final RedisService redisService;
+    private final TransactionProducer transactionProducer;
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     @Async
     public void getTransactions(long memberId, TransactionRequestDto request) {
+        if (request == null || request.getResAccount() == null || request.getResAccount().isBlank()) {
+            throw new IllegalArgumentException("계좌 번호가 반드시 필요합니다.");
+        }
+
+        log.info("[START] fetch 메시지 큐로 전송: {} ", request.getResAccount());
+        // 메시지 큐로 전송
+        FetchTransactionMessage fetchTransactionMessage = new FetchTransactionMessage(memberId, request);
+        transactionProducer.sendTransactionFetchRequest(fetchTransactionMessage);
+        /** RabbbitMQ 도입 전
         // 고도화 시 예외 처리 必
         if (request == null || request.getResAccount() == null || request.getResAccount().isBlank()) {
             throw new IllegalArgumentException("계좌 번호가 반드시 필요합니다.");
@@ -89,7 +93,7 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
 
             // 4. 카테고리 분류 완료 후
             if (isCategorized) {
-                // 4. 집계 업데이트
+                // 4. 집계 업데이트 1
                 log.info("[START] 집계 내역 db 저장 시작, 계좌번호: {}", account.getResAccount());
                 redisService.set(key, "ANALYZING_DATA", 3);
                 summaryBatchService.initDailySummary(memberId,request.getStartDate());
@@ -109,6 +113,7 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
             throw e;
         }
         log.info("[END] 모든 함수 종료, 계좌번호: {}", accountNumber);
+         */
     }
 
 

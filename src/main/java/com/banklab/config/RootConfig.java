@@ -38,8 +38,6 @@ import java.util.stream.Collectors;
 })
 @ComponentScan(basePackages = {
         "com.banklab.member.service",
-//        "com.banklab.oauth.service",
-//        "com.banklab.oauth.client",
         "com.banklab.account.service",
         "com.banklab.financeContents.service",
         "com.banklab.financeContents.scheduler",
@@ -56,6 +54,8 @@ import java.util.stream.Collectors;
         "com.banklab.verification.service",
         "com.banklab.common.redis",
         "com.banklab.category.gemini",
+        "com.banklab.transaction.rabbitMQ",
+        "com.banklab.transaction.rabbitMQ.producer",
         "com.banklab.category.kakaomap",
         "com.banklab.calculator.service"
 })

@@ -1,11 +1,13 @@
 package com.banklab.transaction.rabbitMQ.consumer;
 
+import com.banklab.account.domain.AccountVO;
 import com.banklab.category.gemini.service.GeminiService;
 import com.banklab.common.redis.RedisKeyUtil;
 import com.banklab.common.redis.RedisService;
+import com.banklab.transaction.rabbitMQ.config.RabbitMQConfig;
+import com.banklab.transaction.rabbitMQ.config.RabbitMQConstant;
 import com.banklab.transaction.rabbitMQ.message.GeminiCategorizeMessage;
 import com.banklab.transaction.rabbitMQ.message.SaveCategoryMessage;
-import com.banklab.transaction.rabbitMQ.message.SummaryTransactionMessage;
 import com.banklab.transaction.rabbitMQ.producer.TransactionProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -24,14 +26,15 @@ public class GeminiCategorizationConsumer {
     private final GeminiService geminiService;
     private final RedisService redisService;
 
-    @RabbitListener(queues = "transaction.gemini")
+    @RabbitListener(queues = RabbitMQConstant.QUEUE_CATEGORIZE_EXTERNAL)
     public void handleGeminiCategorize(GeminiCategorizeMessage message) {
         Set<String> descriptions = message.getDescriptions();
-        Long accountId = message.getAccountId();
+        AccountVO account = message.getAccount();
+
 
         log.info("[RQ] GEMINI 분류 요청 수신, 건수={}", descriptions.size());
         List<String> geminiResponses = geminiService.classifyCategories(descriptions);
-        String key = RedisKeyUtil.category(accountId);
+        String key = RedisKeyUtil.category(account.getId());
 
         // SET -> List
         List<String> toClassifyList = new ArrayList<>(descriptions);
@@ -49,22 +52,10 @@ public class GeminiCategorizationConsumer {
         long expected = Long.parseLong(redisService.hget(key, "expectedTotal"));
         log.info("[END] GEMINI 분류 성공, 건수: {}", geminiResponses.size());
 
-        SaveCategoryMessage saveCategoryMessage = new SaveCategoryMessage(message.getMemberId(), accountId, message.getStartDate(), message.getTransactions());
-        transactionProducer.
-
-//
-//        // Summary 큐에 전달
-//        SummaryTransactionMessage summaryTransactionMessage =
-//                new SummaryTransactionMessage(message.getMemberId(), message.getStartDate());
-//        transactionProducer.sendTransactionSummaryRequest(summaryTransactionMessage);
-
+        //
+        SaveCategoryMessage saveCategoryMessage = new SaveCategoryMessage(message.getMemberId(), account, message.getStartDate(), message.getTransactions());
+        transactionProducer.sendSaveCategoryRequest(saveCategoryMessage);
     }
-
-    public boolean isCategorizationComplete(String redisKey, Long expectedCount) {
-        Long currentCount = redisService.hlen(redisKey);
-        return currentCount != null && (currentCount-1) >= expectedCount;
-    }
-
 
     private long convertCategoryNameToId(String categoryName) {
         return switch (categoryName) {

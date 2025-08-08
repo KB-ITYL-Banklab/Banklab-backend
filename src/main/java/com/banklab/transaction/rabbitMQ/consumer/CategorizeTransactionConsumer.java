@@ -1,9 +1,12 @@
 package com.banklab.transaction.rabbitMQ.consumer;
 
+import com.banklab.account.domain.AccountVO;
 import com.banklab.category.kakaomap.service.KakaoMapService;
 import com.banklab.common.redis.RedisKeyUtil;
 import com.banklab.common.redis.RedisService;
+import com.banklab.transaction.rabbitMQ.config.RabbitMQConfig;
 import com.banklab.transaction.domain.TransactionHistoryVO;
+import com.banklab.transaction.rabbitMQ.config.RabbitMQConstant;
 import com.banklab.transaction.rabbitMQ.message.CategorizeTransactionMessage;
 import com.banklab.transaction.rabbitMQ.message.GeminiCategorizeMessage;
 import com.banklab.transaction.rabbitMQ.producer.TransactionProducer;
@@ -22,15 +25,17 @@ public class CategorizeTransactionConsumer {
     private final KakaoMapService kakaoMapService;
     private final TransactionProducer transactionProducer;
     private final RedisService redisService;
-    @RabbitListener(queues = "transaction.categorize")
+
+    @RabbitListener(queues = RabbitMQConstant.QUEUE_CATEGORIZE_INTERNAL)
     public void handleTransactionCategorize(CategorizeTransactionMessage message){
         List<TransactionHistoryVO> transactions = message.getTransactions();
         List<String> descriptions = getDescriptions(transactions);
         Long memberId = message.getMemberId();
-        Long accountId = message.getAccountId();
+        AccountVO account = message.getAccount();
 
-        String key = RedisKeyUtil.category(message.getAccountId());
-
+        String key = RedisKeyUtil.category(account.getId());
+        String statusKey = RedisKeyUtil.transaction(memberId, account.getResAccount());
+        redisService.set(statusKey, "CLASSIFYING_CATEGORIES", 1);
 
         log.info("[RQ] 카테고리 분류 요청 수신, 건수={}", message.getTransactions().size());
         redisService.hset(key, "expectedTotal", String.valueOf(message.getTransactions().size()));
@@ -54,12 +59,9 @@ public class CategorizeTransactionConsumer {
         if(!toClassifyViaApi.isEmpty()){
             // GEMINI 큐에 전달
             GeminiCategorizeMessage geminiCategorizeMessage
-                    = new GeminiCategorizeMessage(memberId,accountId,message.getStartDate(), toClassifyViaApi, transactions);
-            transactionProducer.sendGeminicationRequest(geminiCategorizeMessage);
+                    = new GeminiCategorizeMessage(memberId, account, message.getStartDate(), toClassifyViaApi, transactions);
+            transactionProducer.sendExternalCategoryRequest(geminiCategorizeMessage);
         }
-
-
-
     }
 
     // 상호명 추출 & 중복 제거
