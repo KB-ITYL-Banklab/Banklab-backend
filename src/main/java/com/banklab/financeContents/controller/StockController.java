@@ -169,6 +169,92 @@ public class StockController {
 
     // ===== 주식 시계열 데이터 조회 =====
     
+    @GetMapping("/top-stocks")
+    @ApiOperation(value = "거래대금/거래량/등락률 기준 상위 5개 종목 조회")
+    public ResponseEntity<Map<String, Object>> getTopStocksByType(
+            @ApiParam(value = "정렬 기준 (amount:거래대금, volume:거래량, change:등락률)", example = "amount") 
+            @RequestParam String type) {
+        try {
+            log.info("🏆 상위 종목 조회: {} 기준", type);
+            
+            List<FinanceStockVO> allStocks = financeStockService.getLatestStocksByDate();
+            
+            if (allStocks.isEmpty()) {
+                Map<String, Object> result = createSuccessResponseMap("최신 주식 데이터가 없습니다", new ArrayList<>());
+                result.put("type", type);
+                result.put("count", 0);
+                return ResponseEntity.ok(result);
+            }
+            
+            // 최신 날짜의 데이터만 필터링
+            List<FinanceStockVO> latestStocks = allStocks;
+            
+            // 정렬 기준에 따라 정렬
+            switch (type.toLowerCase()) {
+                case "amount":
+                    // 거래대금(trPrc) 기준 내림차순
+                    latestStocks.sort((a, b) -> {
+                        Long aValue = a.getTrPrc() != null ? a.getTrPrc() : 0L;
+                        Long bValue = b.getTrPrc() != null ? b.getTrPrc() : 0L;
+                        return bValue.compareTo(aValue);
+                    });
+                    break;
+                case "volume":
+                    // 거래량(trqu) 기준 내림차순
+                    latestStocks.sort((a, b) -> {
+                        Long aValue = a.getTrqu() != null ? a.getTrqu() : 0L;
+                        Long bValue = b.getTrqu() != null ? b.getTrqu() : 0L;
+                        return bValue.compareTo(aValue);
+                    });
+                    break;
+                case "change":
+                    // 등락률(vs) 절대값 기준 내림차순
+                    latestStocks.sort((a, b) -> {
+                        Long aValue = a.getVs() != null ? Math.abs(a.getVs()) : 0L;
+                        Long bValue = b.getVs() != null ? Math.abs(b.getVs()) : 0L;
+                        return bValue.compareTo(aValue);
+                    });
+                    break;
+                default:
+                    return createErrorResponse(HttpStatus.BAD_REQUEST, 
+                        "잘못된 타입", "type은 amount, volume, change 중 하나여야 합니다");
+            }
+            
+            // 상위 5개만 선택
+            List<FinanceStockVO> top5Stocks = latestStocks.stream()
+                .limit(5)
+                .collect(Collectors.toList());
+            
+            // 안전한 형태로 변환
+            List<Map<String, Object>> result = new ArrayList<>();
+            for (FinanceStockVO stock : top5Stocks) {
+                Map<String, Object> stockData = new HashMap<>();
+                stockData.put("id", stock.getId());
+                stockData.put("stockCode", stock.getSrtnCd());
+                stockData.put("stockName", safeJsonString(stock.getItmsNm()));
+                stockData.put("baseDate", stock.getBasDt() != null ? stock.getBasDt().toString() : null);
+                stockData.put("closingPrice", stock.getClpr());
+                stockData.put("versus", stock.getVs());
+                stockData.put("fluctuationRate", stock.getFltRt());
+                stockData.put("tradingVolume", stock.getTrqu());
+                stockData.put("tradingValue", stock.getTrPrc());
+                result.add(stockData);
+            }
+            
+            Map<String, Object> response = createSuccessResponseMap("상위 종목 조회 성공", result);
+            response.put("type", type);
+            response.put("count", result.size());
+            
+            log.info("✅ {} 기준 상위 종목 조회 완료: {}건", type, result.size());
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("❌ 상위 종목 조회 실패: {}", e.getMessage(), e);
+            return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, 
+                "상위 종목 조회 실패", e.getMessage());
+        }
+    }
+    
     @GetMapping("/timeseries")
     @ApiOperation(value = "종목명으로 시계열 데이터 조회 (기준일자별 정렬)")
     public ResponseEntity<Map<String, Object>> getStockTimeSeries(
@@ -243,6 +329,83 @@ public class StockController {
             log.error("❌ 시계열 데이터 조회 실패: {}", e.getMessage(), e);
             return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, 
                 "시계열 데이터 조회 실패", e.getMessage());
+        }
+    }
+
+    @GetMapping("/timeseries/exact")
+    @ApiOperation(value = "종목명으로 시계열 데이터 조회 (정확한 일치, 기준일자별 정렬)")
+    public ResponseEntity<Map<String, Object>> getStockTimeSeriesExact(
+            @ApiParam(value = "검색할 종목명 (정확한 일치)", example = "현대건설") 
+            @RequestParam String name,
+            @ApiParam(value = "조회할 개수 (기본값: 30)", example = "30") 
+            @RequestParam(required = false, defaultValue = "30") Integer limit) {
+        try {
+            // 한글 인코딩 처리
+            String tempName;
+            try {
+                tempName = java.net.URLDecoder.decode(name, "UTF-8");
+            } catch (Exception e) {
+                tempName = name;
+            }
+            final String decodedName = tempName;
+            
+            log.info("🎯 정확한 시계열 데이터 조회: '{}' (최대 {}개)", decodedName, limit);
+            
+            List<FinanceStockVO> stocks = financeStockService.searchStocksByExactName(decodedName);
+            
+            if (stocks.isEmpty()) {
+                Map<String, Object> result = createSuccessResponseMap("정확한 검색 결과가 없습니다", new ArrayList<>());
+                result.put("searchKeyword", decodedName);
+                result.put("count", 0);
+                return ResponseEntity.ok(result);
+            }
+            
+            // 기준일자별 정렬 (최신순)
+            stocks.sort((a, b) -> {
+                if (a.getBasDt() == null && b.getBasDt() == null) return 0;
+                if (a.getBasDt() == null) return 1;
+                if (b.getBasDt() == null) return -1;
+                return b.getBasDt().compareTo(a.getBasDt()); // 최신 날짜부터
+            });
+            
+            // 요청된 개수만큼 제한
+            List<FinanceStockVO> limitedStocks = stocks.stream()
+                .limit(limit)
+                .collect(Collectors.toList());
+            
+            // 시계열 데이터 형태로 변환 (실제 DB 필드명 사용)
+            List<Map<String, Object>> timeSeriesData = new ArrayList<>();
+            for (FinanceStockVO stock : limitedStocks) {
+                Map<String, Object> dataPoint = new HashMap<>();
+                dataPoint.put("id", stock.getId());
+                dataPoint.put("bas_dt", stock.getBasDt() != null ? stock.getBasDt().toString() : null);
+                dataPoint.put("stockName", safeJsonString(stock.getItmsNm()));
+                dataPoint.put("clpr", stock.getClpr());
+                dataPoint.put("versus", stock.getVs());
+                dataPoint.put("fluctuationRate", stock.getFltRt());
+                dataPoint.put("tradingVolume", stock.getTrqu());
+                dataPoint.put("tradingValue", stock.getTrPrc());
+                timeSeriesData.add(dataPoint);
+            }
+            
+            Map<String, Object> result = createSuccessResponseMap("정확한 시계열 데이터 조회 성공", timeSeriesData);
+            result.put("searchKeyword", decodedName);
+            result.put("count", timeSeriesData.size());
+            result.put("totalFound", stocks.size());
+            result.put("limit", limit);
+            
+            log.info("✅ '{}' 정확한 시계열 데이터 조회 완료: {}건 반환 (전체 {}건)", 
+                decodedName, timeSeriesData.size(), stocks.size());
+            return ResponseEntity.ok(result);
+            
+        } catch (IllegalArgumentException e) {
+            log.warn("⚠️ 잘못된 정확한 시계열 조회 요청: {}", e.getMessage());
+            return createErrorResponse(HttpStatus.BAD_REQUEST, 
+                "잘못된 요청", e.getMessage());
+        } catch (Exception e) {
+            log.error("❌ 정확한 시계열 데이터 조회 실패: {}", e.getMessage(), e);
+            return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, 
+                "정확한 시계열 데이터 조회 실패", e.getMessage());
         }
     }
 

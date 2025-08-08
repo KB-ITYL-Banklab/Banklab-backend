@@ -132,6 +132,22 @@
         LIMIT #{limit}
     </select>
 
+    <!-- 주식명으로 검색 (정확한 일치, 모든 날짜) -->
+    <select id="selectByExactStockName" resultMap="FinanceStockResultMap">
+        SELECT * FROM finance_stock
+        WHERE itms_nm = #{stockName}
+        ORDER BY bas_dt DESC, COALESCE(tr_prc, 0) DESC
+    </select>
+
+    <!-- 주식명으로 최신 데이터 검색 (정확한 일치) -->
+    <select id="selectLatestByExactStockName" resultMap="FinanceStockResultMap">
+        SELECT * FROM finance_stock
+        WHERE itms_nm = #{stockName}
+        AND bas_dt = (SELECT MAX(bas_dt) FROM finance_stock WHERE itms_nm = #{stockName})
+        ORDER BY COALESCE(tr_prc, 0) DESC
+        LIMIT #{limit}
+    </select>
+
     <!-- 30일 이전 데이터 삭제 -->
     <delete id="deleteOldDataBefore">
         DELETE FROM finance_stock
@@ -177,6 +193,13 @@
         WHERE bas_dt = (SELECT MAX(bas_dt) FROM finance_stock)
         ORDER BY COALESCE(trqu, 0) DESC
         LIMIT #{limit}
+    </select>
+
+    <!-- 최신 날짜의 모든 주식 정보 조회 -->
+    <select id="selectAllLatestStocks" resultMap="FinanceStockResultMap">
+        SELECT * FROM finance_stock
+        WHERE bas_dt = (SELECT MAX(bas_dt) FROM finance_stock)
+        ORDER BY COALESCE(tr_prc, 0) DESC
     </select>
 
 </mapper>

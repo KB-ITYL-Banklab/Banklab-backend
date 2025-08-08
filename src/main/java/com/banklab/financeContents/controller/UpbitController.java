@@ -96,6 +96,71 @@ public class UpbitController {
     }
 
     /**
+     * 거래대금/거래량/등락률 기준 상위 5개 코인 조회
+     */
+    @GetMapping("/top-coins-by-type")
+    public ResponseEntity<ApiResponse<List<FinanceUpbit>>> getTopCoinsByType(
+            @RequestParam String type) {
+        try {
+            log.info("🏆 상위 코인 조회: {} 기준", type);
+            
+            List<FinanceUpbit> allData = upbitDataService.getAllLatestData();
+            
+            if (allData.isEmpty()) {
+                return ResponseEntity.ok(ApiResponse.success(List.of(), "가상화폐 데이터가 없습니다."));
+            }
+            
+            // 정렬 기준에 따라 정렬
+            switch (type.toLowerCase()) {
+                case "amount":
+                    // 거래대금(accTradePrice24h) 기준 내림차순
+                    allData.sort((a, b) -> {
+                        Double aValue = a.getAccTradePrice24h() != null ? a.getAccTradePrice24h() : 0.0;
+                        Double bValue = b.getAccTradePrice24h() != null ? b.getAccTradePrice24h() : 0.0;
+                        return Double.compare(bValue, aValue);
+                    });
+                    break;
+                case "volume":
+                    // 거래량(accTradeVolume24h) 기준 내림차순
+                    allData.sort((a, b) -> {
+                        Double aValue = a.getAccTradeVolume24h() != null ? a.getAccTradeVolume24h() : 0.0;
+                        Double bValue = b.getAccTradeVolume24h() != null ? b.getAccTradeVolume24h() : 0.0;
+                        return Double.compare(bValue, aValue);
+                    });
+                    break;
+                case "change":
+                    // 등락률(changeRate) 절대값 기준 내림차순
+                    allData.sort((a, b) -> {
+                        Double aValue = a.getChangeRate() != null ? Math.abs(a.getChangeRate()) : 0.0;
+                        Double bValue = b.getChangeRate() != null ? Math.abs(b.getChangeRate()) : 0.0;
+                        return Double.compare(bValue, aValue);
+                    });
+                    break;
+                default:
+                    return ResponseEntity.badRequest()
+                        .body(ApiResponse.error("잘못된 타입입니다. type은 amount, volume, change 중 하나여야 합니다."));
+            }
+            
+            // 상위 5개만 선택
+            List<FinanceUpbit> top5Coins = allData.stream()
+                .limit(5)
+                .collect(Collectors.toList());
+            
+            String message = String.format("%s 기준 상위 5개 코인", 
+                type.equals("amount") ? "거래대금" : 
+                type.equals("volume") ? "거래량" : "등락률");
+            
+            log.info("✅ {} 기준 상위 코인 조회 완료: {}개", type, top5Coins.size());
+            return ResponseEntity.ok(ApiResponse.success(top5Coins, message));
+            
+        } catch (Exception e) {
+            log.error("❌ 상위 코인 조회 실패: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError()
+                .body(ApiResponse.error("상위 코인 조회에 실패했습니다: " + e.getMessage()));
+        }
+    }
+
+    /**
      * 최근 한달치 실제 과거 데이터를 DB table에 insert 하는 엔드포인트
      * 업비트 API의 일봉 캔들 데이터를 사용하여 실제 과거 한달치 데이터를 수집하고 저장합니다.
      */
