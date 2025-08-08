@@ -309,6 +309,19 @@ public class FinanceStockServiceImpl implements FinanceStockService {
     }
     
     @Override
+    public List<FinanceStockVO> getLatestStocksByDate() {
+        try {
+            log.info("📊 최신 날짜의 모든 주식 데이터 조회");
+            List<FinanceStockVO> stocks = financeStockMapper.selectAllLatestStocks();
+            log.info("✅ 최신 날짜 주식 데이터 조회 완료: {}건", stocks.size());
+            return stocks;
+        } catch (Exception e) {
+            log.error("❌ 최신 날짜 주식 데이터 조회 실패: {}", e.getMessage(), e);
+            return new ArrayList<>();
+        }
+    }
+    
+    @Override
     public List<FinanceStockVO> searchStocksByName(String stockName) {
         if (stockName == null || stockName.trim().isEmpty()) {
             throw new IllegalArgumentException("검색할 주식명을 입력해주세요");
@@ -346,6 +359,48 @@ public class FinanceStockServiceImpl implements FinanceStockService {
             return stocks;
         } catch (Exception e) {
             log.error("❌ 최신 주식명 검색 실패 ('{}'): {}", stockName, e.getMessage(), e);
+            return new ArrayList<>();
+        }
+    }
+    
+    @Override
+    public List<FinanceStockVO> searchStocksByExactName(String stockName) {
+        if (stockName == null || stockName.trim().isEmpty()) {
+            throw new IllegalArgumentException("검색할 주식명을 입력해주세요");
+        }
+        
+        try {
+            String searchKeyword = stockName.trim();
+            log.info("🔍 정확한 주식명 검색: '{}'", searchKeyword);
+            
+            List<FinanceStockVO> stocks = financeStockMapper.selectByExactStockName(searchKeyword);
+            log.info("✅ '{}' 정확한 검색 결과: {}건", searchKeyword, stocks.size());
+            
+            return stocks;
+        } catch (Exception e) {
+            log.error("❌ 정확한 주식명 검색 실패 ('{}'): {}", stockName, e.getMessage(), e);
+            return new ArrayList<>();
+        }
+    }
+    
+    @Override
+    public List<FinanceStockVO> searchLatestStocksByExactName(String stockName, Integer limit) {
+        if (stockName == null || stockName.trim().isEmpty()) {
+            throw new IllegalArgumentException("검색할 주식명을 입력해주세요");
+        }
+        
+        try {
+            String searchKeyword = stockName.trim();
+            int searchLimit = (limit != null && limit > 0) ? limit : 10; // 기본값 10개
+            
+            log.info("🔍 최신 정확한 주식명 검색: '{}' (최대 {}개)", searchKeyword, searchLimit);
+            
+            List<FinanceStockVO> stocks = financeStockMapper.selectLatestByExactStockName(searchKeyword, searchLimit);
+            log.info("✅ '{}' 최신 정확한 검색 결과: {}건", searchKeyword, stocks.size());
+            
+            return stocks;
+        } catch (Exception e) {
+            log.error("❌ 최신 정확한 주식명 검색 실패 ('{}'): {}", stockName, e.getMessage(), e);
             return new ArrayList<>();
         }
     }
