@@ -8,6 +8,7 @@ import com.banklab.stock.service.StockService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -20,18 +21,27 @@ public class CriteriaMissionEvaluator implements MissionEvaluator {
     private final StockService stockService;
 
     @Override
-    public boolean evaluate(Long memberId, MissionVO mission) {
+    public Set<ConditionKey> supportedKeys() {
+        return EnumSet.of(
+                ConditionKey.NO_NON_CASH_ASSET,
+                ConditionKey.SAVINGS_PRODUCT_COUNT,
+                ConditionKey.PURPOSED_ASSET_COUNT,
+                ConditionKey.ASSET_CATEGORY_COUNT
+        );
+    }
+
+    @Override
+    public int evaluate(Long memberId, MissionVO mission) {
         ConditionKey key = mission.getConditionKey();
-        int target = mission.getTargetValue();
 
         List<AccountDTO> bankAccounts = accountService.getUserAccounts(memberId);
         int securitiesCount = stockService.getUserStocks(memberId).size();
 
         return switch (key) {
-            case NO_NON_CASH_ASSET -> hasOnlyCashAssetOrNone(bankAccounts, securitiesCount);
-            case SAVINGS_PRODUCT_COUNT -> countSavingsProducts(bankAccounts) >= target;
-            case PURPOSED_ASSET_COUNT -> countPurposedAssets(bankAccounts, securitiesCount) >= target;
-            case ASSET_CATEGORY_COUNT -> countAssetCategories(bankAccounts, securitiesCount) >= target;
+            case NO_NON_CASH_ASSET -> hasOnlyCashAssetOrNone(bankAccounts, securitiesCount) ? 1 : 0;
+            case SAVINGS_PRODUCT_COUNT -> countSavingsProducts(bankAccounts);
+            case PURPOSED_ASSET_COUNT -> countPurposedAssets(bankAccounts, securitiesCount);
+            case ASSET_CATEGORY_COUNT -> countAssetCategories(bankAccounts, securitiesCount);
             default -> throw new UnsupportedOperationException("Unknown key: " + key);
         };
     }
@@ -47,23 +57,23 @@ public class CriteriaMissionEvaluator implements MissionEvaluator {
     }
 
     // 정기예금/적금 상품 보유 수
-    private long countSavingsProducts(List<AccountDTO> bankAccounts) {
-        return bankAccounts.stream()
+    private int countSavingsProducts(List<AccountDTO> bankAccounts) {
+        return (int) bankAccounts.stream()
                 .filter(acc -> "12".equals(acc.getResAccountDeposit()))
                 .count();
     }
 
     // 입출금 제외 금융상품 보유 수
-    private long countPurposedAssets(List<AccountDTO> bankAccounts, int securitiesCount) {
+    private int countPurposedAssets(List<AccountDTO> bankAccounts, int securitiesCount) {
         long bankCount = bankAccounts.stream()
                 .filter(acc -> !"11".equals(acc.getResAccountDeposit())) // 수시입출 제외
                 .count();
 
-        return bankCount + securitiesCount;
+        return (int) bankCount + securitiesCount;
     }
 
     // 입출금 제외한 자산 종류 수
-    private long countAssetCategories(List<AccountDTO> bankAccounts, int securitiesCount) {
+    private int countAssetCategories(List<AccountDTO> bankAccounts, int securitiesCount) {
         Set<String> categoryCodes = new HashSet<>();
 
         bankAccounts.stream()
