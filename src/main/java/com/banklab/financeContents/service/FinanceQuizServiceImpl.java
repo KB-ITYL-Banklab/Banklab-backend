@@ -31,7 +31,7 @@ public class FinanceQuizServiceImpl implements FinanceQuizService {
     private UserQuizResultMapper userQuizResultMapper;
 
     // 기준 날짜 (상수) - 2025년 7월 1일
-    private static final LocalDate BASE_DATE = LocalDate.of(2025, 7, 29);
+    private static final LocalDate BASE_DATE = LocalDate.of(2025, 7, 28);
     
     // 총 문제 수 (201개)
     private static final int TOTAL_QUIZ_COUNT = 201;
@@ -184,20 +184,17 @@ public class FinanceQuizServiceImpl implements FinanceQuizService {
             ));
         }
         
-        // 4. 기존 데이터 조회
-        Integer previousPoints = userQuizResultMapper.getLatestAccumulatedPoints(memberId);
-        if (previousPoints == null) {
-            previousPoints = 0;
-        }
+        // 4. 기존 데이터 조회 (사용자별 단일 레코드)
+        UserQuizResultVO existingResult = userQuizResultMapper.getUserQuizResult(memberId);
         
-        Integer currentProblemCount = userQuizResultMapper.getTotalProblemCount(memberId);
-        if (currentProblemCount == null) {
-            currentProblemCount = 0;
-        }
+        int currentProblemCount = 0;
+        int currentCorrectProblemCount = 0; 
+        int previousPoints = 0;
         
-        Integer currentCorrectProblemCount = userQuizResultMapper.getTotalCorrectProblemCount(memberId);
-        if (currentCorrectProblemCount == null) {
-            currentCorrectProblemCount = 0;
+        if (existingResult != null) {
+            currentProblemCount = existingResult.getProblem() != null ? existingResult.getProblem() : 0;
+            currentCorrectProblemCount = existingResult.getCorrectProblem() != null ? existingResult.getCorrectProblem() : 0;
+            previousPoints = existingResult.getAccumulatedPoints() != null ? existingResult.getAccumulatedPoints() : 0;
         }
         
         // 5. 새로운 값 계산
@@ -205,27 +202,26 @@ public class FinanceQuizServiceImpl implements FinanceQuizService {
         int newCorrectProblemCount = currentCorrectProblemCount + correctCount;
         int totalAccumulatedPoints = previousPoints + earnedPoints;
         
-        // 6. DB에 결과 저장 (created_at, updated_at은 DB에서 자동 처리)
+        // 6. DB에 결과 Upsert (Insert 또는 Update)
         UserQuizResultVO userQuizResult = new UserQuizResultVO();
         userQuizResult.setMemberId(memberId);
-        userQuizResult.setUserAnswer(userAnswers); // "3O1" 형태로 저장
+        userQuizResult.setUserAnswer(userAnswers); // "3O1" 형태로 저장 (최신 답안)
         userQuizResult.setProblem(newProblemCount);
         userQuizResult.setCorrectProblem(newCorrectProblemCount);
         userQuizResult.setAccumulatedPoints(totalAccumulatedPoints);
-        // created_at, updated_at은 DB에서 자동 설정되므로 Java에서 설정하지 않음
         
-        System.out.println("=== DB 저장 시도 ===");
+        System.out.println("=== DB Upsert 시도 ===");
         System.out.println("저장할 데이터 - memberId: " + userQuizResult.getMemberId());
         System.out.println("저장할 데이터 - userAnswer: " + userQuizResult.getUserAnswer());
         System.out.println("저장할 데이터 - problem: " + userQuizResult.getProblem());
         System.out.println("저장할 데이터 - correctProblem: " + userQuizResult.getCorrectProblem());
         System.out.println("저장할 데이터 - accumulatedPoints: " + userQuizResult.getAccumulatedPoints());
         
-        int insertResult = userQuizResultMapper.insertUserQuizResult(userQuizResult);
-        System.out.println("DB 저장 결과 (삽입된 행 수): " + insertResult);
+        int upsertResult = userQuizResultMapper.upsertUserQuizResult(userQuizResult);
+        System.out.println("DB Upsert 결과 (영향받은 행 수): " + upsertResult);
         
-        if (insertResult <= 0) {
-            throw new RuntimeException("DB 저장에 실패했습니다.");
+        if (upsertResult <= 0) {
+            throw new RuntimeException("DB Upsert에 실패했습니다.");
         }
         
         return new DailyQuizResultDTO(
@@ -297,7 +293,7 @@ public class FinanceQuizServiceImpl implements FinanceQuizService {
             return null;
         }
         
-        // 1. DB에서 오늘의 퀴즈 결과 조회
+        // 1. DB에서 사용자 퀴즈 결과 조회 (오늘 업데이트 여부 확인)
         UserQuizResultVO todayResult = userQuizResultMapper.getTodayQuizResult(memberId);
         if (todayResult == null) {
             return null;
@@ -312,7 +308,12 @@ public class FinanceQuizServiceImpl implements FinanceQuizService {
         // 3. 사용자 답안 파싱 (예: "3O1" -> ['3', 'O', '1'])
         String userAnswers = todayResult.getUserAnswer();
         if (userAnswers == null || userAnswers.length() != 3) {
-            throw new IllegalStateException("저장된 답안 데이터가 올바르지 않습니다.");
+            // 최신 답안이 없으면 빈 결과 반환
+            return new DailyQuizResultDTO(
+                0, 3, 0, 
+                todayResult.getAccumulatedPoints(), 
+                new ArrayList<>()
+            );
         }
         
         // 4. 각 문제별 결과 재생성

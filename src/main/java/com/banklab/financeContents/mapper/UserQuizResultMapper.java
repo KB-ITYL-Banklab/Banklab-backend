@@ -66,4 +66,18 @@ public interface UserQuizResultMapper {
      * @return 사용자 퀴즈 통계
      */
     UserQuizStatsDTO getUserQuizStats(@Param("memberId") Long memberId);
+    
+    /**
+     * 사용자 퀴즈 결과 Upsert (Insert 또는 Update)
+     * @param userQuizResult 사용자 퀴즈 결과
+     * @return 저장/업데이트된 행 수
+     */
+    int upsertUserQuizResult(UserQuizResultVO userQuizResult);
+    
+    /**
+     * 사용자 퀴즈 결과 조회 (member_id로)
+     * @param memberId 사용자 ID
+     * @return 사용자 퀴즈 결과 (없으면 null)
+     */
+    UserQuizResultVO getUserQuizResult(@Param("memberId") Long memberId);
 }
