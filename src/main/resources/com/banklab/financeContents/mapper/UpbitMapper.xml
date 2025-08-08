@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.financeContents.mapper.UpbitMapper">
+
+    <!-- 업비트 데이터 삽입 -->
+    <insert id="insertUpbitData" parameterType="com.banklab.financeContents.domain.FinanceUpbit">
+        INSERT INTO finance_upbit (
+            market,
+            candle_date_time,
+            opening_price,
+            trade_price,
+            prev_closing_price,
+            change_rate,
+            acc_trade_volume_24h,
+            acc_trade_price_24h,
+            created_at,
+            updated_at
+        ) VALUES (
+            #{market},
+            #{candleDateTime},
+            #{openingPrice},
+            #{tradePrice},
+            #{prevClosingPrice},
+            #{changeRate},
+            #{accTradeVolume24h},
+            #{accTradePrice24h},
+            NOW(),
+            NOW()
+        )
+    </insert>
+
+    <!-- 업비트 데이터 일괄 삽입 -->
+    <insert id="insertUpbitDataBatch" parameterType="java.util.List">
+        INSERT INTO finance_upbit (
+            market,
+            candle_date_time,
+            opening_price,
+            trade_price,
+            prev_closing_price,
+            change_rate,
+            acc_trade_volume_24h,
+            acc_trade_price_24h,
+            created_at,
+            updated_at
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.market},
+                #{item.candleDateTime},
+                #{item.openingPrice},
+                #{item.tradePrice},
+                #{item.prevClosingPrice},
+                #{item.changeRate},
+                #{item.accTradeVolume24h},
+                #{item.accTradePrice24h},
+                NOW(),
+                NOW()
+            )
+        </foreach>
+    </insert>
+
+    <!-- 특정 마켓 코드의 최신 데이터 조회 -->
+    <select id="selectLatestByMarket" parameterType="string" resultType="com.banklab.financeContents.domain.FinanceUpbit">
+        SELECT 
+            id,
+            market,
+            candle_date_time as candleDateTime,
+            opening_price as openingPrice,
+            trade_price as tradePrice,
+            prev_closing_price as prevClosingPrice,
+            change_rate as changeRate,
+            acc_trade_volume_24h as accTradeVolume24h,
+            acc_trade_price_24h as accTradePrice24h,
+            created_at as createdAt,
+            updated_at as updatedAt
+        FROM finance_upbit 
+        WHERE market = #{market}
+        ORDER BY candle_date_time DESC 
+        LIMIT 1
+    </select>
+
+    <!-- 모든 마켓의 최신 데이터 조회 -->
+    <select id="selectAllLatestData" resultType="com.banklab.financeContents.domain.FinanceUpbit">
+        SELECT 
+            id,
+            market,
+            candle_date_time as candleDateTime,
+            opening_price as openingPrice,
+            trade_price as tradePrice,
+            prev_closing_price as prevClosingPrice,
+            change_rate as changeRate,
+            acc_trade_volume_24h as accTradeVolume24h,
+            acc_trade_price_24h as accTradePrice24h,
+            created_at as createdAt,
+            updated_at as updatedAt
+        FROM finance_upbit f1
+        WHERE f1.candle_date_time = (
+            SELECT MAX(f2.candle_date_time) 
+            FROM finance_upbit f2 
+            WHERE f2.market = f1.market
+        )
+        ORDER BY market
+    </select>
+
+    <!-- 특정 날짜의 데이터 존재 여부 확인 -->
+    <select id="countTodayData" parameterType="map" resultType="int">
+        SELECT COUNT(*) 
+        FROM finance_upbit 
+        WHERE market = #{market}
+        AND DATE(created_at) = #{date}
+    </select>
+
+    <!-- 기존 데이터 업데이트 -->
+    <update id="updateUpbitData" parameterType="com.banklab.financeContents.domain.FinanceUpbit">
+        UPDATE finance_upbit SET
+            opening_price = #{openingPrice},
+            trade_price = #{tradePrice},
+            prev_closing_price = #{prevClosingPrice},
+            change_rate = #{changeRate},
+            acc_trade_volume_24h = #{accTradeVolume24h},
+            acc_trade_price_24h = #{accTradePrice24h},
+            updated_at = NOW()
+        WHERE market = #{market}
+        AND DATE(created_at) = CURDATE()
+    </update>
+
+    <!-- 최근 한달치 데이터 일괄 삽입 -->
+    <insert id="insertMonthlyData" parameterType="java.util.List">
+        INSERT INTO finance_upbit (
+            market,
+            candle_date_time,
+            opening_price,
+            trade_price,
+            prev_closing_price,
+            change_rate,
+            acc_trade_volume_24h,
+            acc_trade_price_24h,
+            created_at,
+            updated_at
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.market},
+                #{item.candleDateTime},
+                #{item.openingPrice},
+                #{item.tradePrice},
+                #{item.prevClosingPrice},
+                #{item.changeRate},
+                #{item.accTradeVolume24h},
+                #{item.accTradePrice24h},
+                NOW(),
+                NOW()
+            )
+        </foreach>
+    </insert>
+
+    <!-- 종목명으로 해당 종목의 모든 데이터 조회 -->
+    <select id="selectDataByMarket" parameterType="string" resultType="com.banklab.financeContents.domain.FinanceUpbit">
+        SELECT 
+            id,
+            market,
+            candle_date_time as candleDateTime,
+            opening_price as openingPrice,
+            trade_price as tradePrice,
+            prev_closing_price as prevClosingPrice,
+            change_rate as changeRate,
+            acc_trade_volume_24h as accTradeVolume24h,
+            acc_trade_price_24h as accTradePrice24h,
+            created_at as createdAt,
+            updated_at as updatedAt
+        FROM finance_upbit 
+        WHERE market = #{market}
+        ORDER BY candle_date_time DESC
+    </select>
+
+    <!-- 종목명으로 해당 종목의 특정 기간 데이터 조회 -->
+    <select id="selectDataByMarketAndDateRange" parameterType="map" resultType="com.banklab.financeContents.domain.FinanceUpbit">
+        SELECT 
+            id,
+            market,
+            candle_date_time as candleDateTime,
+            opening_price as openingPrice,
+            trade_price as tradePrice,
+            prev_closing_price as prevClosingPrice,
+            change_rate as changeRate,
+            acc_trade_volume_24h as accTradeVolume24h,
+            acc_trade_price_24h as accTradePrice24h,
+            created_at as createdAt,
+            updated_at as updatedAt
+        FROM finance_upbit 
+        WHERE market = #{market}
+        AND DATE(candle_date_time) BETWEEN #{startDate} AND #{endDate}
+        ORDER BY candle_date_time DESC
+    </select>
+
+</mapper>

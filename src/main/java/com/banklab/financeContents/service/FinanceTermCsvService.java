@@ -44,6 +44,13 @@ public interface FinanceTermCsvService {
     FinanceTermVO getTermByExactMatch(String term);
     
     /**
+     * 키워드로 정확한 조회
+     * @param keyword 조회할 키워드
+     * @return 금융용어 정보
+     */
+    FinanceTermVO getTermByKeyword(String keyword);
+    
+    /**
      * 페이징 처리된 용어 조회
      * @param offset 시작 위치
      * @param limit 조회 개수

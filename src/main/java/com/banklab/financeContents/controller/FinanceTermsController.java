@@ -1,7 +1,5 @@
 package com.banklab.financeContents.controller;
 
-import com.banklab.financeContents.dto.FinanceTermsResponse;
-import com.banklab.financeContents.service.FinanceTermsService;
 import com.banklab.financeContents.service.FinanceTermCsvService;
 import com.banklab.financeContents.domain.FinanceTermVO;
 import io.swagger.annotations.Api;
@@ -18,8 +16,8 @@ import java.util.Map;
 import java.util.List;
 
 /**
- * 금융용어 컨트롤러
- * 금융용어 검색 및 CSV 업로드 API를 제공하는 컨트롤러
+ * 금융용어 컨트롤러 (DB 전용)
+ * CSV 데이터베이스에서 금융용어를 조회하는 컨트롤러
  */
 @Slf4j
 @RestController
@@ -28,54 +26,8 @@ import java.util.List;
 @Api(tags = "금융용어 API")
 public class FinanceTermsController {
     
-    private final FinanceTermsService financeTermsService;
     private final FinanceTermCsvService financeTermCsvService;
-    
-    /**
-     * 금융용어 조회 웹페이지
-     * 
-     * @return 금융용어 조회 웹페이지
-     */
-    @GetMapping("/web")
-    @ApiOperation(value = "금융용어 웹페이지", notes = "금융용어 조회 및 검색 기능을 제공하는 웹페이지를 반환합니다.")
-    public ModelAndView financeTermsWebPage() {
-        log.info("🌐 금융용어 웹페이지 요청");
-        ModelAndView mav = new ModelAndView();
-        mav.setViewName("finance/terms");
-        return mav;
-    }
-    
-    /**
-     * 금융용어 검색 API (기존 SEIBRO API)
-     * 
-     * @param term 검색할 금융용어
-     * @return 금융용어 정보
-     */
-    @GetMapping("/search")
-    @ApiOperation(value = "금융용어 검색", notes = "입력한 금융용어에 대한 정의를 검색합니다.")
-    public ResponseEntity<FinanceTermsResponse> searchFinanceTerm(
-            @ApiParam(value = "검색할 금융용어", required = true, example = "GDP")
-            @RequestParam("term") String term) {
-        
-        try {
-            log.info("📖 금융용어 검색 요청: {}", term);
-            
-            FinanceTermsResponse response = financeTermsService.getFinanceTerm(term);
-            
-            if (response.isSuccess()) {
-                log.info("✅ 금융용어 검색 성공: {}", term);
-                return ResponseEntity.ok(response);
-            } else {
-                log.warn("⚠️ 금융용어 검색 실패: {} - {}", term, response.getMessage());
-                return ResponseEntity.badRequest().body(response);
-            }
-            
-        } catch (Exception e) {
-            log.error("❌ 금융용어 검색 중 오류 발생: {}", e.getMessage(), e);
-            FinanceTermsResponse errorResponse = FinanceTermsResponse.failure(term, "서버 오류가 발생했습니다.");
-            return ResponseEntity.status(500).body(errorResponse);
-        }
-    }
+
     
     /**
      * 금융용어 검색 API (DB에서 검색) - 핵심 기능
@@ -85,8 +37,8 @@ public class FinanceTermsController {
      * @param size 페이지 크기 (기본값: 20)
      * @return 검색 결과
      */
-    @GetMapping("/search-db")
-    @ApiOperation(value = "금융용어 DB 검색", notes = "데이터베이스에 저장된 금융용어에서 검색합니다.")
+    @GetMapping("/search")
+    @ApiOperation(value = "금융용어 검색", notes = "데이터베이스에 저장된 금융용어에서 검색합니다.")
     public ResponseEntity<Map<String, Object>> searchFinanceTermInDB(
             @ApiParam(value = "검색할 금융용어", required = true, example = "가구")
             @RequestParam("term") String term,
@@ -191,6 +143,54 @@ public class FinanceTermsController {
             
         } catch (Exception e) {
             log.error("❌ 금융용어 상세 조회 중 오류 발생: {}", e.getMessage(), e);
+            response.put("success", false);
+            response.put("message", "조회 중 오류가 발생했습니다.");
+            response.put("error", e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+    
+    /**
+     * 키워드로 금융용어 조회 API
+     * 
+     * @param keyword 조회할 키워드 (정확한 일치)
+     * @return 금융용어 상세 정보
+     */
+    @GetMapping("/keyword")
+    @ApiOperation(value = "키워드로 금융용어 조회", notes = "정확한 키워드로 금융용어 상세 정보를 조회합니다.")
+    public ResponseEntity<Map<String, Object>> getFinanceTermByKeyword(
+            @ApiParam(value = "조회할 키워드", required = true, example = "ABCP")
+            @RequestParam("keyword") String keyword) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            log.info("🔑 키워드로 금융용어 조회 요청: {}", keyword);
+            
+            if (keyword == null || keyword.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "키워드를 입력해주세요.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            FinanceTermVO termDetail = financeTermCsvService.getTermByKeyword(keyword.trim());
+            
+            if (termDetail != null) {
+                log.info("✅ 키워드로 금융용어 조회 성공: {}", keyword);
+                response.put("success", true);
+                response.put("message", "키워드 조회가 완료되었습니다.");
+                response.put("data", termDetail);
+            } else {
+                log.info("⚠️ 키워드로 금융용어 조회 실패: {} - 키워드를 찾을 수 없음", keyword);
+                response.put("success", false);
+                response.put("message", "해당 키워드를 찾을 수 없습니다.");
+                response.put("searchKeyword", keyword.trim());
+            }
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("❌ 키워드로 금융용어 조회 중 오류 발생: {}", e.getMessage(), e);
             response.put("success", false);
             response.put("message", "조회 중 오류가 발생했습니다.");
             response.put("error", e.getMessage());

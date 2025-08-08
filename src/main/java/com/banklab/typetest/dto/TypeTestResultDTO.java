@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -18,6 +19,7 @@ public class TypeTestResultDTO {
     private String investmentTypeDesc;
     private Integer cumulativeViews;
     private String message;
+    private String updatedAt;
     private List<RecommendedProductDTO> recommendedProducts;
 
     public static TypeTestResultDTO success(Long userId, Long investmentTypeId, String investmentTypeName, String investmentTypeDesc, String message) {

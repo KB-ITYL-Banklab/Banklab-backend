@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.HtmlUtils;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ import java.util.List;
 
 /**
  * 네이버 뉴스 검색 API 서비스 클래스
- * 
+ * <p>
  * OPENAPI 연결 흐름:
  * 1. application.properties에서 네이버 API 키 로드
  * 2. UriComponentsBuilder로 요청 URL 생성
@@ -46,7 +47,7 @@ public class NaverNewsService {
 
     /**
      * 키워드로 네이버 뉴스를 검색하는 메서드
-     * 
+     *
      * @param keyword 검색할 키워드
      * @return 뉴스 목록 (NewsItemDto 리스트)
      */
@@ -86,6 +87,11 @@ public class NaverNewsService {
             for (int i = 0; i < items.size(); i++) {
                 JsonObject item = items.get(i).getAsJsonObject();
                 NewsItemDto dto = gson.fromJson(item, NewsItemDto.class);  // JSON -> DTO 변환
+
+                // HTML 엔티티 디코딩 처리
+                dto.setTitle(HtmlUtils.htmlUnescape(dto.getTitle()));
+                dto.setDescription(HtmlUtils.htmlUnescape(dto.getDescription()));
+
                 newsList.add(dto);
             }
 

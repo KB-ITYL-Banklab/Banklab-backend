@@ -4,6 +4,7 @@ import com.banklab.codef.service.RequestConnectedId;
 import com.banklab.common.redis.RedisService;
 import com.banklab.security.util.LoginUserProvider;
 import com.banklab.stock.domain.StockVO;
+import com.banklab.stock.dto.StockManageRequestDTO;
 import com.banklab.stock.dto.StockRequestDTO;
 import com.banklab.stock.service.StockResponse;
 import com.banklab.stock.service.StockService;
@@ -164,7 +165,7 @@ public class StockApiController {
     @PutMapping("/refresh")
     @ApiOperation(value = "보유종목 정보 새로고침", notes = "커넥티드 아이디로 보유종목 정보를 새로고침.")
     public ResponseEntity<Map<String, Object>> refreshUserStocks(
-            @RequestBody StockRequestDTO stockRequest
+            @RequestBody StockManageRequestDTO request
     ) {
         try {
             Map<String, Object> authInfo = extractAuthInfo();
@@ -172,14 +173,14 @@ public class StockApiController {
             String email = (String) authInfo.get("email");
 
             log.info("보유종목 정보 새로고침 - email: {}, memberId: {}, stockCode: {}",
-                    email, memberId, stockRequest.getStockCode());
+                    email, memberId, request.getStockCode());
 
             // 보유종목 새로고침
             stockService.refreshUserStocks(
                     memberId,
-                    stockRequest.getStockCode(),
-                    stockRequest.getConnectedId(),
-                    stockRequest.getAccount()
+                    request.getStockCode(),
+                    request.getConnectedId(),
+                    request.getAccount()
             );
 
             List<StockVO> stockList = stockService.getUserStocks(memberId);
@@ -207,7 +208,7 @@ public class StockApiController {
     @DeleteMapping("/unlink")
     @ApiOperation(value = "증권계좌 연동 해제", notes = "로그인한 사용자의 커넥티드 아이디를 삭제하고 증권계좌 연동을 해제.")
     public ResponseEntity<Map<String, Object>> unlinkStock(
-            @RequestBody StockRequestDTO stockRequest
+            @RequestBody StockManageRequestDTO request
     ) {
         try {
             Map<String, Object> authInfo = extractAuthInfo();
@@ -215,18 +216,18 @@ public class StockApiController {
             String email = (String) authInfo.get("email");
 
             log.info("증권계좌 연동 해제 - email: {}, memberId: {}, stockCode: {}, account: {}",
-                    email, memberId, stockRequest.getStockCode(), stockRequest.getAccount());
+                    email, memberId, request.getStockCode(), request.getAccount());
 
             // 연동 해제
             boolean deleted = RequestConnectedId.deleteConnectedId(
-                    stockRequest.getConnectedId(),
-                    stockRequest.getStockCode(),
+                    request.getConnectedId(),
+                    request.getStockCode(),
                     "ST",
                     "A"
             );
 
             if (deleted) {
-                stockService.disconnectUserStocks(memberId, stockRequest.getConnectedId());
+                stockService.disconnectUserStocks(memberId, request.getConnectedId());
                 return ResponseEntity.ok(createSuccessResponse("증권계좌 연동 해제가 완료되었습니다.", null, authInfo));
             } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
