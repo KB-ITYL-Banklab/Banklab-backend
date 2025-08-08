@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -15,9 +16,11 @@ import java.util.HashMap;
 import java.util.List;
 
 @Log4j2
+@Service // Add @Service annotation
 @RequiredArgsConstructor
 public class TransactionResponse {
     private static final ObjectMapper mapper = new ObjectMapper();
+    private final ApiRequest apiRequest; // Inject ApiRequest
 
     /**
      * CODEF API에서 거래 내역 조회
@@ -26,7 +29,7 @@ public class TransactionResponse {
      * @throws IOException
      * @throws InterruptedException
      */
-    public static List<TransactionHistoryVO> requestTransactions(Long memberId, TransactionDTO request) throws IOException, InterruptedException {
+    public List<TransactionHistoryVO> requestTransactions(Long memberId, TransactionDTO request) throws IOException, InterruptedException {
         String urlPath = CommonConstant.TEST_DOMAIN + CommonConstant.KR_BK_1_P_002;
 
         HashMap<String, Object> bodyMap = new HashMap<>();
@@ -38,7 +41,7 @@ public class TransactionResponse {
         bodyMap.put("orderBy", request.getOrderBy());
 
 
-        String result = ApiRequest.request(urlPath, bodyMap);
+        String result = apiRequest.request(urlPath, bodyMap); // Use injected apiRequest
 
         //Json parsing
         JsonNode root = mapper.readTree(result);

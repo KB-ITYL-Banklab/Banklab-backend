@@ -38,36 +38,40 @@ public class FetchTransactionTasklet implements Tasklet {
 
     @Override
     public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception {
+        
+        // 모든 사용자 조회
         List<Long> allMemberIds = memberMapper.findAllMemberIds();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+
+
         for(Long memberId : allMemberIds){
             List<String> accounts = accountService.getUserAccounts(memberId).stream()
                     .map(AccountDTO::getResAccount)
                     .toList();
 
             for(String account: accounts){
-                // 1.사용자 별 마지막 거래 내역 일자 구하기
+                // 1. 사용자 별 마지막 거래 내역 일자 구하기
                 LocalDate lastTransactionDay = transactionService.getLastTransactionDay(memberId, account);
 
-                LocalDate lastDay;
-                LocalDate today =LocalDate.now();
-
-                // 2. 거래 내역이 없는 경우, 현재로부터 10년 전 내역부터 가져오기
-                lastDay = (lastTransactionDay!=null)
-                        ?lastTransactionDay.plusDays(1)
-                        :today.minusYears(2);
+                LocalDate today = LocalDate.now();
+                LocalDate lastDay = (lastTransactionDay != null)
+                        ? lastTransactionDay.plusDays(1)
+                        : today.minusYears(2);
 
                 String startDate = lastDay.format(formatter);
                 String endDate =today.format(formatter);
 
 
-                // 3. 사용자의 모든 계좌 거래 내역 저장하기
-                asyncTransactionService.getTransactions(memberId,
+                // 2. 사용자의 각 계좌별 거래 내역 저장
+                asyncTransactionService.getTransactions(
+                        memberId,
                         TransactionRequestDto.builder()
+                                .resAccount(account)
                                 .startDate(startDate)
                                 .endDate(endDate)
                                 .orderBy("0")
-                                .build());
+                                .build()
+                );
             }
         }
         return RepeatStatus.FINISHED;
