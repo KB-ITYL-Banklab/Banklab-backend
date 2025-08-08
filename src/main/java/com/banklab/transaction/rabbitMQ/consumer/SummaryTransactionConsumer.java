@@ -30,7 +30,7 @@ public class SummaryTransactionConsumer {
         try {
             summaryBatchService.initDailySummary(memberId, startDate);
             log.info("[END] 집계 데이터 저장 요청 완료: 회원ID={}, 시작일={}", memberId,startDate);
-            redisService.set(key, "DONE", 1);
+            redisService.set(key, "DONE", 3);
         }catch (Exception e){
             redisService.set(key, "FAILED", 1);
         }

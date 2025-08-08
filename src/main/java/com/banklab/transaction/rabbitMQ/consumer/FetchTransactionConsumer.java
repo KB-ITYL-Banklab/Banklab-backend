@@ -37,12 +37,16 @@ public class FetchTransactionConsumer {
 
     @RabbitListener(queues = RabbitMQConstant.QUEUE_TRANSACTION_FETCH)
     public void handleTransactionFetch(FetchTransactionMessage message){
+        log.info("Received message: {}", message);
         Long memberId = message.getMemberId();
         TransactionRequestDto request = message.getRequest();
 
         log.info("[RQ] 거래 내역 조회 요청 수신: account:{}", request.getResAccount());
         AccountVO account = accountMapper.getAccountByAccountNumber(request.getResAccount());
-        if(account ==null){return;}
+        if(account ==null){
+            log.warn("Account not found for account number: {}", request.getResAccount());
+            return;
+        }
 
         checkIsPresent(memberId, account, request);
         TransactionDTO dto = makeTransactionDTO(account, request);

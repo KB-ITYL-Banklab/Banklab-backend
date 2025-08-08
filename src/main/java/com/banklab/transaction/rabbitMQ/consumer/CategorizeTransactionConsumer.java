@@ -38,7 +38,6 @@ public class CategorizeTransactionConsumer {
         redisService.set(statusKey, "CLASSIFYING_CATEGORIES", 1);
 
         log.info("[RQ] 카테고리 분류 요청 수신, 건수={}", message.getTransactions().size());
-        redisService.hset(key, "expectedTotal", String.valueOf(message.getTransactions().size()));
 
         Map<String, Long> descMap = new ConcurrentHashMap<>();
         Set<String> toClassifyViaApi = Collections.synchronizedSet(new LinkedHashSet<>());

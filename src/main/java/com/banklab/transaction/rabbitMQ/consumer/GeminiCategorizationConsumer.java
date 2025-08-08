@@ -48,11 +48,7 @@ public class GeminiCategorizationConsumer {
             redisService.hset(key, desc, String.valueOf(categoryId));
         }
 
-        // 예상 분류 건수
-        long expected = Long.parseLong(redisService.hget(key, "expectedTotal"));
         log.info("[END] GEMINI 분류 성공, 건수: {}", geminiResponses.size());
-
-        //
         SaveCategoryMessage saveCategoryMessage = new SaveCategoryMessage(message.getMemberId(), account, message.getStartDate(), message.getTransactions());
         transactionProducer.sendSaveCategoryRequest(saveCategoryMessage);
     }

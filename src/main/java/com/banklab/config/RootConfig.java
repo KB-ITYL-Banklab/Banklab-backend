@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
         "com.banklab.category.gemini",
         "com.banklab.transaction.rabbitMQ",
         "com.banklab.transaction.rabbitMQ.producer",
+        "com.banklab.transaction.rabbitMQ.consumer",
         "com.banklab.category.kakaomap",
         "com.banklab.calculator.service"
 })

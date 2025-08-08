@@ -39,9 +39,10 @@ public class CategorySaveConsumer {
         String key = RedisKeyUtil.category(account.getId());
         Map<Object, Object> descMap = redisService.hgetAll(key);
 
+
         for (TransactionHistoryVO tx : transactions) {
             String desc = tx.getDescription();
-            Long categoryId = Long.parseLong(String.valueOf(descMap.get(desc)));
+            Long categoryId = Long.parseLong(String.valueOf(descMap.getOrDefault(desc,"8")));
             try {
                 tx.setCategory_id(categoryId);
             } catch (CompletionException e) {
