@@ -54,4 +54,22 @@
         WHERE id = #{id}
     </update>
 
+    <!-- 사용자가 오늘 퀴즈를 이미 풀었는지 확인 -->
+    <select id="getTodayQuizCount" parameterType="Long" resultType="int">
+        SELECT COUNT(*) 
+        FROM user_quiz_results 
+        WHERE member_id = #{memberId} 
+        AND DATE(created_at) = CURDATE()
+    </select>
+
+    <!-- 사용자의 오늘 퀴즈 결과 조회 -->
+    <select id="getTodayQuizResult" parameterType="Long" resultMap="UserQuizResultMap">
+        SELECT id, member_id, user_answer, problem, accumulated_points, created_at, updated_at
+        FROM user_quiz_results
+        WHERE member_id = #{memberId}
+        AND DATE(created_at) = CURDATE()
+        ORDER BY created_at DESC
+        LIMIT 1
+    </select>
+
 </mapper>

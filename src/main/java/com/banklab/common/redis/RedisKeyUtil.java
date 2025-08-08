@@ -11,6 +11,9 @@ public class RedisKeyUtil {
 
     public static String transaction(Long memberId, String account){return "trhis-sync-status:"+memberId+":"+account;}
 
+    public static String category(String desc){return "category:"+desc;}
+
+
     public static String resend(String type) {
         return "resend:" + type;
     }
@@ -19,9 +22,6 @@ public class RedisKeyUtil {
         return "verified:" + type;
     }
 
-    public static String failCount(String type) {
-        return "fail:" + type;
-    }
 
     public static String refreshToken(Long memberId) {
         return "RT:" + memberId;

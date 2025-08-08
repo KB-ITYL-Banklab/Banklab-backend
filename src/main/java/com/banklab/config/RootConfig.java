@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.*;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
 
@@ -37,10 +38,11 @@ import java.util.stream.Collectors;
 })
 @ComponentScan(basePackages = {
         "com.banklab.member.service",
-        "com.banklab.oauth.service",
-        "com.banklab.oauth.client",
+//        "com.banklab.oauth.service",
+//        "com.banklab.oauth.client",
         "com.banklab.account.service",
         "com.banklab.financeContents.service",
+        "com.banklab.financeContents.scheduler",
         "com.banklab.typetest",
         "com.banklab.product",
         "com.banklab.risk",
@@ -53,11 +55,12 @@ import java.util.stream.Collectors;
         "com.banklab.verification.sender",
         "com.banklab.verification.service",
         "com.banklab.common.redis",
-        "com.banklab.category.perplexity",
+        "com.banklab.category.gemini",
         "com.banklab.category.kakaomap",
         "com.banklab.calculator.service"
 })
 @EnableTransactionManagement
+@EnableScheduling
 public class RootConfig {
     @Value("${jdbc.driver}")
     String driver;
@@ -65,7 +68,7 @@ public class RootConfig {
     String url;
     @Value("${jdbc.username}")
     String username;
-    @Value(("${jdbc.password}"))
+    @Value("${jdbc.password}")
     String password;
 
     @Bean

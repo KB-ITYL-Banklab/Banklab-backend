@@ -50,4 +50,18 @@ public interface FinanceQuizService {
      * @return 퀴즈 결과 및 포인트 정보
      */
     DailyQuizResultDTO processDailyQuizResults(DailyQuizRequestDTO request);
+    
+    /**
+     * 사용자가 오늘 퀴즈를 이미 풀었는지 확인
+     * @param memberId 사용자 ID
+     * @return 오늘 풀이 여부 (true: 이미 풀었음, false: 아직 안 풀었음)
+     */
+    boolean hasUserSolvedTodayQuiz(Long memberId);
+    
+    /**
+     * 사용자의 오늘 퀴즈 결과와 상세 정보 조회
+     * @param memberId 사용자 ID
+     * @return 오늘의 퀴즈 결과 및 상세 정보 (답안, 점수, 문제, 해설 포함)
+     */
+    DailyQuizResultDTO getTodayQuizResult(Long memberId);
 }

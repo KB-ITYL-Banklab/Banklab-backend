@@ -29,15 +29,18 @@ public class AnnuityWithOptionsDto {
     private String prdtTypeNm;      // 상품유형명
 
     private String saleStrtDay; // 판매 시작일
+    private Long mntnCnt;               // 유지 개월 수
     private String saleCo;          // 판매처 목록 (CSV 형태)
     private String dclsStrtDay;  // 공시시작일
     private String dclsEndDay;   // 공시종료일
 
     // 수익률 정보
     private BigDecimal avgPrftRate;       // 평균 수익률
+    private BigDecimal dclsRate;        // 공시 수익률
+    private String guarRate;            // 보장 수익률
     private BigDecimal btrmPrftRate1;     // 최근 1년 수익률
-    private BigDecimal btrmPrftRate2;     // 최근 3년 수익률
-    private BigDecimal btrmPrftRate3;     // 최근 5년 수익률
+    private BigDecimal btrmPrftRate2;     // 최근 2년 수익률
+    private BigDecimal btrmPrftRate3;     // 최근 3년 수익률
 
     // 요약 정보
     private int optionCount;              // 옵션 개수
