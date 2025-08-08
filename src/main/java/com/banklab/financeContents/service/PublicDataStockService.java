@@ -118,17 +118,12 @@ public class PublicDataStockService {
                 log.warn("⚠️ 요청 데이터 개수가 최대치를 초과하여 {}개로 제한됩니다.", MAX_API_ROWS);
             }
             
-            // === 2. 요청 정보 로깅 (디버깅용) ===
-            log.info("🔑 API 키 길이: {}자 (처음 10자: {}...)", 
-                serviceKey.length(), 
-                serviceKey.length() > 10 ? serviceKey.substring(0, 10) : serviceKey);
-            log.info("📅 기준일자: {}", baseDate);
-            log.info("🏢 종목코드: {}", shortCode != null ? shortCode : "전체 종목");
-            log.info("📄 조회설정: {}개/페이지, {}페이지", numOfRows, pageNo);
+            // === 2. 요청 정보 로깅 ===
+            log.info("📅 기준일자: {}, 종목코드: {}, 조회설정: {}개/페이지, {}페이지", 
+                baseDate, shortCode != null ? shortCode : "전체", numOfRows, pageNo);
             
             // === 3. API URL 구성 ===
             URI uri = buildApiUri(baseDate, shortCode, numOfRows, pageNo);
-            log.info("🌐 API 호출 URL: {}", uri.toString());
             
             // === 4. HTTP 클라이언트 설정 및 요청 수행 ===
             // 타임아웃 및 프록시 설정이 포함된 HTTP 클라이언트 생성
@@ -149,16 +144,12 @@ public class PublicDataStockService {
                 httpGet.setHeader("Accept-Encoding", "gzip, deflate");
                 httpGet.setHeader("Connection", "keep-alive");
                 
-                log.info("📤 HTTP 요청 전송 중...");
-                
                 // === 5. API 호출 및 응답 처리 ===
                 try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
                     String responseBody = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
                     
                     int statusCode = response.getStatusLine().getStatusCode();
-                    log.info("📥 API 응답 상태코드: {}", statusCode);
-                    log.info("📥 API 응답 내용 (처음 500자): {}", 
-                        responseBody.length() > 500 ? responseBody.substring(0, 500) + "..." : responseBody);
+                    log.debug("📥 API 응답 상태코드: {}", statusCode);
                     
                     if (statusCode == 200) {
                         // HTTP 200 OK - 응답 파싱 시도
@@ -359,6 +350,10 @@ public class PublicDataStockService {
             uriBuilder.addParameter("numOfRows", String.valueOf(numOfRows)); // 조회 개수
             uriBuilder.addParameter("pageNo", String.valueOf(pageNo));       // 페이지 번호
             
+            // === 한국 주식만 조회하도록 시장 구분 추가 ===
+            uriBuilder.addParameter("mrktCtg", "KOSPI");  // KOSPI 시장만
+            // 또는 uriBuilder.addParameter("mrktCtg", "KOSDAQ"); // KOSDAQ 시장만
+            
             // === 선택적 매개변수 추가 ===
             if (shortCode != null && !shortCode.trim().isEmpty()) {
                 // 특정 종목 코드가 지정된 경우 추가
@@ -366,7 +361,6 @@ public class PublicDataStockService {
             }
             
             URI uri = uriBuilder.build();
-            log.debug("🔗 구성된 URI: {}", uri.toString());
             return uri;
             
         } catch (Exception e) {

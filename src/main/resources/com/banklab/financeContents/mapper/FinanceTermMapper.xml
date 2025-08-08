@@ -8,13 +8,14 @@
     <!-- 결과 매핑 -->
     <resultMap id="FinanceTermResultMap" type="com.banklab.financeContents.domain.FinanceTermVO">
         <result property="id" column="id"/>
+        <result property="keyword" column="keyword"/>
         <result property="title" column="title"/>
         <result property="definition" column="definition"/>
     </resultMap>
 
     <!-- 기본 컬럼 -->
     <sql id="baseColumns">
-        id, title, definition
+        id, keyword, title, definition
     </sql>
 
     <!-- 모든 금융용어 조회 -->
@@ -30,24 +31,28 @@
         FROM finance_terms
     </select>
 
-    <!-- 용어로 검색 (부분 일치) -->
+    <!-- 용어로 검색 (부분 일치) - keyword와 title에서만 검색 -->
     <select id="searchByTerm" resultMap="FinanceTermResultMap">
         SELECT <include refid="baseColumns"/>
         FROM finance_terms
-        WHERE title LIKE CONCAT('%', #{term}, '%')
-           OR definition LIKE CONCAT('%', #{term}, '%')
+        WHERE keyword LIKE CONCAT('%', #{term}, '%')
+           OR title LIKE CONCAT('%', #{term}, '%')
         ORDER BY 
-            CASE WHEN title = #{term} THEN 1 ELSE 2 END,
-            CASE WHEN title LIKE CONCAT(#{term}, '%') THEN 1 ELSE 2 END,
+            CASE WHEN keyword = #{term} THEN 1 
+                 WHEN title = #{term} THEN 2 
+                 ELSE 3 END,
+            CASE WHEN keyword LIKE CONCAT(#{term}, '%') THEN 1 
+                 WHEN title LIKE CONCAT(#{term}, '%') THEN 2 
+                 ELSE 3 END,
             title ASC
     </select>
 
-    <!-- 주제로 검색 (기존 테이블에는 subject 컬럼이 없으므로 title 기반으로 검색) -->
+    <!-- 주제로 검색 (키워드와 제목에서만 검색) -->
     <select id="searchBySubject" resultMap="FinanceTermResultMap">
         SELECT <include refid="baseColumns"/>
         FROM finance_terms
-        WHERE title LIKE CONCAT('%', #{subject}, '%')
-           OR definition LIKE CONCAT('%', #{subject}, '%')
+        WHERE keyword LIKE CONCAT('%', #{subject}, '%')
+           OR title LIKE CONCAT('%', #{subject}, '%')
         ORDER BY title ASC
     </select>
 
@@ -55,7 +60,15 @@
     <select id="selectByExactTerm" resultMap="FinanceTermResultMap">
         SELECT <include refid="baseColumns"/>
         FROM finance_terms
-        WHERE title = #{term}
+        WHERE keyword = #{term} OR title = #{term}
+        LIMIT 1
+    </select>
+
+    <!-- 키워드로 정확한 조회 -->
+    <select id="selectByKeyword" resultMap="FinanceTermResultMap">
+        SELECT <include refid="baseColumns"/>
+        FROM finance_terms
+        WHERE keyword = #{keyword}
         LIMIT 1
     </select>
 
@@ -78,16 +91,17 @@
     <insert id="insertTerm" parameterType="com.banklab.financeContents.domain.FinanceTermVO"
             useGeneratedKeys="true" keyProperty="id">
         INSERT INTO finance_terms (
-            title, definition
+            keyword, title, definition
         ) VALUES (
-            #{title}, #{definition}
+            #{keyword}, #{title}, #{definition}
         )
     </insert>
 
     <!-- 금융용어 업데이트 -->
     <update id="updateTerm" parameterType="com.banklab.financeContents.domain.FinanceTermVO">
         UPDATE finance_terms
-        SET title = #{title},
+        SET keyword = #{keyword},
+            title = #{title},
             definition = #{definition}
         WHERE id = #{id}
     </update>
@@ -105,10 +119,10 @@
 
     <!-- 배치 삽입 -->
     <insert id="insertTermsBatch" parameterType="list">
-        INSERT INTO finance_terms (title, definition)
+        INSERT INTO finance_terms (keyword, title, definition)
         VALUES
         <foreach collection="terms" item="term" separator=",">
-            (#{term.title}, #{term.definition})
+            (#{term.keyword}, #{term.title}, #{term.definition})
         </foreach>
     </insert>
 

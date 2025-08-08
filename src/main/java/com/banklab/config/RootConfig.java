@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.*;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
 
@@ -41,6 +42,7 @@ import java.util.stream.Collectors;
         "com.banklab.oauth.client",
         "com.banklab.account.service",
         "com.banklab.financeContents.service",
+        "com.banklab.financeContents.scheduler",
         "com.banklab.typetest",
         "com.banklab.product",
         "com.banklab.risk",
@@ -58,6 +60,7 @@ import java.util.stream.Collectors;
         "com.banklab.calculator.service"
 })
 @EnableTransactionManagement
+@EnableScheduling
 public class RootConfig {
     @Value("${jdbc.driver}")
     String driver;

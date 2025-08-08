@@ -26,25 +26,32 @@ public interface FinanceTermMapper {
     int selectTermsCount();
     
     /**
-     * 용어로 검색 (부분 일치)
+     * 용어로 검색 (부분 일치) - 키워드와 제목에서만 검색
      * @param term 검색할 용어
      * @return 검색 결과 리스트
      */
     List<FinanceTermVO> searchByTerm(@Param("term") String term);
     
     /**
-     * 주제로 검색 (제목이나 정의에서 주제 키워드 검색)
+     * 주제로 검색 (키워드와 제목에서만 주제 키워드 검색)
      * @param subject 검색할 주제 키워드
      * @return 검색 결과 리스트
      */
     List<FinanceTermVO> searchBySubject(@Param("subject") String subject);
     
     /**
-     * 정확한 용어로 조회
+     * 정확한 용어로 조회 (키워드 또는 제목 정확 일치)
      * @param term 조회할 용어
      * @return 금융용어 정보
      */
     FinanceTermVO selectByExactTerm(@Param("term") String term);
+    
+    /**
+     * 키워드로 정확한 조회
+     * @param keyword 조회할 키워드
+     * @return 금융용어 정보
+     */
+    FinanceTermVO selectByKeyword(@Param("keyword") String keyword);
     
     /**
      * 페이징 처리된 용어 조회

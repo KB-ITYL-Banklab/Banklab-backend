@@ -1,12 +1,16 @@
 package com.banklab.financeContents.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * 네이버 뉴스 API 응답 데이터 전송 객체 (DTO)
  * 네이버 API에서 받은 뉴스 항목을 담는 클래스
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class NewsItemDto {
     // 뉴스 제목
     private String title;
