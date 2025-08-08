@@ -184,6 +184,7 @@ public class TypeTestServiceImpl implements TypeTestService {
                 .investmentTypeName(investmentType.getInvestmentTypeName())
                 .investmentTypeDesc(investmentType.getInvestmentTypeDesc())
                 .cumulativeViews(userInvestmentType.getCumulativeViews())
+                .updatedAt(userInvestmentType.getUpdatedAt().toString())
                 .message("투자유형 조회 성공")
                 .build();
     }

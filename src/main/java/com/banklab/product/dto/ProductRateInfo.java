@@ -22,7 +22,6 @@ public class ProductRateInfo {
     private ProductType productType; // 상품 타입
     private BigDecimal minRate;    // 최저 금리
     private BigDecimal maxRate;    // 최고 금리
-    
     /**
      * 복합 키 생성
      */
