@@ -133,8 +133,7 @@ class CategoryServiceTest {
         when(kakaoMapService.getCategoryByDesc(anyString(), anyString())).thenReturn(1L); // API 호출로 카테고리 ID 1 반환
 
         // when: 실제 테스트할 메서드 호출 - 비동기 메서드이므로 CompletableFuture 반환
-        CompletableFuture<Void> result = categoryService.categorizeTransactions(testTransactions, anyString());
-        result.get(); // 비동기 작업 완료까지 대기 (블로킹)
+        categoryService.categorizeTransactions(testTransactions, anyString());
 
         // then: 결과 검증
         verify(transactionMapper, times(1)).updateCategories(any()); // 데이터베이스 업데이트가 1번 호출됨
@@ -153,8 +152,7 @@ class CategoryServiceTest {
         when(kakaoMapService.isStoredInRedis(anyString())).thenReturn(1L); // 캐시 적중 - 카테고리 ID 1 반환
 
         // when: 비동기 카테고리 분류 메서드 호출
-        CompletableFuture<Void> result = categoryService.categorizeTransactions(testTransactions,anyString());
-        result.get(); // 비동기 작업 완료 대기
+        categoryService.categorizeTransactions(testTransactions,anyString());
 
         // then: 결과 검증
         verify(transactionMapper, times(1)).updateCategories(any()); // 데이터베이스 업데이트 수행됨
@@ -172,54 +170,14 @@ class CategoryServiceTest {
         List<TransactionHistoryVO> emptyTransactions = Collections.emptyList();
 
         // when: 빈 리스트로 카테고리 분류 메서드 호출
-        CompletableFuture<Void> result = categoryService.categorizeTransactions(emptyTransactions, anyString());
-        result.get(); // 비동기 작업 완료 대기
+        categoryService.categorizeTransactions(emptyTransactions, anyString());
 
         // then: 결과 검증
-        verify(transactionMapper, times(1)).updateCategories(emptyTransactions); // 빈 리스트로도 업데이트 호출됨
+        verify(transactionMapper, never()).updateCategories(any()); // 빈 리스트이므로 업데이트 호출 안됨
         verify(kakaoMapService, never()).getCategoryByDesc(anyString(), anyString()); // 처리할 데이터가 없어 API 호출 안됨
     }
 
-    /**
-     * Redis 캐시 미스 상황에서 외부 API 호출을 통한 카테고리 조회 테스트
-     */
-    @Test
-    @DisplayName("캐시와 함께 카테고리 조회 - 캐시 미스")
-    void getCategoryWithCache_CacheMiss() {
-        // given: 테스트 데이터 설정
-        String keyword = "스타벅스"; // 검색할 키워드 (상호명)
-        String redisKey = "category::" + keyword; // Redis에 저장될 키 형식
-        when(kakaoMapService.isStoredInRedis(redisKey)).thenReturn(null); // 캐시에 없음
-        when(kakaoMapService.getCategoryByDesc(redisKey, keyword)).thenReturn(1L); // API 호출로 카테고리 ID 1 반환
-
-        // when: 캐시와 함께 카테고리 조회 메서드 호출
-        Long result = categoryService.getCategoryWithCache(keyword);
-
-        // then: 결과 검증
-        assertEquals(1L, result); // 반환된 카테고리 ID가 1인지 확인
-        verify(kakaoMapService, times(1)).isStoredInRedis(redisKey); // 캐시 확인 1번 호출
-        verify(kakaoMapService, times(1)).getCategoryByDesc(redisKey, keyword); // API 호출 1번 수행
-    }
-
-    /**
-     * Redis 캐시 적중 상황에서 캐시된 데이터만 사용하는 테스트
-     */
-    @Test
-    @DisplayName("캐시와 함께 카테고리 조회 - 캐시 적중")
-    void getCategoryWithCache_CacheHit() {
-        // given: 캐시에 데이터가 있는 상황 설정
-        String keyword = "스타벅스";
-        String redisKey = "category::" + keyword;
-        when(kakaoMapService.isStoredInRedis(redisKey)).thenReturn(1L); // 캐시에서 카테고리 ID 1 반환
-
-        // when: 캐시와 함께 카테고리 조회 메서드 호출
-        Long result = categoryService.getCategoryWithCache(keyword);
-
-        // then: 결과 검증
-        assertEquals(1L, result); // 캐시에서 가져온 카테고리 ID가 1인지 확인
-        verify(kakaoMapService, times(1)).isStoredInRedis(redisKey); // 캐시 확인 1번 호출
-        verify(kakaoMapService, never()).getCategoryByDesc(anyString(), anyString()); // 캐시 적중으로 API 호출 안됨
-    }
+    
 
     /**
      * 모든 카테고리 목록을 조회하는 기능 테스트

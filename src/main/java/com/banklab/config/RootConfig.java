@@ -38,8 +38,8 @@ import java.util.stream.Collectors;
 })
 @ComponentScan(basePackages = {
         "com.banklab.member.service",
-        "com.banklab.oauth.service",
-        "com.banklab.oauth.client",
+//        "com.banklab.oauth.service",
+//        "com.banklab.oauth.client",
         "com.banklab.account.service",
         "com.banklab.financeContents.service",
         "com.banklab.financeContents.scheduler",
@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
         "com.banklab.verification.sender",
         "com.banklab.verification.service",
         "com.banklab.common.redis",
-        "com.banklab.category.perplexity",
+        "com.banklab.category.gemini",
         "com.banklab.category.kakaomap",
         "com.banklab.calculator.service"
 })
@@ -68,7 +68,7 @@ public class RootConfig {
     String url;
     @Value("${jdbc.username}")
     String username;
-    @Value(("${jdbc.password}"))
+    @Value("${jdbc.password}")
     String password;
 
     @Bean

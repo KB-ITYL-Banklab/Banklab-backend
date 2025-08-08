@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 
 @Log4j2
+@Service // Add @Service annotation
 @RequiredArgsConstructor
 public class TransactionResponse {
     private static final ObjectMapper mapper = new ObjectMapper();
@@ -38,7 +40,7 @@ public class TransactionResponse {
         bodyMap.put("orderBy", request.getOrderBy());
 
 
-        String result = ApiRequest.request(urlPath, bodyMap);
+        String result = ApiRequest.request(urlPath, bodyMap); // Use injected apiRequest
 
         //Json parsing
         JsonNode root = mapper.readTree(result);

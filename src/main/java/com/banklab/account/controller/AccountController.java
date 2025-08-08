@@ -116,7 +116,7 @@ public class AccountController {
             // 2. 커넥티드 아이디로 계좌 정보 조회 및 DB 저장
             List<AccountVO> accountList = AccountResponse.requestAccounts(memberId, accountRequest.getBankCode(), userConnectedId);
             int savedCount = accountService.saveAccounts(accountList);
-            redisService.set(RedisKeyUtil.transaction(memberId, accountList.get(0).getResAccount()), "FETCHING_TRANSACTIONS",10);
+
 
             // 3. 저장된 계좌 정보 조회하여 반환
             List<AccountDTO> accountDTOList = accountService.getUserAccounts(memberId);
@@ -126,13 +126,12 @@ public class AccountController {
 
             // 거래 내역 불러오기
             for(AccountDTO account : accountDTOList){
+                redisService.set(RedisKeyUtil.transaction(memberId,account.getResAccount()), "FETCHING_TRANSACTIONS",10);
                 asyncTransactionService.getTransactions(memberId,
                         TransactionRequestDto.builder()
                                 .resAccount(account.getResAccount())
                                 .build());
             }
-
-
             return ResponseEntity.ok(createSuccessResponse("계좌 연동이 완료되었습니다.", response, authInfo));
 
         } catch (SecurityException e) {
