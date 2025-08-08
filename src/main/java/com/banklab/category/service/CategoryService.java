@@ -57,20 +57,20 @@ public class CategoryService {
         log.info("내부 필터링 병렬 처리 시작");
         Instant start = Instant.now();
         for (String desc : descriptions) {
-            String redisKey = RedisKeyUtil.category(desc);
+//            String redisKey = RedisKeyUtil.category(desc);
 
             // 1. Redis 캐시 확인 (동기)
-            Long categoryId = kakaoMapService.isStoredInRedis(redisKey);
-            if (categoryId != null) {
-                descMap.put(desc, categoryId);
-                continue;
-            }
+//            Long categoryId = kakaoMapService.isStoredInRedis(redisKey);
+//            if (categoryId != null) {
+//                descMap.put(desc, categoryId);
+//                continue;
+//            }
 
             CompletableFuture<Long> future = CompletableFuture
                     .supplyAsync(() -> kakaoMapService.mapToInternalCategory(desc), executor)
                     .thenApplyAsync(category -> {
                         if (category != 8L) {
-                            kakaoMapService.storeInRedis(redisKey, String.valueOf(category));
+//                            kakaoMapService.storeInRedis(redisKey, String.valueOf(category));
                             descMap.put(desc, category);
                         } else {
                             synchronized (toClassifyViaApi) {
@@ -117,9 +117,9 @@ public class CategoryService {
                 String cName = geminiResponses.get(i);
                 long categoryId = convertCategoryNameToId(cName);
 
-                String redisKey = RedisKeyUtil.category(desc);
+//                String redisKey = RedisKeyUtil.category(desc);
                 descMap.put(desc, categoryId);
-                kakaoMapService.storeInRedis(redisKey, String.valueOf(categoryId));
+//                kakaoMapService.storeInRedis(redisKey, String.valueOf(categoryId));
             }
         }
 

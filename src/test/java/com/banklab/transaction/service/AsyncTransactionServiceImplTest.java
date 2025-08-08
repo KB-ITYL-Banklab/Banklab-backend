@@ -14,8 +14,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -137,7 +135,7 @@ class AsyncTransactionServiceImplTest {
         // void 메서드 stubbing
         doNothing().when(transactionService).saveTransactionList(eq(memberId), eq(account), eq(txList));
         doNothing().when(categoryService).categorizeTransactions(eq(txList), anyString());
-        doNothing().when(summaryBatchService).initDailySummary(eq(memberId), eq(account), any());
+        doNothing().when(summaryBatchService).initDailySummary(eq(memberId),  any());
 
         // when
         asyncTransactionService.getTransactions(memberId, req);
@@ -145,7 +143,7 @@ class AsyncTransactionServiceImplTest {
         // then
         verify(transactionService).saveTransactionList(eq(memberId), eq(account), eq(txList));
         verify(categoryService).categorizeTransactions(eq(txList), anyString());
-        verify(summaryBatchService).initDailySummary(eq(memberId), eq(account), any());
+        verify(summaryBatchService).initDailySummary(eq(memberId), any());
         verify(redisService).set(anyString(), eq("DONE"), eq(1));
     }
 }
