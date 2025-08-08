@@ -34,7 +34,6 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
     private final CategoryService categoryService;
     private final SummaryBatchService summaryBatchService;
     private final RedisService redisService;
-    private final TransactionResponse transactionResponse; // Add TransactionResponse as a dependency
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
@@ -51,7 +50,7 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
         // Redis에 현재 계좌 처리 정보 존재 유무 확인 & 저장 (미존재시)
         boolean alreadyExists = redisService.setIfAbsent(key, "FETCHING_TRANSACTIONS", Duration.ofMinutes(5));
 
-        if (!alreadyExists) {
+        if (alreadyExists) {
             log.info("이미 처리 중인 계좌입니다. {}", accountNumber);
             return;
         }
@@ -68,7 +67,7 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
 
             // 1. CODEF API 호출
             log.info("[START] 거래 내역 불러오기 시작, 계좌번호: {}",account.getResAccount());
-            List<TransactionHistoryVO> transactions = transactionResponse.requestTransactions(memberId, dto); // Call instance method
+            List<TransactionHistoryVO> transactions = TransactionResponse.requestTransactions(memberId, dto); // Call instance method
             if (transactions.isEmpty()) return;
 
             // 2. DB에 거래 내역 저장

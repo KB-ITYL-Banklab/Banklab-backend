@@ -20,7 +20,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TransactionResponse {
     private static final ObjectMapper mapper = new ObjectMapper();
-    private final ApiRequest apiRequest; // Inject ApiRequest
 
     /**
      * CODEF API에서 거래 내역 조회
@@ -29,7 +28,7 @@ public class TransactionResponse {
      * @throws IOException
      * @throws InterruptedException
      */
-    public List<TransactionHistoryVO> requestTransactions(Long memberId, TransactionDTO request) throws IOException, InterruptedException {
+    public static List<TransactionHistoryVO> requestTransactions(Long memberId, TransactionDTO request) throws IOException, InterruptedException {
         String urlPath = CommonConstant.TEST_DOMAIN + CommonConstant.KR_BK_1_P_002;
 
         HashMap<String, Object> bodyMap = new HashMap<>();
@@ -41,7 +40,7 @@ public class TransactionResponse {
         bodyMap.put("orderBy", request.getOrderBy());
 
 
-        String result = apiRequest.request(urlPath, bodyMap); // Use injected apiRequest
+        String result = ApiRequest.request(urlPath, bodyMap); // Use injected apiRequest
 
         //Json parsing
         JsonNode root = mapper.readTree(result);

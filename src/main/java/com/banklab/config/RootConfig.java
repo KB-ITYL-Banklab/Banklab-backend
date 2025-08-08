@@ -37,8 +37,8 @@ import java.util.stream.Collectors;
 })
 @ComponentScan(basePackages = {
         "com.banklab.member.service",
-        "com.banklab.oauth.service",
-        "com.banklab.oauth.client",
+//        "com.banklab.oauth.service",
+//        "com.banklab.oauth.client",
         "com.banklab.account.service",
         "com.banklab.financeContents.service",
         "com.banklab.typetest",
@@ -65,7 +65,7 @@ public class RootConfig {
     String url;
     @Value("${jdbc.username}")
     String username;
-    @Value(("${jdbc.password}"))
+    @Value("${jdbc.password}")
     String password;
 
     @Bean
