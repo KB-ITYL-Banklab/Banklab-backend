@@ -34,10 +34,9 @@ import java.util.stream.Collectors;
         "com.banklab.calculator.mapper",
         "com.banklab.peerCompare.mapper",
         "com.banklab.stock.mapper",
-        "com.banklab.character.mapper",
-        "com.banklab.mission.mapper",
-        "com.banklab.activity.mapper"
+        "com.banklab.cash.mapper"
 })
+
 @ComponentScan(basePackages = {
         "com.banklab.member.service",
         "com.banklab.account.service",
@@ -58,6 +57,7 @@ import java.util.stream.Collectors;
         "com.banklab.category.gemini",
         "com.banklab.category.kakaomap",
         "com.banklab.calculator.service",
+        "com.banklab.cash.service"
         "com.banklab.character.service",
         "com.banklab.mission.service",
         "com.banklab.mission.evaluator",
@@ -72,7 +72,7 @@ public class RootConfig {
     String url;
     @Value("${jdbc.username}")
     String username;
-    @Value(("${jdbc.password}"))
+    @Value("${jdbc.password}")
     String password;
 
     @Bean

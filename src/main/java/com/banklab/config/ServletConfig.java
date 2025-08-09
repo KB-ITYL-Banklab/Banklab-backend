@@ -30,6 +30,7 @@ import java.util.List;
         "com.banklab.stock.controller",
         "com.banklab.verification.controller",
         "com.banklab.calculator.controller",
+        "com.banklab.cash.controller"
         "com.banklab.character.controller",
         "com.banklab.mission.controller",
         "com.banklab.activity.controller"
