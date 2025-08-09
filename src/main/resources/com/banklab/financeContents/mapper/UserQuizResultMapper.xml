@@ -115,7 +115,7 @@
             user_answer = VALUES(user_answer),
             problem = VALUES(problem),
             correct_problem = VALUES(correct_problem),
-            accumulated_points = VALUES(accumulatedPoints),
+            accumulated_points = VALUES(accumulated_points),
             updated_at = NOW()
     </insert>
 
