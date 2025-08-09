@@ -16,4 +16,7 @@ public interface CharacterService {
      * @return 생성된 캐릭터 정보 DTO
      */
     CharacterDTO createCharacter(Long memberId);
+
+//    void syncLevelAndExp(Long memberId);
+    boolean addExpAndLevelUp(Long memberId, int gainedExp);
 }

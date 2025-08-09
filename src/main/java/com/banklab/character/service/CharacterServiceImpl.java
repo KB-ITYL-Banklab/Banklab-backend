@@ -30,7 +30,12 @@ public class CharacterServiceImpl implements CharacterService {
     public CharacterDTO getCharacter(Long memberId) {
         MemberCharacterVO character = Optional.ofNullable(characterMapper.getMemberCharacter(memberId))
                 .orElseThrow(NoSuchElementException::new);
-        return CharacterDTO.of(character);
+        int nextExp = 2000;
+        int nextLevel = character.getCurrentLevel().getLevelId() + 1;
+        if (nextLevel < 7) {
+            nextExp = characterMapper.getLevelInfo(nextLevel).getRequiredExp();
+        }
+        return CharacterDTO.of(character, nextExp);
     }
 
     @Transactional
@@ -61,11 +66,62 @@ public class CharacterServiceImpl implements CharacterService {
         for (int level = 4; level >= 1; level--) {
             List<MissionVO> levelCriteria = missionsByLevel.getOrDefault(level, List.of());
             boolean passed = levelCriteria.stream()
-                    .allMatch(mission -> criteriaMissionEvaluator.evaluate(memberId, mission));
+                    .allMatch(mission -> criteriaMissionEvaluator.evaluate(memberId, mission) >= mission.getTargetValue());
             if (passed) return level;
         }
 
         return 1;
     }
 
+
+//    @Override
+//    public void syncLevelAndExp(Long memberId) {
+//        MemberCharacterVO character = characterMapper.getMemberCharacter(memberId);
+//
+//        int gainedExp = missionService.calculateExp(memberId);
+//        character.addExp(gainedExp);
+//
+//        // 레벨업 가능한 레벨까지 체크
+//        int nextLevel = character.getCurrentLevel().getLevelId() + 1;
+//        CharacterLevelVO next = characterMapper.getLevelInfo(nextLevel);
+//        while (character.canLevelUp(next)) {
+//            character.levelUp(next);
+//            next = characterMapper.getLevelInfo(next.getLevelId() + 1);
+//        }
+//
+//        // 변경된 상태 저장
+//        characterMapper.updateCharacter(memberId, character.getCurrentLevel().getLevelId(), character.getExp());
+//    }
+
+    @Override
+    @Transactional
+    public boolean addExpAndLevelUp(Long memberId, int gainedExp) {
+        if (gainedExp <= 0) return false;
+
+        // 현재 캐릭터 상태 조회 (경합 방지하려면 for update 사용 권장)
+        MemberCharacterVO character = characterMapper.getMemberCharacterForUpdate(memberId);
+        if (character == null) throw new NoSuchElementException("Character not found: " + memberId);
+
+        // 2) 경험치 추가
+        character.addExp(gainedExp);
+
+        // 연속 레벨업 판단
+        boolean leveledUp = false;
+        int nextLevel = character.getCurrentLevel().getLevelId() + 1;
+        CharacterLevelVO next = characterMapper.getLevelInfo(nextLevel);
+        while (character.canLevelUp(next)) {
+            character.levelUp(next);
+            leveledUp = true;
+            next = characterMapper.getLevelInfo(next.getLevelId() + 1);
+        }
+
+        // 변경사항 DB 반영 (exp, level 동시 업데이트)
+        characterMapper.updateCharacter(
+                memberId,
+                character.getCurrentLevel().getLevelId(),
+                character.getExp()
+        );
+
+        return leveledUp;
+    }
 }

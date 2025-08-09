@@ -17,4 +17,16 @@ public class MemberCharacterVO {
     private Date createdAt;
     private Date updatedAt;
     private CharacterLevelVO currentLevel;
+
+    public void addExp(int gainedExp) {
+        this.exp += gainedExp;
+    }
+
+    public boolean canLevelUp(CharacterLevelVO nextLevel) {
+        return nextLevel != null && this.exp >= nextLevel.getRequiredExp();
+    }
+
+    public void levelUp(CharacterLevelVO nextLevel) {
+        this.currentLevel = nextLevel;
+    }
 }

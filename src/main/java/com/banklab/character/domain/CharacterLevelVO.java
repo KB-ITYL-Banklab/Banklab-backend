@@ -14,4 +14,5 @@ public class CharacterLevelVO {
     private String name;
     private String description;
     private int requiredExp;
+    private String imageUrl;
 }

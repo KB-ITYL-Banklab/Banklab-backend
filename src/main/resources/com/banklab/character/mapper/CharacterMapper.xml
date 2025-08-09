@@ -15,13 +15,23 @@
             <result property="name" column="name"/>
             <result property="description" column="description"/>
             <result property="requiredExp" column="required_exp"/>
+            <result property="imageUrl" column="image_url"/>
         </association>
     </resultMap>
     <select id="getMemberCharacter" resultMap="MemberCharacterResultMap">
-        SELECT member_id, exp, created_at, updated_at, level_id, name, description, required_exp
+        SELECT mc.member_id, mc.exp, mc.created_at, mc.updated_at,
+               cl.level_id, cl.name, cl.description, cl.required_exp, cl.image_url
         FROM member_character mc
                  JOIN character_level cl ON mc.current_level = cl.level_id
         WHERE mc.member_id = #{memberId}
+    </select>
+    <select id="getMemberCharacterForUpdate" resultMap="MemberCharacterResultMap">
+        SELECT mc.member_id, mc.exp, mc.created_at, mc.updated_at,
+               cl.level_id, cl.name, cl.description, cl.required_exp, cl.image_url
+        FROM member_character mc
+                 JOIN character_level cl ON mc.current_level = cl.level_id
+        WHERE mc.member_id = #{memberId}
+            FOR UPDATE
     </select>
     <select id="getLevelInfo" resultType="CharacterLevelVO">
         SELECT * FROM character_level
@@ -31,6 +41,9 @@
         INSERT INTO member_character (member_id, current_level, exp, created_at, updated_at)
         VALUES (#{memberId}, #{currentLevel}, #{exp}, now(), now())
     </insert>
+    <update id="updateCharacter">
+        UPDATE member_character SET current_level = #{levelId}, exp = #{exp}, updated_at = now() WHERE member_id = #{memberId}
+    </update>
 </mapper>
 
 

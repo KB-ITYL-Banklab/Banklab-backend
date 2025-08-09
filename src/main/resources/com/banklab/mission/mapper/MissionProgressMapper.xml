@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.mission.mapper.MissionProgressMapper">
+    <select id="findByMemberId" resultType="MissionProgressVO">
+        SELECT * FROM member_mission_progress
+        WHERE member_id = #{memberId}
+    </select>
+    <select id="countCompletedMission" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM member_mission_progress
+        WHERE member_id = #{memberId}
+          AND mission_id = #{missionId}
+          AND completed = TRUE
+    </select>
+    <select id="get" resultType="MissionProgressVO">
+        SELECT * FROM member_mission_progress
+        WHERE member_id = #{memberId}
+            AND mission_id = #{missionId}
+    </select>
+    <insert id="insert">
+        INSERT INTO member_mission_progress (member_id, mission_id)
+        VALUES (#{memberId}, #{missionId})
+    </insert>
+    <update id="updateProgress">
+        UPDATE member_mission_progress SET progress_value = #{progressValue}
+        WHERE member_id = #{memberId} AND mission_id = #{missionId}
+    </update>
+    <update id="markCompleted">
+        UPDATE member_mission_progress
+        SET completed = TRUE,
+            completed_at = NOW(),
+            updated_at = NOW()
+        WHERE member_id = #{memberId}
+          AND mission_id = #{missionId}
+          AND completed = FALSE
+    </update>
+</mapper>
