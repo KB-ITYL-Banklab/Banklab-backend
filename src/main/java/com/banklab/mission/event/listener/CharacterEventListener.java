@@ -1,6 +1,5 @@
 package com.banklab.mission.event.listener;
 
-import com.banklab.character.event.LevelUpEvent;
 import com.banklab.character.service.CharacterService;
 import com.banklab.mission.event.MissionCompletedEvent;
 import lombok.RequiredArgsConstructor;
