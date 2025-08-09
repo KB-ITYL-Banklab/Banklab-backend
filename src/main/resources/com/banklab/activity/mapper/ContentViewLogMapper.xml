@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.activity.mapper.ContentViewLogMapper">
+    <!-- 금융 컨텐츠 조회 로그 등록 -->
+    <insert id="insert">
+        INSERT IGNORE INTO content_view_log (member_id, content_type, content_key, viewed_at)
+        VALUES (#{memberId}, #{contentType}, #{contentKey}, NOW())
+    </insert>
+    <!-- 회원별 금융 컨텐츠 조회 로그 조회 -->
+    <select id="findByMemberId" resultType="ContentViewLogVO">
+        SELECT id, member_id, content_type, content_key, view_date
+        FROM content_view_log
+        WHERE member_id = #{memberId}
+        ORDER BY viewed_at DESC
+    </select>
+    <select id="countByMember" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM content_view_log
+        WHERE member_id = #{memberId}
+    </select>
+    <select id="countMemberAndType" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM content_view_log
+        WHERE member_id = #{memberId}
+          AND content_type = #{type}
+    </select>
+    <select id="countByDateRange" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM content_view_log
+        WHERE member_id = #{memberId}
+          AND viewed_at BETWEEN #{start} AND #{end}
+    </select>
+    <select id="hasRecentView" resultType="java.lang.Boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM content_view_log
+            WHERE member_id = #{memberId}
+              AND view_date >= (CURDATE() - INTERVAL 30 DAY)
+        )
+    </select>
+</mapper>

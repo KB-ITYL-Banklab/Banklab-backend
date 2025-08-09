@@ -13,6 +13,9 @@
     <typeAliases>
         <package name="com.banklab.security.account.domain"/>
         <package name="com.banklab.financeContents.domain"/>
+        <package name="com.banklab.character.domain"/>
+        <package name="com.banklab.activity.domain"/>
+        <package name="com.banklab.mission.domain"/>
     </typeAliases>
 
     <typeHandlers>

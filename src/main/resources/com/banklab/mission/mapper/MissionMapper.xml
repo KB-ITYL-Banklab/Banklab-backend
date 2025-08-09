@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.mission.mapper.MissionMapper">
+    <!-- 다음 레벨의 모든 미션 -->
+    <select id="findByLevelId" resultType="MissionVO">
+        SELECT * FROM mission
+        WHERE level_id = #{levelId}
+    </select>
+    <!-- 현재 레벨 이하의 보완/지속성 미션 -->
+    <select id="findPreviousSupplementalMissions" resultType="MissionVO">
+        SELECT * FROM mission
+        WHERE level_id &lt; #{levelId}
+          AND type IN ('OPTIONAL', 'PERSISTENT')
+    </select>
+    <!--  기준 미션  -->
+    <select id="findByType" resultType="MissionVO">
+        SELECT * FROM mission
+        WHERE type = #{type}
+    </select>
+    <select id="countCompletedMission" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM member_mission
+        WHERE member_id = #{memberId}
+          AND mission_id = #{missionId}
+          AND completed = 1
+    </select>
+    <select id="findByMissionId" resultType="MissionVO">
+        SELECT * FROM mission
+        WHERE mission_id = #{missionId}
+    </select>
+</mapper>
