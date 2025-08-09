@@ -24,7 +24,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/stock")
 @RequiredArgsConstructor
-@Api(tags = "증권 관리 API")
+@Api(tags = "증권 관리 API", description = "증권 연동, 보유종목 새로고침, 증권 연동 해제")
 public class StockApiController {
 
     private final StockService stockService;

@@ -64,4 +64,11 @@ public interface FinanceQuizService {
      * @return 오늘의 퀴즈 결과 및 상세 정보 (답안, 점수, 문제, 해설 포함)
      */
     DailyQuizResultDTO getTodayQuizResult(Long memberId);
+    
+    /**
+     * 사용자 퀴즈 통계 조회 (누적 정답률 포함)
+     * @param memberId 사용자 ID
+     * @return 사용자 퀴즈 통계 (총 문제 수, 정답 수, 정답률, 총 포인트)
+     */
+    UserQuizStatsDTO getUserQuizStats(Long memberId);
 }

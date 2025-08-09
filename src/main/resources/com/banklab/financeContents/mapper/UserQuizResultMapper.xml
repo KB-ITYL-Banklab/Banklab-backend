@@ -9,6 +9,7 @@
         <result property="memberId" column="member_id"/>
         <result property="userAnswer" column="user_answer"/>
         <result property="problem" column="problem"/>
+        <result property="correctProblem" column="correct_problem"/>
         <result property="accumulatedPoints" column="accumulated_points"/>
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
@@ -20,27 +21,34 @@
             member_id, 
             user_answer, 
             problem, 
+            correct_problem,
             accumulated_points
         ) VALUES (
             #{memberId}, 
             #{userAnswer}, 
             #{problem}, 
+            #{correctProblem},
             #{accumulatedPoints}
         )
     </insert>
 
     <!-- 사용자 최신 누적 포인트 조회 -->
     <select id="getLatestAccumulatedPoints" parameterType="Long" resultType="Integer">
-        SELECT accumulated_points 
+        SELECT COALESCE(accumulated_points, 0)
         FROM user_quiz_results 
-        WHERE member_id = #{memberId} 
-        ORDER BY created_at DESC, id DESC 
-        LIMIT 1
+        WHERE member_id = #{memberId}
     </select>
 
     <!-- 사용자 총 문제 풀이 수 조회 -->
     <select id="getTotalProblemCount" parameterType="Long" resultType="Integer">
-        SELECT COALESCE(MAX(problem), 0) 
+        SELECT COALESCE(problem, 0) 
+        FROM user_quiz_results 
+        WHERE member_id = #{memberId}
+    </select>
+
+    <!-- 사용자 총 정답 문제 수 조회 -->
+    <select id="getTotalCorrectProblemCount" parameterType="Long" resultType="Integer">
+        SELECT COALESCE(correct_problem, 0) 
         FROM user_quiz_results 
         WHERE member_id = #{memberId}
     </select>
@@ -50,26 +58,72 @@
         UPDATE user_quiz_results 
         SET user_answer = #{userAnswer},
             problem = #{problem},
+            correct_problem = #{correctProblem},
             accumulated_points = #{accumulatedPoints}
         WHERE id = #{id}
     </update>
 
     <!-- 사용자가 오늘 퀴즈를 이미 풀었는지 확인 -->
     <select id="getTodayQuizCount" parameterType="Long" resultType="int">
-        SELECT COUNT(*) 
+        SELECT CASE 
+            WHEN DATE(updated_at) = CURDATE() THEN 1 
+            ELSE 0 
+        END as todayCount
         FROM user_quiz_results 
-        WHERE member_id = #{memberId} 
-        AND DATE(created_at) = CURDATE()
+        WHERE member_id = #{memberId}
     </select>
 
     <!-- 사용자의 오늘 퀴즈 결과 조회 -->
     <select id="getTodayQuizResult" parameterType="Long" resultMap="UserQuizResultMap">
-        SELECT id, member_id, user_answer, problem, accumulated_points, created_at, updated_at
+        SELECT id, member_id, user_answer, problem, correct_problem, accumulated_points, created_at, updated_at
         FROM user_quiz_results
         WHERE member_id = #{memberId}
-        AND DATE(created_at) = CURDATE()
-        ORDER BY created_at DESC
-        LIMIT 1
+        AND DATE(updated_at) = CURDATE()
+    </select>
+
+    <!-- 사용자 퀴즈 통계 조회 (누적 정답률) - 단일 레코드 기반 -->
+    <select id="getUserQuizStats" parameterType="Long" resultType="com.banklab.financeContents.dto.UserQuizStatsDTO">
+        SELECT 
+            member_id as memberId,
+            COALESCE(problem, 0) as totalProblems,
+            COALESCE(correct_problem, 0) as correctProblems,
+            CASE 
+                WHEN COALESCE(problem, 0) = 0 THEN 0.0
+                ELSE ROUND((COALESCE(correct_problem, 0) * 100.0 / COALESCE(problem, 0)), 2)
+            END as accuracyRate,
+            COALESCE(accumulated_points, 0) as totalPoints
+        FROM user_quiz_results 
+        WHERE member_id = #{memberId}
+    </select>
+
+    <!-- 사용자 퀴즈 결과 Upsert (Insert 또는 Update) -->
+    <insert id="upsertUserQuizResult" parameterType="com.banklab.financeContents.domain.UserQuizResultVO">
+        INSERT INTO user_quiz_results (
+            member_id, 
+            user_answer, 
+            problem, 
+            correct_problem,
+            accumulated_points
+        ) VALUES (
+            #{memberId}, 
+            #{userAnswer}, 
+            #{problem}, 
+            #{correctProblem},
+            #{accumulatedPoints}
+        )
+        ON DUPLICATE KEY UPDATE 
+            user_answer = VALUES(user_answer),
+            problem = VALUES(problem),
+            correct_problem = VALUES(correct_problem),
+            accumulated_points = VALUES(accumulatedPoints),
+            updated_at = NOW()
+    </insert>
+
+    <!-- 사용자 퀴즈 결과 조회 (member_id로) -->
+    <select id="getUserQuizResult" parameterType="Long" resultMap="UserQuizResultMap">
+        SELECT id, member_id, user_answer, problem, correct_problem, accumulated_points, created_at, updated_at
+        FROM user_quiz_results
+        WHERE member_id = #{memberId}
     </select>
 
 </mapper>

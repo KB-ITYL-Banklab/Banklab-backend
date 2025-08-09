@@ -10,6 +10,7 @@ public class UserQuizResultVO {
     private Long memberId;
     private String userAnswer;
     private Integer problem;
+    private Integer correctProblem;
     private Integer accumulatedPoints;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -17,11 +18,13 @@ public class UserQuizResultVO {
     public UserQuizResultVO() {}
 
     public UserQuizResultVO(Long id, Long memberId, String userAnswer, Integer problem, 
-                          Integer accumulatedPoints, LocalDateTime createdAt, LocalDateTime updatedAt) {
+                          Integer correctProblem, Integer accumulatedPoints, 
+                          LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.memberId = memberId;
         this.userAnswer = userAnswer;
         this.problem = problem;
+        this.correctProblem = correctProblem;
         this.accumulatedPoints = accumulatedPoints;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -60,6 +63,14 @@ public class UserQuizResultVO {
         this.problem = problem;
     }
 
+    public Integer getCorrectProblem() {
+        return correctProblem;
+    }
+
+    public void setCorrectProblem(Integer correctProblem) {
+        this.correctProblem = correctProblem;
+    }
+
     public Integer getAccumulatedPoints() {
         return accumulatedPoints;
     }
@@ -91,6 +102,7 @@ public class UserQuizResultVO {
                 ", memberId=" + memberId +
                 ", userAnswer='" + userAnswer + '\'' +
                 ", problem=" + problem +
+                ", correctProblem=" + correctProblem +
                 ", accumulatedPoints=" + accumulatedPoints +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +

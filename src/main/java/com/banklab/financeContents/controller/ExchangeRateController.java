@@ -39,7 +39,7 @@ public class ExchangeRateController {
      * 지정된 날짜의 특정 통화 환율 정보만 반환합니다.
      */
     @GetMapping("/chart")
-    @ApiOperation(value = "웹페이지 차트용 환율 정보 조회 (주요 5개 통화)")
+    @ApiOperation(value = "웹페이지 차트용 환율 정보 조회 (주요 5개 통화)", notes = "주요 5개 통화의 환율 정보를 차트 형식으로 조회.")
     public ResponseEntity<Map<String, Object>> getExchangeRateForChart() {
         try {
             log.info("📊 차트용 환율 정보 조회 요청 (주요 5개 통화)");
