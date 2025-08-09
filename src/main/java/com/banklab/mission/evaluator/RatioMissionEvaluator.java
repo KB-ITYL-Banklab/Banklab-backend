@@ -1,6 +1,7 @@
 package com.banklab.mission.evaluator;
 
 import com.banklab.financeContents.dto.DailyQuizResultDTO;
+import com.banklab.financeContents.dto.UserQuizStatsDTO;
 import com.banklab.financeContents.service.FinanceQuizService;
 import com.banklab.mission.domain.ConditionKey;
 import com.banklab.mission.domain.MissionVO;
@@ -41,9 +42,9 @@ public class RatioMissionEvaluator implements MissionEvaluator {
     }
 
     private int calculateAccuracy(Long memberId) {
-        DailyQuizResultDTO quiz = financeQuizService.getTodayQuizResult(memberId);
-        int correctCount = quiz.getCorrectCount();
-        int totalCount = quiz.getTotalQuestions();
+        UserQuizStatsDTO quiz = financeQuizService.getUserQuizStats(memberId);
+        int correctCount = quiz.getCorrectProblems();
+        int totalCount = quiz.getTotalProblems();
         if (totalCount == 0) {
             return 0; // 나눗셈 방지
         }
