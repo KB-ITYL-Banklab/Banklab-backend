@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.activity.mapper.CompareUsageLogMapper">
+    <!-- 상품 비교 기능 사용 로그 등록 -->
+    <insert id="insert">
+        INSERT INTO compare_usage_log (member_id, used_at)
+        VALUES (#{memberId}, NOW())
+    </insert>
+
+    <!-- 회원별 비교 기능 사용 로그 조회 -->
+    <select id="findByMemberId" resultType="CompareUsageLogVO">
+        SELECT id, member_id, used_at
+        FROM compare_usage_log
+        WHERE member_id = #{memberId}
+        ORDER BY used_at DESC
+    </select>
+    <select id="countByMember" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM compare_usage_log
+        WHERE member_id = #{memberId}
+    </select>
+    <select id="countByDateRange" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM compare_usage_log
+        WHERE member_id = #{memberId}
+          AND used_at BETWEEN #{start} AND #{end}
+    </select>
+</mapper>

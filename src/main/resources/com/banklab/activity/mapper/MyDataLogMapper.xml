@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.activity.mapper.MyDataLogMapper">
+    <!-- 상품 비교 기능 사용 로그 등록 -->
+    <insert id="insert">
+        INSERT INTO mydata_fetch_log (member_id, fetch_type, fetched_at)
+        VALUES (#{memberId}, #{fetchType}, NOW())
+    </insert>
+
+    <!-- 회원별 마이데이터 조회 로그 조회 -->
+    <select id="findByMemberId" resultType="MyDataLogVO">
+        SELECT id, member_id, fetch_type, fetch_date
+        FROM mydata_fetch_log
+        WHERE member_id = #{memberId}
+        ORDER BY fetched_at DESC
+    </select>
+    <select id="countByMember" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM mydata_fetch_log
+        WHERE member_id = #{memberId}
+    </select>
+    <select id="countByDateRange" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM mydata_fetch_log
+        WHERE member_id = #{memberId}
+          AND fetched_at BETWEEN #{start} AND #{end}
+    </select>
+    <!--  최근 30일 내에 로그 조회  -->
+    <select id="hasRecentFetch" resultType="java.lang.Boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM mydata_fetch_log
+            WHERE member_id = #{memberId}
+              AND fetch_date >= (CURDATE() - INTERVAL 30 DAY)
+        )
+    </select>
+</mapper>
