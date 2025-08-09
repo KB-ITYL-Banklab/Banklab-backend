@@ -18,8 +18,6 @@ public class AccessPolicy {
             new AccessRule(HttpMethod.GET, "/api/exchange/**", null),   // 금융차트 외환 API 공개
             new AccessRule(HttpMethod.GET, "/api/health/**", null),     // 금융차트  API 연결여부 공개
             new AccessRule(HttpMethod.GET, "/api/terms/**", null),      // 금융용어  API  공개
-            new AccessRule(HttpMethod.GET, "/api/quiz/**", null),      // 금융퀴즈  API  공개 GET 방식
-            new AccessRule(HttpMethod.POST, "/api/quiz/**", null),      // 금융퀴즈  API  공개 POST 방식
 
             // 회원 관련
             new AccessRule(HttpMethod.POST, "/api/member", null), // 회원가입
