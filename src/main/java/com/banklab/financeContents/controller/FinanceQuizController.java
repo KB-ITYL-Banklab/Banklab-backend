@@ -125,9 +125,14 @@ public class FinanceQuizController {
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            System.err.println("=== GET /api/quiz/today 오류 발생 ===");
+            System.err.println("Error message: " + e.getMessage());
+            System.err.println("Error type: " + e.getClass().getName());
+            e.printStackTrace();
+            
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
-            errorResponse.put("message", "서버 오류가 발생했습니다.");
+            errorResponse.put("message", "서버 오류가 발생했습니다: " + e.getMessage());
             return ResponseEntity.status(500).body(errorResponse);
         }
     }
@@ -223,6 +228,39 @@ public class FinanceQuizController {
             return ResponseEntity.ok(statistics);
         } catch (Exception e) {
             return ResponseEntity.status(500).build();
+        }
+    }
+
+    @ApiOperation(value = "사용자 퀴즈 통계 조회", notes = "로그인한 사용자의 퀴즈 통계를 조회합니다. (총 문제 수, 정답 수, 정답률, 총 포인트)")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "성공적으로 조회됨"),
+            @ApiResponse(code = 401, message = "인증되지 않은 사용자"),
+            @ApiResponse(code = 500, message = "서버 오류")
+    })
+    @GetMapping("/user-stats")
+    public ResponseEntity<Map<String, Object>> getUserQuizStats() {
+        try {
+            Long memberId = loginUserProvider.getLoginMemberId();
+            if (memberId == null) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("success", false);
+                errorResponse.put("message", "로그인이 필요합니다.");
+                return ResponseEntity.status(401).body(errorResponse);
+            }
+            
+            UserQuizStatsDTO stats = financeQuizService.getUserQuizStats(memberId);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "사용자 퀴즈 통계를 성공적으로 조회했습니다.");
+            response.put("stats", stats);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "서버 오류가 발생했습니다: " + e.getMessage());
+            return ResponseEntity.status(500).body(errorResponse);
         }
     }
 }

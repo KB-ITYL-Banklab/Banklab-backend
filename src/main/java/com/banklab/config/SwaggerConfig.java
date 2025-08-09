@@ -36,6 +36,7 @@ public class SwaggerConfig {
     @Bean
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
+                .groupName("banklab-api")
                 .securityContexts(List.of(this.securityContext()))
                 .securitySchemes(List.of(this.apiKey()))
                 .select()

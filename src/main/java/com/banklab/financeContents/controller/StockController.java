@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/api/stocks")
-@Api(tags = "주식 정보 API")
+@Api(tags = "주식 정보 API", description = "실제 주식 정보를 저장하고 불러옴")
 public class StockController {
     
     private static final Logger log = LoggerFactory.getLogger(StockController.class);

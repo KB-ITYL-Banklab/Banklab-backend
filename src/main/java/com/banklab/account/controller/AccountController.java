@@ -34,7 +34,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/account")
 @RequiredArgsConstructor
-@Api(tags = "계좌 관리 API")
+@Api(tags = "계좌 관리 API", description = "계좌 연동, 잔액 새로고침, 계좌 연동해제")
 public class AccountController {
 
     private final AccountService accountService;

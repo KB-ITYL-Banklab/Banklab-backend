@@ -8,6 +8,15 @@ public class AccessPolicy {
 
     // permitAll 리스트
     public static final List<AccessRule> PERMIT_ALL = List.of(
+            // Swagger UI 관련 경로 추가 (가장 위에 배치)
+            new AccessRule(null, "/swagger-ui.html", null),
+            new AccessRule(null, "/swagger-ui/**", null),
+            new AccessRule(null, "/swagger-resources/**", null),
+            new AccessRule(null, "/v2/api-docs", null),
+            new AccessRule(null, "/v2/api-docs/**", null),
+            new AccessRule(null, "/webjars/**", null),
+            new AccessRule(null, "/webjars/springfox-swagger-ui/**", null),
+
             // 금융 API 공개 GET
             new AccessRule(HttpMethod.GET, "/api/news/**", null),   // 경제뉴스 API 공개
             new AccessRule(HttpMethod.GET, "/api/gold/**", null),   // 금융차트 금 API 공개

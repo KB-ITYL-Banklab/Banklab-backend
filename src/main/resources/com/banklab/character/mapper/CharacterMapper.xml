@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.character.mapper.CharacterMapper">
+    <resultMap id="MemberCharacterResultMap" type="MemberCharacterVO">
+        <id property="memberId" column="member_id"/>
+        <result property="exp" column="exp"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+
+        <association property="currentLevel" javaType="CharacterLevelVO">
+            <id property="levelId" column="level_id"/>
+            <result property="name" column="name"/>
+            <result property="description" column="description"/>
+            <result property="requiredExp" column="required_exp"/>
+            <result property="imageUrl" column="image_url"/>
+        </association>
+    </resultMap>
+    <select id="getMemberCharacter" resultMap="MemberCharacterResultMap">
+        SELECT mc.member_id, mc.exp, mc.created_at, mc.updated_at,
+               cl.level_id, cl.name, cl.description, cl.required_exp, cl.image_url
+        FROM member_character mc
+                 JOIN character_level cl ON mc.current_level = cl.level_id
+        WHERE mc.member_id = #{memberId}
+    </select>
+    <select id="getMemberCharacterForUpdate" resultMap="MemberCharacterResultMap">
+        SELECT mc.member_id, mc.exp, mc.created_at, mc.updated_at,
+               cl.level_id, cl.name, cl.description, cl.required_exp, cl.image_url
+        FROM member_character mc
+                 JOIN character_level cl ON mc.current_level = cl.level_id
+        WHERE mc.member_id = #{memberId}
+            FOR UPDATE
+    </select>
+    <select id="getLevelInfo" resultType="CharacterLevelVO">
+        SELECT * FROM character_level
+        WHERE level_id = #{levelId}
+    </select>
+    <insert id="insertCharacter">
+        INSERT INTO member_character (member_id, current_level, exp, created_at, updated_at)
+        VALUES (#{memberId}, #{currentLevel}, #{exp}, now(), now())
+    </insert>
+    <update id="updateCharacter">
+        UPDATE member_character SET current_level = #{levelId}, exp = #{exp}, updated_at = now() WHERE member_id = #{memberId}
+    </update>
+</mapper>
+
+

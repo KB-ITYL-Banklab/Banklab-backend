@@ -1,0 +1,23 @@
+package com.banklab.mission.domain;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
+public enum ConditionKey {
+    NO_NON_CASH_ASSET,
+    SAVINGS_PRODUCT_COUNT,
+    TYPE_TEST_COUNT,
+    CONTENT_VIEW_COUNT,
+    DAILY_QUIZ_SOLVED,
+    MYDATA_FETCHED_RECENTLY,
+    PURPOSED_ASSET_COUNT,
+    COMPARE_USAGE_COUNT,
+    QUIZ_SUCCESS_RATE,
+    RECENT_FINANCIAL_ACTIVITY,
+    ASSET_CATEGORY_COUNT,
+    SPENDING_RATIO_DECREASED,
+    SPENDING_REPORT_VIEW_COUNT,
+    TYPE_TEST_RECENT
+}

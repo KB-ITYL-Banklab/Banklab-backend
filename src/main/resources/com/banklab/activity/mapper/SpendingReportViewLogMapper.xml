@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.activity.mapper.SpendingReportViewLogMapper">
+    <!-- 소비 분석 리포트 조회 로그 등록 -->
+    <insert id="insert">
+        INSERT IGNORE INTO spending_report_view_log (member_id, report_month, viewed_at)
+        VALUES (#{memberId}, #{reportMonth}, NOW())
+    </insert>
+
+    <!-- 회원별 소비 분석 리포트 조회 로그 조회 -->
+    <select id="findByMemberId" resultType="SpendingReportViewLogVO">
+        SELECT id, member_id, report_month, viewed_at, view_date
+        FROM spending_report_view_log
+        WHERE member_id = #{memberId}
+        ORDER BY viewed_at DESC
+    </select>
+    <select id="countByMember" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM spending_report_view_log
+        WHERE member_id = #{memberId}
+    </select>
+    <select id="countByDateRange" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM spending_report_view_log
+        WHERE member_id = #{memberId}
+          AND viewed_at BETWEEN #{start} AND #{end}
+    </select>
+</mapper>
