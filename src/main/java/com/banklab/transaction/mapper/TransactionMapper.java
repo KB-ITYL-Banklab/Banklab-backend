@@ -16,9 +16,14 @@ public interface TransactionMapper {
 
     int saveTransactionList(List<TransactionHistoryVO> list);
 
-
     LocalDate getLastTransactionDate(@Param("memberId") Long memberId, @Param("resAccount") String resAccount);
-    void updateCategories(@Param("list")List<TransactionHistoryVO> transactions);
+
+    void updateCategories(@Param("list") List<TransactionHistoryVO> transactions);
+
+    /**
+     * 특정 상호명 거래 내역 카테고리 일괄 update
+     */
+    void updateCategoryByDesc(@Param("memberId") Long memberId, @Param("categoryId") Long categoryId, @Param("description") String description);
 
     MonthlySummaryDTO getMonthlySummary(
             @Param("memberId") Long memberId,
@@ -56,4 +61,9 @@ public interface TransactionMapper {
             @Param("startDate") Date startDate,
             @Param("endDate") Date endDate
     );
+
+    /**
+     * 특정 상호명 거래 일자 구하기 (카테고리 업데이트 시 사용)
+     */
+    List<Date> getTransactionDates(@Param("memberId") Long memberId, @Param("description") String description);
 }

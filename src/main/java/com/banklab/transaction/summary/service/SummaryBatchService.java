@@ -4,9 +4,11 @@ import com.banklab.account.domain.AccountVO;
 
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.List;
 
 
 public interface SummaryBatchService {
     void aggregateDailySummary(LocalDate targetDate, Long memberId);
     void initDailySummary(Long memberId, AccountVO account, String startDate);
+    void deleteDailySummary(Long memberId, List<Date> targetDate);
 }

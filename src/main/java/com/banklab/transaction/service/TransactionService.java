@@ -20,8 +20,8 @@ public interface TransactionService {
     LocalDate getLastTransactionDay(Long memberId, String account);
 
     void updateCategories(List<TransactionHistoryVO> transactions);
-    //    TransactionDTO makeTransactionDTO(AccountVO account, TransactionRequestDto request);
 
+    void updateCategoryByDesc(Long categoryId, String desc, Long memberId);
 
     SummaryDTO getSummary(Long memberId, Date startDate, Date endDate);
 
@@ -42,5 +42,8 @@ public interface TransactionService {
      * @return 거래내역 상세 DTO 리스트
      */
     List<TransactionDetailDTO> getTransactionDetailsByAccountId(Long memberId, Long accountId, Date startDate, Date endDate);
+
     List<TransactionDetailDTO> getTransactionDetailsByCategoryId(Long memberId, Long categoryId, Date startDate, Date endDate);
+
+    List<Date> getTransactionDates(Long memberId, String description);
 }

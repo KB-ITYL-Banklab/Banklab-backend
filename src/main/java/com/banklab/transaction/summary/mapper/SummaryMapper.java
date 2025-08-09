@@ -16,4 +16,6 @@ public interface SummaryMapper {
 
     void batchUpsertDailySummary(List<DailySummaryDTO> dailySummaryList);
 
+    void deleteDailySummary(@Param("memberId") Long memberId, @Param("targetDate") List<Date> dates);
+
 }

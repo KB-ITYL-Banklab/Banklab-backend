@@ -9,16 +9,20 @@ import com.banklab.transaction.dto.response.SummaryDTO;
 import com.banklab.transaction.dto.response.TransactionDetailDTO;
 import com.banklab.transaction.service.AsyncTransactionService;
 import com.banklab.transaction.service.TransactionService;
+import com.banklab.transaction.summary.service.SummaryBatchService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import okhttp3.Response;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -28,12 +32,12 @@ import java.util.Map;
 @RequestMapping("/api/analysis")
 @RequiredArgsConstructor
 @Log4j2
-@Api(tags = "거래 내역 API")
 public class TransactionApiController {
 
     private final LoginUserProvider loginUserProvider;
     private final AsyncTransactionService asyncTransactionService;
     private final TransactionService transactionService;
+    private final SummaryBatchService summaryBatchService;
     private final RedisService redisService;
 
     /**
@@ -54,7 +58,6 @@ public class TransactionApiController {
     }
 
     @PostMapping("/transaction-list")
-    @ApiOperation(value = "CODEF 수시입출금 내역 API 호출", notes = "사용자와 연동된 계좌 거래 내역 조회")
     public ResponseEntity<Map<String, Object>> getTransactionList(
             @RequestBody(required = false) TransactionRequestDto dto) {
         Map<String, Object> response = new HashMap<>();
@@ -100,7 +103,6 @@ public class TransactionApiController {
 
 
     @GetMapping("/summary")
-    @ApiOperation(value = "소비 분석 페이지 데이터 호출", notes = "사전 집계 테이블에서 data 호출하기")
     public ResponseEntity<Map<String, Object>> getSummary(
             @RequestParam(value = "start", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
             @RequestParam(value = "end", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
@@ -159,4 +161,44 @@ public class TransactionApiController {
         }
     }
 
+    @PatchMapping("/transactions/by-desc/category")
+    public ResponseEntity<Map<String, Object>> updateCategoryByDesc(
+            @RequestBody Map<String, Object> requestBody
+    ){
+
+        log.info("Raw categoryId: {}, type: {}", requestBody.get("categoryId"),
+                requestBody.get("categoryId").getClass().getName());
+
+
+        Map<String, Object> response = new HashMap<>();
+        // JWT 토큰에서 빼오기
+        Map<String, Object> authInfo = extractAuthInfo();
+        Long memberId = (Long) authInfo.get("memberId");
+        String desc = String.valueOf(requestBody.get("description"));
+        Number catIdNumber = (Number) requestBody.get("categoryId");
+        Long categoryId = (catIdNumber != null) ? catIdNumber.longValue() : null;
+
+        if (desc == null || desc.isEmpty() || categoryId == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(HTTPResponse.createErrorResponse("올바르지 않은 요청입니다.", "BAD_REQUEST"));
+        }
+
+        // 1. 사용자 지정 카테고리 업데이트
+        transactionService.updateCategoryByDesc(categoryId, desc, memberId);
+
+        // 2. 변경된 거래의 날짜 구간 조회
+        List<Date> dates = transactionService.getTransactionDates(memberId, desc);
+
+        // 3. 집계 테이블 업데이트
+        if(dates.isEmpty()) summaryBatchService.deleteDailySummary(memberId, dates);
+        for(Date date:dates){
+            LocalDate localDate = date.toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate();
+            summaryBatchService.aggregateDailySummary(localDate, memberId);
+        }
+        return ResponseEntity.ok(HTTPResponse.createSuccessResponse("카테고리 갱신에 성공했습니다.",response, authInfo));
+
+
+    }
 }
