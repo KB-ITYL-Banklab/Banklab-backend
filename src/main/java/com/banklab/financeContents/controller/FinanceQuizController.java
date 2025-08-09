@@ -125,9 +125,14 @@ public class FinanceQuizController {
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            System.err.println("=== GET /api/quiz/today 오류 발생 ===");
+            System.err.println("Error message: " + e.getMessage());
+            System.err.println("Error type: " + e.getClass().getName());
+            e.printStackTrace();
+            
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
-            errorResponse.put("message", "서버 오류가 발생했습니다.");
+            errorResponse.put("message", "서버 오류가 발생했습니다: " + e.getMessage());
             return ResponseEntity.status(500).body(errorResponse);
         }
     }
