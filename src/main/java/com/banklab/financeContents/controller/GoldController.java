@@ -38,7 +38,7 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequestMapping("/api/gold")
-@Api(tags = "금 시세 정보 API")
+@Api(tags = "금 시세 정보 API", description = "현재 금 시세 정보를 불러옴")
 public class GoldController {
     
     /** 금 시세 서비스 (스프링 의존성 주입) */
@@ -54,7 +54,7 @@ public class GoldController {
      * @return ResponseEntity 금 시세 요약 정보
      */
     @GetMapping("/chart")
-    @ApiOperation(value = "웹페이지 차트용 금 시세 정보 조회")
+    @ApiOperation(value = "웹페이지 차트용 금 시세 정보 조회",  notes = "최신 금 시세 10개를 차트 형식으로 조회.")
     public ResponseEntity<Map<String, Object>> getGoldForChart() {
         try {
             log.info("📊 차트용 금 시세 정보 조회 요청");

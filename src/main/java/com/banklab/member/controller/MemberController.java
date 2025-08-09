@@ -3,6 +3,7 @@ package com.banklab.member.controller;
 import com.banklab.member.dto.*;
 import com.banklab.member.service.MemberService;
 import com.banklab.security.util.LoginUserProvider;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/member")
+@Api(tags = "회원관리 API", description = "회원가입 관련 기능 제공")
 public class MemberController {
     private final MemberService service;
     private final LoginUserProvider loginUserProvider;
