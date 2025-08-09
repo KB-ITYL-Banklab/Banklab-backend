@@ -5,6 +5,7 @@ import com.banklab.member.service.MemberService;
 import com.banklab.verification.dto.VerificationSendDTO;
 import com.banklab.verification.dto.VerificationVerifyDTO;
 import com.banklab.verification.service.VerificationService;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/verification")
 @RequiredArgsConstructor
+@Api(tags = "인증 API", description = "인증번호 전송, 검증")
 public class VerificationController {
     private final VerificationService verificationService;
     private final MemberService memberService;

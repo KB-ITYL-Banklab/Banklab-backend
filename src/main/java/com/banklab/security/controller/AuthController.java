@@ -10,6 +10,8 @@ import com.banklab.security.util.LoginUserProvider;
 import com.banklab.security.util.CookieUtil;
 import com.banklab.security.util.JwtConstants;
 import com.banklab.security.util.JwtProcessor;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@Api(tags = "인증 관리 API", description = "JWT 토큰 기반 인증, 로그아웃, 토큰 재발급")
 public class AuthController {
 
     private final RedisService redisService;
@@ -33,6 +36,7 @@ public class AuthController {
     private final LoginUserProvider loginUserProvider;
 
     @PostMapping("/logout")
+    @ApiOperation(value = "로그아웃", notes = "Access Token을 블랙리스트에 등록하고 Refresh Token을 삭제.")
     public ResponseEntity<String> logout(HttpServletRequest request, HttpServletResponse response) {
         // Access Token blacklist 등록
         String token = jwtProcessor.extractAccessToken(request);
@@ -53,6 +57,7 @@ public class AuthController {
     }
 
     @GetMapping("/me")
+    @ApiOperation(value = "현재 로그인 사용자 정보 조회", notes = "JWT 토큰을 통해 현재 로그인된 사용자의 기본 정보를 반환.")
     public ResponseEntity<UserInfoDTO> getMe() {
         MemberVO member = loginUserProvider.getLoginUser();
         if (member == null) {
@@ -62,6 +67,7 @@ public class AuthController {
     }
 
     @PostMapping("/reissue")
+    @ApiOperation(value = "Access Token 재발급", notes = "Refresh Token을 사용하여 새로운 Access Token을 발급.")
     public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = jwtProcessor.extractRefreshToken(request); // 쿠키에서 추출
 

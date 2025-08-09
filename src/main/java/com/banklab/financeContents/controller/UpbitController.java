@@ -4,6 +4,8 @@ import com.banklab.financeContents.domain.FinanceUpbit;
 import com.banklab.financeContents.scheduler.UpbitDataScheduler;
 import com.banklab.financeContents.service.UpbitDataService;
 import com.banklab.common.response.ApiResponse;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/upbit")
 @RequiredArgsConstructor
+@Api(tags = "가상화폐 시세 API", description = "업비트 API를 통해 가상화폐 시세 정보를 제공합니다")
 public class UpbitController {
 
     private final UpbitDataService upbitDataService;
@@ -28,6 +31,7 @@ public class UpbitController {
      * 업비트 데이터 수동 수집
      */
     @PostMapping("/collect")
+    @ApiOperation(value = "업비트 데이터 수동 수집", notes = "업비트 API에서 데이터를 수동으로 수집하여 DB에 저장.")
     public ResponseEntity<ApiResponse<String>> collectUpbitData() {
         try {
             upbitDataScheduler.manualCollectUpbitData();
@@ -43,6 +47,7 @@ public class UpbitController {
      * 특정 마켓의 최신 데이터 조회
      */
     @GetMapping("/latest/{market}")
+    @ApiOperation(value = "특정 마켓의 최신 데이터 조회", notes = "지정된 마켓의 최신 가상화폐 시세 데이터를 조회.")
     public ResponseEntity<ApiResponse<FinanceUpbit>> getLatestDataByMarket(@PathVariable String market) {
         try {
             FinanceUpbit data = upbitDataService.getLatestDataByMarket(market);
@@ -63,6 +68,7 @@ public class UpbitController {
      * 모든 마켓의 최신 데이터 조회
      */
     @GetMapping("/latest/all")
+    @ApiOperation(value = "모든 마켓의 최신 데이터 조회", notes = "모든 가상화폐 마켓의 최신 시세 데이터를 조회.")
     public ResponseEntity<ApiResponse<List<FinanceUpbit>>> getAllLatestData() {
         try {
             List<FinanceUpbit> dataList = upbitDataService.getAllLatestData();
@@ -77,6 +83,7 @@ public class UpbitController {
      * 인기 코인 top 5 조회 (비트코인, 이더리움 등)
      */
     @GetMapping("/top-coins")
+    @ApiOperation(value = "인기 코인 top 5 조회", notes = "비트코인, 이더리움 등 주요 인기 코인 5개의 시세를 조회.")
     public ResponseEntity<ApiResponse<List<FinanceUpbit>>> getTopCoins() {
         try {
             List<FinanceUpbit> allData = upbitDataService.getAllLatestData();
@@ -99,6 +106,7 @@ public class UpbitController {
      * 거래대금/거래량/등락률 기준 상위 5개 코인 조회
      */
     @GetMapping("/top-coins-by-type")
+    @ApiOperation(value = "거래대금/거래량/등락률 기준 상위 5개 코인 조회", notes = "지정된 기준에 따라 상위 5개 가상화폐를 조회.")
     public ResponseEntity<ApiResponse<List<FinanceUpbit>>> getTopCoinsByType(
             @RequestParam String type) {
         try {
@@ -165,6 +173,7 @@ public class UpbitController {
      * 업비트 API의 일봉 캔들 데이터를 사용하여 실제 과거 한달치 데이터를 수집하고 저장합니다.
      */
     @PostMapping("/insert-monthly")
+    @ApiOperation(value = "최근 한달치 실제 과거 데이터 삽입", notes = "업비트 일봉 캔들 데이터를 사용하여 최근 한달치 데이터를 수집하고 저장.")
     public ResponseEntity<ApiResponse<String>> insertMonthlyData() {
         try {
             log.info("최근 한달치 실제 데이터 삽입 요청");
@@ -181,6 +190,7 @@ public class UpbitController {
      * 종목명(마켓코드)으로 검색하면 해당 종목의 데이터들을 DB에서 조회하는 엔드포인트
      */
     @GetMapping("/search/{market}")
+    @ApiOperation(value = "종목명으로 데이터 검색", notes = "마켓 코드로 해당 종목의 모든 데이터를 DB에서 조회.")
     public ResponseEntity<ApiResponse<List<FinanceUpbit>>> searchByMarket(@PathVariable String market) {
         try {
             log.info("종목 검색 요청: {}", market);
@@ -215,6 +225,7 @@ public class UpbitController {
      * 종목명(마켓코드)과 기간으로 검색하는 엔드포인트 (추가 기능)
      */
     @GetMapping("/search/{market}/period")
+    @ApiOperation(value = "종목명과 기간으로 데이터 검색", notes = "마켓 코드와 기간을 지정하여 해당 종목의 데이터를 조회.")
     public ResponseEntity<ApiResponse<List<FinanceUpbit>>> searchByMarketAndPeriod(
             @PathVariable String market,
             @RequestParam(required = false) String startDate,
@@ -265,6 +276,7 @@ public class UpbitController {
      * Insert 없이 업비트 API에서 직접 가져와서 보여주는 실시간 데이터
      */
     @GetMapping("/realtime/{market}")
+    @ApiOperation(value = "실시간 1분봉 데이터 조회", notes = "업비트 API에서 직접 가져오는 실시간 1분봉 데이터.")
     public ResponseEntity<ApiResponse<com.banklab.financeContents.dto.RealtimeDataDto>> getRealtimeData(@PathVariable String market) {
         try {
             log.info("실시간 데이터 조회 요청: {}", market);
@@ -305,6 +317,7 @@ public class UpbitController {
      * Insert 없이 업비트 API에서 직접 가져와서 보여주는 실시간 데이터
      */
     @GetMapping("/realtime/all")
+    @ApiOperation(value = "모든 KRW 마켓의 실시간 1분봉 데이터 조회", notes = "모든 KRW 마켓의 실시간 1분봉 데이터를 업비트 API에서 직접 조회.")
     public ResponseEntity<ApiResponse<List<com.banklab.financeContents.dto.RealtimeDataDto>>> getAllRealtimeData() {
         try {
             log.info("모든 마켓 실시간 데이터 조회 요청");
