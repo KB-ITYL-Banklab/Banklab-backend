@@ -45,6 +45,12 @@ public class TransactionServiceImpl implements TransactionService {
         transactionMapper.updateCategories(transactions);
     }
 
+    @Override
+    @Transactional
+    public void updateCategoryByDesc(Long categoryId, String desc, Long memberId) {
+        transactionMapper.updateCategoryByDesc(memberId, categoryId,  desc);
+    }
+
 
     /**
      * @param memberId 사용자 id
@@ -208,6 +214,11 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public List<TransactionDetailDTO> getTransactionDetailsByCategoryId(Long memberId, Long categoryId, Date startDate, Date endDate) {
         return transactionMapper.getTransactionDetailsByCategoryId(memberId, categoryId, startDate, endDate);
+    }
+
+    @Override
+    public List<Date> getTransactionDates(Long memberId, String description) {
+        return transactionMapper.getTransactionDates(memberId, description);
     }
 
 }

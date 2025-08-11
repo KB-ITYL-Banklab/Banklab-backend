@@ -89,6 +89,12 @@
             #{item.id}
         </foreach>
     </update>
+    <update id="updateCategoryByDesc">
+        UPDATE transaction_history
+        SET category_id = #{categoryId}
+        WHERE member_id = #{memberId}
+        AND description = #{description}
+    </update>
 
 
     <!--    <select id="getMonthlySummary" resultType="com.banklab.transaction.dto.response.MonthlySummaryDTO">-->
@@ -229,5 +235,13 @@
           AND th.category_id = #{categoryId}
           AND th.transaction_date BETWEEN #{startDate} AND #{endDate}
         ORDER BY th.transaction_date DESC, th.transaction_time DESC
+    </select>
+
+
+    <select id="getTransactionDates" resultType="java.util.Date">
+        SELECT DISTINCT transaction_date
+        FROM transaction_history
+        WHERE member_id = #{memberId}
+        AND description = #{description}
     </select>
 </mapper>

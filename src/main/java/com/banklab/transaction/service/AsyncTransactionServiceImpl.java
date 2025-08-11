@@ -112,7 +112,7 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
     }
 
 
-public void checkIsPresent(Long memberId, AccountVO account, TransactionRequestDto req) {
+    public void checkIsPresent(Long memberId, AccountVO account, TransactionRequestDto req) {
     LocalDate lastTransactionDate =
             transactionMapper.getLastTransactionDate(memberId, account.getResAccount());
 
@@ -122,12 +122,12 @@ public void checkIsPresent(Long memberId, AccountVO account, TransactionRequestD
     }
 }
 
-/**
- * @param account 계좌 정보
- * @param request 거래 내역 조회를 위한 요청 파라미터 (sDate, eDate, orderBy)
- * @return 거래 내역 조회를 위한 요청 DTO
- */
-public TransactionDTO makeTransactionDTO(AccountVO account, TransactionRequestDto request) {
+    /**
+     * @param account 계좌 정보
+     * @param request 거래 내역 조회를 위한 요청 파라미터 (sDate, eDate, orderBy)
+     * @return 거래 내역 조회를 위한 요청 DTO
+     */
+    public TransactionDTO makeTransactionDTO(AccountVO account, TransactionRequestDto request) {
     if (request == null) {
         request = new TransactionRequestDto();
         LocalDate endDate = LocalDate.now();
