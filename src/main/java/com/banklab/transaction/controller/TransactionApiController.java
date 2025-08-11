@@ -161,13 +161,13 @@ public class TransactionApiController {
         }
     }
 
+    /** 추후 카테고리 변경 기능 추가 시 참고
     @PatchMapping("/transactions/by-desc/category")
     public ResponseEntity<Map<String, Object>> updateCategoryByDesc(
             @RequestBody Map<String, Object> requestBody
     ){
-
-        log.info("Raw categoryId: {}, type: {}", requestBody.get("categoryId"),
-                requestBody.get("categoryId").getClass().getName());
+        log.info("Raw categoryId: {}, type: {}, description:{}, type:{}", requestBody.get("categoryId"),
+                requestBody.get("categoryId").getClass().getName(), requestBody.get("description"), requestBody.get("description").getClass().getName());
 
 
         Map<String, Object> response = new HashMap<>();
@@ -198,7 +198,6 @@ public class TransactionApiController {
             summaryBatchService.aggregateDailySummary(localDate, memberId);
         }
         return ResponseEntity.ok(HTTPResponse.createSuccessResponse("카테고리 갱신에 성공했습니다.",response, authInfo));
-
-
     }
+     */
 }
