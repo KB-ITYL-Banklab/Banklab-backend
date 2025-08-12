@@ -3,13 +3,10 @@ package com.banklab.mission.event;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class MissionCompletedEvent {
+public class AssetSyncedEvent {
     private Long memberId;
-    private int missionId;
-    private int rewardExp;
 }

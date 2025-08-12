@@ -18,5 +18,6 @@ public interface CharacterService {
     CharacterDTO createCharacter(Long memberId);
 
 //    void syncLevelAndExp(Long memberId);
+    int lockAndGetLevel(Long memberId);
     boolean addExpAndLevelUp(Long memberId, int gainedExp);
 }

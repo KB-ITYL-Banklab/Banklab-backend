@@ -11,4 +11,6 @@ public interface MissionMapper {
     List<MissionVO> findByLevelId(int levelId);
     List<MissionVO> findPreviousSupplementalMissions(int levelId);
     List<MissionVO> findByType(MissionType type);
+    List<MissionVO> findByLevelAndKey(@Param("levelId") int levelId,
+                                      @Param("conditionKey") String conditionKey);
 }

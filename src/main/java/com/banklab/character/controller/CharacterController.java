@@ -2,7 +2,6 @@ package com.banklab.character.controller;
 
 import com.banklab.character.dto.CharacterDTO;
 import com.banklab.character.service.CharacterService;
-import com.banklab.mission.dto.MissionDTO;
 import com.banklab.mission.dto.MissionsResponseDTO;
 import com.banklab.mission.service.MissionService;
 import com.banklab.security.util.LoginUserProvider;
@@ -37,7 +36,9 @@ public class CharacterController {
     @ApiOperation(value = "캐릭터 생성")
     public ResponseEntity<CharacterDTO> createCharacter() {
         Long memberId = loginUserProvider.getLoginMemberId();
-        return ResponseEntity.ok(service.createCharacter(memberId));
+        CharacterDTO dto = service.createCharacter(memberId);
+        missionService.catchUpRewards(memberId);
+        return ResponseEntity.ok(dto);
     }
 
     @GetMapping("/missions")
@@ -45,19 +46,9 @@ public class CharacterController {
     public ResponseEntity<?> syncCharacterAndGetMissions() {
         Long memberId = loginUserProvider.getLoginMemberId();
 
-        // 1. 캐릭터 경험치/레벨 동기화
-//        service.syncLevelAndExp(memberId);
-
-        // 2. 현재 레벨 미션 평가 및 진행도 갱신 → 미션 목록 반환
+        // 현재 레벨 미션 평가 및 진행도 갱신 → 미션 목록 반환
         MissionsResponseDTO missions = missionService.getAndUpdateMissionProgress(memberId);
 
         return ResponseEntity.ok(missions);
-    }
-
-
-    @PostMapping("/sync")
-    public ResponseEntity<?> syncLevelAndExp() {
-        Long memberId = loginUserProvider.getLoginMemberId();
-        return null;
     }
 }

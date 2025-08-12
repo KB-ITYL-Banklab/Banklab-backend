@@ -37,6 +37,12 @@
         SELECT * FROM character_level
         WHERE level_id = #{levelId}
     </select>
+    <select id="lockAndGetLevel" resultType="java.lang.Integer">
+        SELECT current_level
+        FROM member_character
+        WHERE member_id = #{memberId}
+            FOR UPDATE
+    </select>
     <insert id="insertCharacter">
         INSERT INTO member_character (member_id, current_level, exp, created_at, updated_at)
         VALUES (#{memberId}, #{currentLevel}, #{exp}, now(), now())

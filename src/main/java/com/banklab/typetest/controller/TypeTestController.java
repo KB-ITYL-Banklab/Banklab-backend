@@ -1,5 +1,7 @@
 package com.banklab.typetest.controller;
 
+import com.banklab.mission.domain.ConditionKey;
+import com.banklab.mission.service.MissionProgressService;
 import com.banklab.security.util.LoginUserProvider;
 import com.banklab.typetest.domain.Question;
 import com.banklab.typetest.service.TypeTestService;
@@ -26,6 +28,7 @@ public class TypeTestController {
 
     private final TypeTestService typeTestService;
     private final LoginUserProvider loginUserProvider;
+    private final MissionProgressService missionProgressService;
 
     /**
      * 투자 유형 검사를 위한 질문 조회 API
@@ -53,6 +56,9 @@ public class TypeTestController {
             @RequestBody Map<String, Object> payload) {
         Long memberId = loginUserProvider.getLoginMemberId();
         TypeTestResultDTO result = typeTestService.submitAnswersWithMemberId(payload, memberId);
+        // 캐릭터 미션 진행도 갱신
+        missionProgressService.onEvent(memberId, ConditionKey.TYPE_TEST_COUNT);
+        missionProgressService.onEvent(memberId, ConditionKey.TYPE_TEST_RECENT);
         return ResponseEntity.ok(result);
     }
 

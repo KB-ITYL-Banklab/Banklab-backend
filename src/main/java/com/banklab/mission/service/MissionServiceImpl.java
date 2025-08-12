@@ -1,13 +1,11 @@
 package com.banklab.mission.service;
 
-import com.banklab.character.domain.MemberCharacterVO;
-import com.banklab.character.dto.CharacterDTO;
 import com.banklab.character.service.CharacterService;
+import com.banklab.mission.domain.ExpGrantVO;
 import com.banklab.mission.domain.MissionType;
 import com.banklab.mission.dto.MissionStateDTO;
 import com.banklab.mission.dto.MissionsResponseDTO;
 import com.banklab.mission.event.MissionCompletedEvent;
-import com.banklab.mission.domain.MissionProgressVO;
 import com.banklab.mission.domain.MissionVO;
 import com.banklab.mission.dto.MissionDTO;
 import com.banklab.mission.evaluator.EvaluatorRegistry;
@@ -21,8 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -60,6 +56,37 @@ public class MissionServiceImpl implements MissionService {
         return all;
     }
 
+    @Transactional
+    @Override
+    public void catchUpRewards(Long memberId) {
+        int level = characterService.lockAndGetLevel(memberId);
+
+        List<MissionVO> missions = getCurrentLevelMissions(level);
+        if (missions.isEmpty()) return;
+
+        for (MissionVO m : missions) {
+            // 이미 지급된 주기면 스킵
+            boolean isPersistent = MissionType.PERSISTENT.equals(m.getType());
+            ExpGrantVO grant = ExpGrantVO.from(memberId, m); // periodStart = Periods.periodStart(cycle)
+            if (isPersistent || missionProgressMapper.existsExpGrant(grant)) continue;
+
+            // 평가 (activity_daily_agg / 결과테이블 기반 Evaluator들이 알아서 계산)
+            MissionEvaluator ev = evaluatorRegistry.getEvaluator(m.getConditionKey());
+            if (ev == null) continue;
+
+            int result = ev.evaluate(memberId, m); // progress or EvaluationResult
+            boolean completed = (result >= m.getTargetValue());
+            if (!completed) continue;
+
+            // 멱등 지급 + EXP 반영
+            if (missionProgressMapper.insertExpGrant(grant) > 0) {
+                eventPublisher.publishEvent(
+                        new MissionCompletedEvent(memberId, m.getMissionId(), m.getRewardExp())
+                );
+            }
+        }
+    }
+
     @Override
     @Transactional
     public MissionsResponseDTO getAndUpdateMissionProgress(Long memberId) {
@@ -70,57 +97,28 @@ public class MissionServiceImpl implements MissionService {
         List<MissionStateDTO> optional = new ArrayList<>();
         List<MissionStateDTO> persistent = new ArrayList<>();
 
-        // 기존 진행도
-        // 2) 기존 진행도 맵 (missionId -> progress)
-        Map<Integer, MissionProgressVO> progressMap = missionProgressMapper.findByMemberId(memberId)
-                .stream()
-                .collect(Collectors.toMap(MissionProgressVO::getMissionId, p -> p));
-
-        // 없으면 삽입
         for (MissionVO mission : missions) {
-            if (!progressMap.containsKey(mission.getMissionId())) {
-                missionProgressMapper.insert(memberId, mission.getMissionId());
-                progressMap.put(mission.getMissionId(), missionProgressMapper.get(memberId, mission.getMissionId()));
-            }
-        }
+            // 완료 여부: exp_grant_log 존재로 판단 (주기당 1회 지급 멱등)
+            boolean completed = missionProgressMapper.existsExpGrant(ExpGrantVO.from(memberId, mission));
 
-        // 평가 및 갱신
-        for (MissionVO mission : missions) {
-            MissionProgressVO prev = progressMap.get(mission.getMissionId());
-            // 진행도 값은 항상 최신화 (단, 완료 플래그는 다운그레이드 금지)
-            boolean alreadyCompleted = prev.isCompleted();
-
-            int progressValue = prev.getProgressValue();
-            boolean completed = false;
-            if(!alreadyCompleted) {
+            int progressValue = 0;
+            if (!completed) {
+                // 진행도 계산은 Evaluator에게 (recent_days > mission_cycle > 누적)
                 MissionEvaluator evaluator = evaluatorRegistry.getEvaluator(mission.getConditionKey());
-                progressValue = evaluator.evaluate(memberId, mission);
-                completed = progressValue >= mission.getTargetValue();
-
-                if (prev.getProgressValue() != progressValue)
-                    missionProgressMapper.updateProgress(memberId, mission.getMissionId(), progressValue);
-
-                // 지속성(PERSISTENT) 미션은 “유지 충족” 상태만 갱신하고 보상은 없음(설계에 따라)
-                boolean isPersistent = mission.getType().equals(MissionType.PERSISTENT);
-
-                // 지속성이 아니고, 목표 달성했을 때만 '전이 완료' 시도
-                if (!isPersistent && completed) {
-                    int changed = missionProgressMapper.markCompleted(memberId, mission.getMissionId());
-                    if (changed == 1) { // 이번에 처음 완료됨
-                        eventPublisher.publishEvent(
-                                new MissionCompletedEvent(memberId, mission.getMissionId(), mission.getRewardExp())
-                        );
-                    }
+                if (evaluator != null) {
+                    progressValue = evaluator.evaluate(memberId, mission);
                 }
+                completed = progressValue >= mission.getTargetValue();
             }
 
-            MissionStateDTO dto = MissionStateDTO.from(mission, progressValue, alreadyCompleted || completed);
+            // DTO 구성 (완료 여부는 지급 로그 기준)
+            MissionStateDTO dto = MissionStateDTO.from(mission, completed ? mission.getTargetValue() : progressValue, completed);
+
             switch (mission.getType()) {
                 case REQUIRED, CRITERIA -> required.add(dto);
                 case OPTIONAL -> optional.add(dto);
                 case PERSISTENT -> persistent.add(dto);
             }
-
         }
 
         return MissionsResponseDTO.builder()
@@ -129,27 +127,4 @@ public class MissionServiceImpl implements MissionService {
                 .persistent(persistent)
                 .build();
     }
-
-//    @Override
-//    public boolean isAlreadyCompleted(Long memberId, Integer missionId) {
-//        int count = missionProgressMapper.countCompletedMission(memberId, missionId);
-//        return count > 0;
-//    }
-//
-//    @Override
-//    @Transactional
-//    public void completeMission(Long memberId, Integer missionId) {
-//        MissionVO mission = missionMapper.findByMissionId(missionId);
-//        if (isAlreadyCompleted(memberId, missionId)) return;
-//        if (!missionEvaluator.evaluate(memberId, mission)) return;
-//
-//        // 완료 처리
-//        missionMapper.markCompleted(memberId, missionId);
-//
-//        // 이벤트 발행 (커밋 후 처리 예정)
-//        eventPublisher.publishEvent(
-//                new MissionCompletedEvent(memberId, missionId, mission.getRewardExp())
-//        );
-//    }
-
 }

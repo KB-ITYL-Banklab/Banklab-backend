@@ -1,5 +1,6 @@
 package com.banklab.calculator.controller;
 
+import com.banklab.activity.service.ActivityService;
 import com.banklab.calculator.dto.request.AnnuityCalculateRequest;
 import com.banklab.calculator.dto.request.DepositCalculateRequest;
 import com.banklab.calculator.dto.request.SavingsCalculateRequest;
@@ -26,6 +27,7 @@ public class CalculatorController {
     private final CalculatorService calculatorService;
     private final UserProfileService userProfileService;
     private final LoginUserProvider loginUserProvider;
+    private final ActivityService activityService;
 
     /**
      * 예금 계산기 - 단리, 복리 옵션 존재
@@ -40,7 +42,7 @@ public class CalculatorController {
                 request.getPrincipal(), request.getRate(), request.getTermMonths(), request.getIsCompound());
 
         DepositCalculateResponse response = calculatorService.calculateDeposit(request);
-
+        activityService.saveCompareUsageLog(loginUserProvider.getLoginMemberId());
         log.info("예금 계산 결과: 총이자={}", response.getResults().getTotalInterest());
 
         return ResponseEntity.ok(response);
@@ -61,7 +63,7 @@ public class CalculatorController {
                 request.getMonthlyPayment(), request.getRate(), request.getTermMonths(), request.getTargetAmount());
 
         SavingsCalculateResponse response = calculatorService.calculateSavings(request);
-
+        activityService.saveCompareUsageLog(loginUserProvider.getLoginMemberId());
         if (response.getResults() != null) {
             log.info("적금 계산 결과: 총이자={}", response.getResults().getTotalInterest());
         } else {
@@ -88,7 +90,7 @@ public class CalculatorController {
                 request.getLoanAmount(), request.getLoanRate(), request.getLoanTermMonths(), request.getRepaymentMethod());
 
         LoanCalculateResponse response = calculatorService.calculateLoan(request);
-
+        activityService.saveCompareUsageLog(loginUserProvider.getLoginMemberId());
         log.info("대출 계산 결과: 총비용={}, 총이자={}", response.getResults().getTotalCost(), response.getResults().getTotalInterest());
 
         return ResponseEntity.ok(response);
@@ -104,7 +106,7 @@ public class CalculatorController {
             @RequestBody AnnuityCalculateRequest request) {
 
         AnnuityCalculateResponse response = calculatorService.calculateAnnuity(request);
-
+        activityService.saveCompareUsageLog(loginUserProvider.getLoginMemberId());
         return ResponseEntity.ok(response);
     }
 

@@ -5,8 +5,10 @@ import com.banklab.account.dto.AccountDTO;
 import com.banklab.account.mapper.AccountMapper;
 import com.banklab.common.redis.RedisKeyUtil;
 import com.banklab.common.redis.RedisService;
+import com.banklab.mission.event.AssetSyncedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,20 +22,26 @@ import java.util.List;
 public class AccountServiceImpl implements AccountService {
 
     private final AccountMapper accountMapper;
+    private final ApplicationEventPublisher publisher;
 
 
     @Override
     @Transactional
     public int saveAccounts(List<AccountVO> accountVOList) {
         int count = 0;
+        Long memberId = null;
         for (AccountVO accountVO : accountVOList) {
             // DB 저장
             accountMapper.insertAccount(accountVO);
             count += 1;
+            if (memberId == null) memberId = accountVO.getMemberId();
         }
 
         log.info("{}개 계좌 저장", count);
 
+        if (memberId != null) {
+            publisher.publishEvent(new AssetSyncedEvent(memberId));
+        }
         return count;
     }
 
@@ -86,6 +94,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public void deleteAccount(Long memberId, String connectedId) {
         accountMapper.deleteAccount(memberId, connectedId);
+        publisher.publishEvent(new AssetSyncedEvent(memberId));
     }
 
     @Override
