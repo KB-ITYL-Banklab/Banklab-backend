@@ -95,6 +95,43 @@ public class StockController {
         }
     }
 
+    @PostMapping("/save/code/{stockCode}")
+    @ApiOperation(value = "종목코드 기준으로 최근 30일간 데이터 저장")
+    public ResponseEntity<Map<String, Object>> saveStockDataByCode(
+            @ApiParam(value = "종목코드 (6자리)", example = "005930") 
+            @PathVariable String stockCode) {
+        try {
+            // 종목코드 검증
+            if (stockCode == null || stockCode.trim().length() != 6) {
+                return createErrorResponse(HttpStatus.BAD_REQUEST, 
+                    "잘못된 종목코드", "종목코드는 6자리여야 합니다");
+            }
+            
+            String trimmedCode = stockCode.trim();
+            log.info("🔵 [POST] /save/code/{} 요청 시작 - 종목별 30일간 데이터 저장", trimmedCode);
+            
+            // 최근 30일간 해당 종목 데이터 저장
+            int savedCount = financeStockService.saveRecentStockDataByCode(trimmedCode, 30);
+            
+            Map<String, Object> result = createSuccessResponseMap("종목별 30일간 데이터 저장 완료", null);
+            result.put("stockCode", trimmedCode);
+            result.put("savedCount", savedCount);
+            result.put("period", "30일");
+            
+            log.info("✅ [POST] /save/code/{} 완료: {}건 저장", trimmedCode, savedCount);
+            return ResponseEntity.ok(result);
+            
+        } catch (IllegalArgumentException e) {
+            log.warn("⚠️ 잘못된 종목코드 저장 요청: {}", e.getMessage());
+            return createErrorResponse(HttpStatus.BAD_REQUEST, 
+                "잘못된 요청", e.getMessage());
+        } catch (Exception e) {
+            log.error("❌ [POST] /save/code/{} 실패: {}", stockCode, e.getMessage(), e);
+            return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, 
+                "종목별 데이터 저장 실패", e.getMessage());
+        }
+    }
+
     // ===== 데이터베이스 조회 =====
 
     @GetMapping("/db/count")
