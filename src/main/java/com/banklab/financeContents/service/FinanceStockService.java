@@ -106,6 +106,13 @@ public interface FinanceStockService {
     List<FinanceStockVO> searchLatestStocksByExactName(String stockName, Integer limit);
     
     /**
+     * 종목코드로 시계열 데이터 검색 (모든 날짜)
+     * @param stockCode 검색할 종목코드
+     * @return 일치하는 주식 정보 리스트 (모든 날짜, 최신순 정렬)
+     */
+    List<FinanceStockVO> searchStocksByCode(String stockCode);
+    
+    /**
      * 주식 정보 업데이트
      * @param financeStock 업데이트할 주식 정보
      * @return 업데이트 성공 여부
