@@ -38,4 +38,14 @@ public interface StockMapper {
     void deleteStocksByConnectedId(@Param("memberId") Long memberId,
                                    @Param("connectedId") String connectedId);
 
+
+    /**
+     * Select : 보유종목 ID와 사용자 ID로 특정 종목 조회 (권한 검증 포함)
+     *
+     * @param stockId 보유종목 ID
+     * @param memberId 서비스 유저 아이디
+     * @return 보유종목 정보 (해당 사용자의 것이 아니면 null)
+     */
+    StockVO getStockByIdAndMemberId(@Param("stockId") Long stockId,
+                                    @Param("memberId") Long memberId);
 }
