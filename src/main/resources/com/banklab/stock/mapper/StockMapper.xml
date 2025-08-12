@@ -145,4 +145,31 @@
           AND connected_id = #{connectedId}
         ORDER BY res_item_name ASC
     </select>
+
+    <select id="getStockByIdAndMemberId" resultMap="stockResultMap">
+        SELECT
+            id,
+            member_id,
+            connected_id,
+            organization,
+            res_account,
+            res_deposit_received,
+            res_deposit_received_d1,
+            res_deposit_received_d2,
+            res_product_type,
+            res_item_name,
+            res_item_code,
+            res_quantity,
+            res_present_amt,
+            res_purchase_amount,
+            res_valuation_amt,
+            res_valuation_pl,
+            res_earnings_rate,
+            res_account_currency,
+            created_at,
+            updated_at
+        FROM stock
+        WHERE id = #{stockId}
+          AND member_id = #{memberId}
+    </select>
 </mapper>

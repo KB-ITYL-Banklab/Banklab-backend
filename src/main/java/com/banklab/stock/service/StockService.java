@@ -4,6 +4,7 @@ import com.banklab.stock.domain.StockVO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 증권 서비스 인터페이스
@@ -43,5 +44,23 @@ public interface StockService {
      * memberId와 connectedId 두 개 모두 일치하는 파라미터가 들어왔을 때 삭제
      */
     void disconnectUserStocks(Long memberId, String connectedId);
+
+    /**
+     * 보유종목 ID로 특정 종목 조회
+     *
+     * @param stockId 보유종목 ID
+     * @param memberId 사용자 ID (권한 검증용)
+     * @return 보유종목 정보
+     */
+    StockVO getStockById(Long stockId, Long memberId);
+
+    /**
+     * 종목코드로 시계열 데이터 조회 (내부 API 호출)
+     *
+     * @param resItemCode 종목코드 (6자리, A 제거된)
+     * @param limit 조회할 개수
+     * @return 시계열 데이터 리스트
+     */
+    List<Map<String, Object>> getTimeSeriesDataByCode(String resItemCode, Integer limit);
 
 }
