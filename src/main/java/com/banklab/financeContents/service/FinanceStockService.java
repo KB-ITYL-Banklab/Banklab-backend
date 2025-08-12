@@ -42,6 +42,22 @@ public interface FinanceStockService {
     boolean saveStockByCode(String shortCode);
     
     /**
+     * 특정 종목의 특정 날짜 데이터를 API에서 가져와서 저장
+     * @param shortCode 종목코드
+     * @param baseDate 기준일자
+     * @return 저장 성공 여부
+     */
+    boolean saveStockByCodeAndDate(String shortCode, LocalDate baseDate);
+    
+    /**
+     * 특정 종목의 최근 N일간 데이터를 API에서 가져와서 저장
+     * @param shortCode 종목코드
+     * @param days 최근 N일
+     * @return 저장된 레코드 수
+     */
+    int saveRecentStockDataByCode(String shortCode, int days);
+    
+    /**
      * 주식 정보 목록을 데이터베이스에 저장
      * @param stockDtoList API에서 가져온 주식 정보 DTO 리스트
      * @return 저장된 레코드 수
@@ -104,6 +120,13 @@ public interface FinanceStockService {
      * @return 일치하는 최신 주식 정보 리스트
      */
     List<FinanceStockVO> searchLatestStocksByExactName(String stockName, Integer limit);
+    
+    /**
+     * 종목코드로 시계열 데이터 검색 (모든 날짜)
+     * @param stockCode 검색할 종목코드
+     * @return 일치하는 주식 정보 리스트 (모든 날짜, 최신순 정렬)
+     */
+    List<FinanceStockVO> searchStocksByCode(String stockCode);
     
     /**
      * 주식 정보 업데이트

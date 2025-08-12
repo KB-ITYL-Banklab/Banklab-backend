@@ -6,8 +6,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @Log4j2
 @Service
@@ -15,6 +19,8 @@ import java.util.List;
 public class StockServiceImpl implements StockService {
 
     private final StockMapper stockMapper;
+
+    private final RestTemplate restTemplate;
 
     @Override
     @Transactional
@@ -56,4 +62,38 @@ public class StockServiceImpl implements StockService {
         stockMapper.deleteStocksByConnectedId(memberId, connectedId);
     }
 
+
+    @Override
+    public StockVO getStockById(Long stockId, Long memberId) {
+        return stockMapper.getStockByIdAndMemberId(stockId, memberId);
+    }
+
+    @Override
+    public List<Map<String, Object>> getTimeSeriesDataByCode(String resItemCode, Integer limit) {
+        try {
+            // financeContents의 StockController API 호출
+            String url = "http://localhost:8080/api/stocks/timeseries/" + resItemCode + "?limit=" + limit;
+            log.info("시계열 데이터 API 호출: {}", url);
+
+            // RestTemplate으로 내부 API 호출
+            Map<String, Object> response = restTemplate.getForObject(url, Map.class);
+
+            if (response != null && Boolean.TRUE.equals(response.get("success"))) {
+                Object data = response.get("data");
+                if (data instanceof List) {
+                    return (List<Map<String, Object>>) data;
+                }
+            }
+
+            log.warn("시계열 데이터 조회 실패 또는 데이터 없음 - resItemCode: {}", resItemCode);
+            return Collections.emptyList();
+
+        } catch (RestClientException e) {
+            log.error("시계열 데이터 API 호출 실패 - resItemCode: {}, error: {}", resItemCode, e.getMessage());
+            return Collections.emptyList();
+        } catch (Exception e) {
+            log.error("시계열 데이터 조회 중 예상치 못한 오류 - resItemCode: {}", resItemCode, e);
+            return Collections.emptyList();
+        }
+    }
 }

@@ -246,4 +246,80 @@ public class StockApiController {
         }
     }
 
+
+    /**
+     * 보유종목 상세정보 조회 (시계열 데이터 포함)
+     */
+    @GetMapping("/{stockId}/detail")
+    @ApiOperation(value = "보유종목 상세정보 조회", notes = "보유종목 ID로 기본정보와 시계열 데이터를 조회합니다.")
+    public ResponseEntity<Map<String, Object>> getStockDetail(
+            @PathVariable Long stockId,
+            @RequestParam(required = false, defaultValue = "30") Integer limit
+    ) {
+        try {
+            Map<String, Object> authInfo = extractAuthInfo();
+            Long memberId = (Long) authInfo.get("memberId");
+            String email = (String) authInfo.get("email");
+
+            log.info("보유종목 상세정보 조회 - email: {}, memberId: {}, stockId: {}",
+                    email, memberId, stockId);
+
+            // 1. 보유종목 기본정보 조회
+            StockVO stockInfo = stockService.getStockById(stockId, memberId);
+            if (stockInfo == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(createErrorResponse("보유종목을 찾을 수 없습니다.", "STOCK_NOT_FOUND"));
+            }
+
+            // 2. 종목코드 가져오기 (이미 A가 제거된 6자리 코드)
+            String resItemCode = stockInfo.getResItemCode();
+
+            log.info("종목코드: {}", resItemCode);
+
+            // 3. 종목코드로 시계열 데이터 조회 (내부 API 호출)
+            List<Map<String, Object>> timeSeriesData = null;
+            try {
+                if (resItemCode != null && resItemCode.length() == 6) {
+                    timeSeriesData = stockService.getTimeSeriesDataByCode(resItemCode, limit);
+                }
+            } catch (Exception e) {
+                log.warn("시계열 데이터 조회 실패 - resItemCode: {}, error: {}", resItemCode, e.getMessage());
+                // 시계열 데이터 조회 실패해도 기본 정보는 반환
+            }
+
+            // 4. 응답 데이터 구성
+            Map<String, Object> response = new HashMap<>();
+
+            // 보유종목 기본정보
+            Map<String, Object> stockDetail = new HashMap<>();
+            stockDetail.put("id", stockInfo.getId());
+            stockDetail.put("resItemName", stockInfo.getResItemName());
+            stockDetail.put("resItemCode", stockInfo.getResItemCode());
+            stockDetail.put("quantity", stockInfo.getResQuantity());
+            stockDetail.put("presentAmt", stockInfo.getResPresentAmt());
+            stockDetail.put("purchaseAmount", stockInfo.getResPurchaseAmount());
+            stockDetail.put("valuationAmt", stockInfo.getResValuationAmt());
+            stockDetail.put("valuationPL", stockInfo.getResValuationPL());
+            stockDetail.put("earningsRate", stockInfo.getResEarningsRate());
+            stockDetail.put("accountCurrency", stockInfo.getResAccountCurrency());
+            stockDetail.put("productType", stockInfo.getResProductType());
+
+            response.put("stockInfo", stockDetail);
+            response.put("timeSeriesData", timeSeriesData);
+            response.put("timeSeriesCount", timeSeriesData != null ? timeSeriesData.size() : 0);
+            response.put("timeSeriesLimit", limit);
+
+            return ResponseEntity.ok(createSuccessResponse("보유종목 상세정보 조회 완료", response, authInfo));
+
+        } catch (SecurityException e) {
+            log.error("인증 오류: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(createErrorResponse(e.getMessage(), "AUTHENTICATION_ERROR"));
+
+        } catch (Exception e) {
+            log.error("보유종목 상세정보 조회 중 오류 발생 - stockId: {}", stockId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(createErrorResponse("보유종목 상세정보 조회 중 오류가 발생했습니다.", "INTERNAL_ERROR"));
+        }
+    }
 }

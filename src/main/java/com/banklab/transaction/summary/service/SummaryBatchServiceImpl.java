@@ -2,8 +2,6 @@ package com.banklab.transaction.summary.service;
 
 import com.banklab.account.domain.AccountVO;
 import com.banklab.member.mapper.MemberMapper;
-import com.banklab.security.handler.LoginFailureHandler;
-import com.banklab.transaction.mapper.TransactionMapper;
 import com.banklab.transaction.summary.dto.DailySummaryDTO;
 import com.banklab.transaction.summary.mapper.SummaryMapper;
 import lombok.RequiredArgsConstructor;
@@ -69,4 +67,10 @@ public class SummaryBatchServiceImpl implements SummaryBatchService {
             lastDay = lastDay.plusDays(1);
         }
     }
+
+    @Override
+    public void deleteDailySummary(Long memberId, List<java.util.Date> targetDate) {
+        summaryMapper.deleteDailySummary(memberId, targetDate);
+    }
+
 }

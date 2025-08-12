@@ -4,6 +4,15 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.banklab.transaction.summary.mapper.SummaryMapper">
+    <delete id="deleteDailySummary">
+        DELETE FROM daily_user_expense_summary
+        WHERE member_id = #{memberId}
+        AND transaction_date IN
+        <foreach collection="dates" item="date" open="(" separator="," close=")">
+            #{targetDate}
+        </foreach>
+
+    </delete>
 
 
     <select id="getDailySummary" resultType="com.banklab.transaction.summary.dto.DailySummaryDTO">

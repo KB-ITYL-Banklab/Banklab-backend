@@ -1,6 +1,8 @@
 package com.banklab.common.redis;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -30,9 +32,29 @@ public class RedisService {
         redisTemplate.opsForValue().set(key, value, timeoutMinutes, TimeUnit.MINUTES);
     }
 
-    // 값 저장 (prefix:key 형식, TTL 설정)
-    public void setBySeconds(String key, String value, int timeOutSeconds) {
-        redisTemplate.opsForValue().set(key, value, timeOutSeconds, TimeUnit.SECONDS);
+    public boolean tryLock(String key, String value, int timeOutMinuites) {
+        // SET key value NX PX expireMillis
+        Boolean success = redisTemplate.opsForValue().setIfAbsent(key, value, timeOutMinuites, TimeUnit.MINUTES);
+        return Boolean.TRUE.equals(success);
+    }
+
+    public void unlock(String key, String value) {
+        // Lua 스크립트로 안전하게 락 해제
+        String luaScript =
+                "if redis.call('get', KEYS[1]) == ARGV[1] then " +
+                        "   return redis.call('del', KEYS[1]) " +
+                        "else " +
+                        "   return 0 " +
+                        "end";
+        redisTemplate.execute(
+                (RedisCallback<Long>) connection -> connection.eval(
+                        luaScript.getBytes(),
+                        ReturnType.INTEGER,
+                        1,
+                        key.getBytes(),
+                        value.getBytes()
+                )
+        );
     }
 
     public boolean setIfAbsent(String key, String value, Duration ttl) {

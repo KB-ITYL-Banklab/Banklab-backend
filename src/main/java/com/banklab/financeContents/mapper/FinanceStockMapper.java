@@ -122,6 +122,13 @@ public interface FinanceStockMapper {
     List<FinanceStockVO> selectLatestByExactStockName(@Param("stockName") String stockName, @Param("limit") int limit);
     
     /**
+     * 종목코드로 시계열 데이터 검색 (모든 날짜)
+     * @param srtnCd 검색할 종목코드
+     * @return 일치하는 주식 정보 리스트 (최신순 정렬)
+     */
+    List<FinanceStockVO> selectByStockCode(@Param("srtnCd") String srtnCd);
+    
+    /**
      * 30일 이전 데이터 삭제
      * @param cutoffDate 삭제 기준 날짜
      * @return 삭제된 레코드 수
