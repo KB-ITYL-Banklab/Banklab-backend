@@ -233,20 +233,47 @@ public class FinanceStockServiceImpl implements FinanceStockService {
         try {
             log.info("🔍 종목 {} {}일자 API 조회 및 저장 시작", shortCode, baseDate);
             
-            String dateStr = baseDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-            List<StockSecurityInfoDto> stockDtos = publicDataStockService.getStockPriceInfo(dateStr, shortCode, 1, 1);
-            
-            if (stockDtos == null || stockDtos.isEmpty()) {
-                log.warn("⚠️ 종목 {} {}일자 API에서 조회되지 않음", shortCode, baseDate);
+            // 미래 날짜 체크
+            if (baseDate.isAfter(LocalDate.now())) {
+                log.warn("⚠️ 미래 날짜 요청: {} - 주식 데이터는 과거 날짜만 존재합니다", baseDate);
                 return false;
             }
             
-            StockSecurityInfoDto stockDto = stockDtos.get(0);
+            String dateStr = baseDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             
-            // 종목코드 정확한 매칭 확인
-            if (!shortCode.equals(stockDto.getShortCode())) {
-                log.warn("⚠️ 종목코드 불일치: 요청 {} vs 응답 {}", shortCode, stockDto.getShortCode());
+            // API srtnCd 파라미터가 필터링되지 않으므로 전체 데이터를 받아서 클라이언트에서 필터링
+            log.info("🔍 전체 종목 데이터 조회 후 클라이언트 필터링 방식으로 변경");
+            List<StockSecurityInfoDto> allStockDtos = publicDataStockService.getStockPriceInfo(dateStr, null, 5000, 1);
+            
+            if (allStockDtos == null || allStockDtos.isEmpty()) {
+                log.warn("⚠️ {}일자 API에서 전체 데이터가 조회되지 않음", baseDate);
                 return false;
+            }
+            
+            log.info("📊 전체 {}개 종목 데이터에서 종목코드 {} 검색", allStockDtos.size(), shortCode);
+            
+            // 클라이언트에서 종목코드 필터링 (원본 및 0 제거 버전 모두 확인)
+            String codeWithoutZero = shortCode.replaceFirst("^0+", "");
+            StockSecurityInfoDto stockDto = null;
+            
+            for (StockSecurityInfoDto dto : allStockDtos) {
+                if (shortCode.equals(dto.getShortCode()) || codeWithoutZero.equals(dto.getShortCode())) {
+                    stockDto = dto;
+                    log.info("✅ 종목코드 {} 매칭 성공: {}", shortCode, dto.getItemName());
+                    break;
+                }
+            }
+            
+            if (stockDto == null) {
+                log.warn("❌ 종목코드 {}를 전체 {}개 데이터에서 찾을 수 없습니다.", shortCode, allStockDtos.size());
+                log.warn("💡 해당 날짜({})에 거래되지 않았거나 존재하지 않는 종목일 가능성이 있습니다.", baseDate);
+                return false;
+            }
+            
+            // 종목코드를 요청한 형식으로 통일
+            if (!shortCode.equals(stockDto.getShortCode())) {
+                log.info("🔧 종목코드 {} -> {}로 정규화", stockDto.getShortCode(), shortCode);
+                stockDto.setShortCode(shortCode);
             }
             
             FinanceStockVO stockVO = convertDtoToVo(stockDto);
@@ -273,10 +300,11 @@ public class FinanceStockServiceImpl implements FinanceStockService {
             log.info("🔍 종목 {} 최근 {}일간 데이터 저장 시작", shortCode, days);
             
             int savedCount = 0;
-            LocalDate today = LocalDate.now();
+            // 오늘을 기준으로 최근 30일간 데이터 조회
+            LocalDate baseDate = LocalDate.now(); // 현재 날짜 기준
             
             for (int i = 1; i <= days; i++) {
-                LocalDate targetDate = today.minusDays(i);
+                LocalDate targetDate = baseDate.minusDays(i);
                 
                 // 주말 및 공휴일은 거래가 없으므로 평일만 처리
                 if (targetDate.getDayOfWeek().getValue() >= 6) { // 토요일(6), 일요일(7)

@@ -124,6 +124,7 @@ public class PublicDataStockService {
             
             // === 3. API URL 구성 ===
             URI uri = buildApiUri(baseDate, shortCode, numOfRows, pageNo);
+            log.info("🌐 API 요청 URL: {}", uri.toString());
             
             // === 4. HTTP 클라이언트 설정 및 요청 수행 ===
             // 타임아웃 및 프록시 설정이 포함된 HTTP 클라이언트 생성
@@ -153,6 +154,8 @@ public class PublicDataStockService {
                     
                     if (statusCode == 200) {
                         // HTTP 200 OK - 응답 파싱 시도
+                        log.info("📄 API 응답 원시 데이터 (최대 1000자): {}", 
+                            responseBody.length() > 1000 ? responseBody.substring(0, 1000) + "..." : responseBody);
                         return parseApiResponse(responseBody);
                     } else {
                         // HTTP 오류 상태코드 처리
@@ -350,9 +353,10 @@ public class PublicDataStockService {
             uriBuilder.addParameter("numOfRows", String.valueOf(numOfRows)); // 조회 개수
             uriBuilder.addParameter("pageNo", String.valueOf(pageNo));       // 페이지 번호
             
-            // === 한국 주식만 조회하도록 시장 구분 추가 ===
-            uriBuilder.addParameter("mrktCtg", "KOSPI");  // KOSPI 시장만
-            // 또는 uriBuilder.addParameter("mrktCtg", "KOSDAQ"); // KOSDAQ 시장만
+            // === 시장 구분 제거 - 모든 시장(KOSPI, KOSDAQ) 조회 ===
+            // 특정 종목 조회 시에는 시장 구분을 하지 않음
+            // uriBuilder.addParameter("mrktCtg", "KOSPI");  // KOSPI 시장만
+            // uriBuilder.addParameter("mrktCtg", "KOSDAQ"); // KOSDAQ 시장만
             
             // === 선택적 매개변수 추가 ===
             if (shortCode != null && !shortCode.trim().isEmpty()) {
