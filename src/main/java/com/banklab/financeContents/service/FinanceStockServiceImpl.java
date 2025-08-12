@@ -229,6 +229,86 @@ public class FinanceStockServiceImpl implements FinanceStockService {
     
     @Override
     @Transactional
+    public boolean saveStockByCodeAndDate(String shortCode, LocalDate baseDate) {
+        try {
+            log.info("🔍 종목 {} {}일자 API 조회 및 저장 시작", shortCode, baseDate);
+            
+            String dateStr = baseDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            List<StockSecurityInfoDto> stockDtos = publicDataStockService.getStockPriceInfo(dateStr, shortCode, 1, 1);
+            
+            if (stockDtos == null || stockDtos.isEmpty()) {
+                log.warn("⚠️ 종목 {} {}일자 API에서 조회되지 않음", shortCode, baseDate);
+                return false;
+            }
+            
+            StockSecurityInfoDto stockDto = stockDtos.get(0);
+            
+            // 종목코드 정확한 매칭 확인
+            if (!shortCode.equals(stockDto.getShortCode())) {
+                log.warn("⚠️ 종목코드 불일치: 요청 {} vs 응답 {}", shortCode, stockDto.getShortCode());
+                return false;
+            }
+            
+            FinanceStockVO stockVO = convertDtoToVo(stockDto);
+            
+            if (isStockExists(shortCode, baseDate)) {
+                log.info("🔄 종목 {} {}일자 데이터 이미 존재, 업데이트 실행", shortCode, baseDate);
+                return updateStock(stockVO);
+            } else {
+                int result = financeStockMapper.insert(stockVO);
+                log.info("✅ 종목 {} {}일자 데이터 저장 완료", shortCode, baseDate);
+                return result > 0;
+            }
+            
+        } catch (Exception e) {
+            log.error("❌ 종목 {} {}일자 저장 실패: {}", shortCode, baseDate, e.getMessage(), e);
+            return false;
+        }
+    }
+    
+    @Override
+    @Transactional
+    public int saveRecentStockDataByCode(String shortCode, int days) {
+        try {
+            log.info("🔍 종목 {} 최근 {}일간 데이터 저장 시작", shortCode, days);
+            
+            int savedCount = 0;
+            LocalDate today = LocalDate.now();
+            
+            for (int i = 1; i <= days; i++) {
+                LocalDate targetDate = today.minusDays(i);
+                
+                // 주말 및 공휴일은 거래가 없으므로 평일만 처리
+                if (targetDate.getDayOfWeek().getValue() >= 6) { // 토요일(6), 일요일(7)
+                    continue;
+                }
+                
+                try {
+                    // 해당 날짜의 데이터가 이미 존재하는지 확인
+                    if (!isStockExists(shortCode, targetDate)) {
+                        boolean saved = saveStockByCodeAndDate(shortCode, targetDate);
+                        if (saved) {
+                            savedCount++;
+                        }
+                    } else {
+                        log.debug("📅 종목 {} {}일자 데이터 이미 존재", shortCode, targetDate);
+                    }
+                } catch (Exception e) {
+                    log.warn("⚠️ 종목 {} {}일자 데이터 저장 실패: {}", shortCode, targetDate, e.getMessage());
+                }
+            }
+            
+            log.info("✅ 종목 {} 최근 {}일간 데이터 저장 완료: {}건", shortCode, days, savedCount);
+            return savedCount;
+            
+        } catch (Exception e) {
+            log.error("❌ 종목 {} 최근 {}일간 데이터 저장 실패: {}", shortCode, days, e.getMessage(), e);
+            return 0;
+        }
+    }
+    
+    @Override
+    @Transactional
     public int saveStockList(List<StockSecurityInfoDto> stockDtoList) {
         if (stockDtoList == null || stockDtoList.isEmpty()) {
             log.warn("⚠️ 저장할 주식 데이터가 없습니다");

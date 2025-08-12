@@ -34,6 +34,12 @@ public class StockDTO {
     private String organization;
 
     public StockVO toVO(Long memberId, String connectedId, String organization) {
+        // 종목코드에서 A 접두사 제거 (A005930 -> 005930)
+        String cleanItemCode = resItemCode;
+        if (resItemCode != null && resItemCode.startsWith("A") && resItemCode.length() == 7) {
+            cleanItemCode = resItemCode.substring(1);
+        }
+        
         return StockVO.builder()
                 .memberId(memberId)
                 .connectedId(connectedId)
@@ -44,7 +50,7 @@ public class StockDTO {
                 .resDepositReceivedD2(resDepositReceivedD2)
                 .resProductType(resProductType)
                 .resItemName(resItemName)
-                .resItemCode(resItemCode)
+                .resItemCode(cleanItemCode)  // A 제거된 종목코드 저장
                 .resQuantity(resQuantity)
                 .resPresentAmt(resPresentAmt)
                 .resPurchaseAmount(resPurchaseAmount)

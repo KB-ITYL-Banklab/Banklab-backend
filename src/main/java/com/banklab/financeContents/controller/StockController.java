@@ -49,7 +49,7 @@ public class StockController {
             LocalDate yesterday = LocalDate.now().minusDays(1); // 전일 데이터
             log.info("📅 저장 대상 날짜: {} (어제)", yesterday);
             
-            int savedCount = financeStockService.saveTopStockDataFromApi(yesterday, 200);
+            int savedCount = financeStockService.saveTopStockDataFromApi(yesterday, 1000);
             
             Map<String, Object> result = createSuccessResponseMap("오늘자 주식 데이터 저장 완료", null);
             result.put("date", yesterday.toString());
@@ -77,7 +77,7 @@ public class StockController {
             log.info("🗑️ 30일 이전 오래된 데이터 {}건 삭제", deletedCount);
             
             // 최근 30일 데이터 저장
-            int savedCount = financeStockService.saveRecentStockData(30, 200);
+            int savedCount = financeStockService.saveRecentStockData(30, 1000);
             
             Map<String, Object> result = createSuccessResponseMap("최근 30일 데이터 저장 완료", null);
             result.put("savedCount", savedCount);
@@ -92,6 +92,43 @@ public class StockController {
             log.error("❌ [POST] /save/recent 실패: {}", e.getMessage(), e);
             return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, 
                 "최근 데이터 저장 실패", e.getMessage());
+        }
+    }
+
+    @PostMapping("/save/{stockCode}")
+    @ApiOperation(value = "종목코드 기준으로 최근 30일간 데이터 저장")
+    public ResponseEntity<Map<String, Object>> saveStockDataByCode(
+            @ApiParam(value = "종목코드 (6자리)", example = "005930") 
+            @PathVariable String stockCode) {
+        try {
+            // 종목코드 검증
+            if (stockCode == null || stockCode.trim().length() != 6) {
+                return createErrorResponse(HttpStatus.BAD_REQUEST, 
+                    "잘못된 종목코드", "종목코드는 6자리여야 합니다");
+            }
+            
+            String trimmedCode = stockCode.trim();
+            log.info("🔵 [POST] /save/code/{} 요청 시작 - 종목별 30일간 데이터 저장", trimmedCode);
+            
+            // 최근 30일간 해당 종목 데이터 저장
+            int savedCount = financeStockService.saveRecentStockDataByCode(trimmedCode, 30);
+            
+            Map<String, Object> result = createSuccessResponseMap("종목별 30일간 데이터 저장 완료", null);
+            result.put("stockCode", trimmedCode);
+            result.put("savedCount", savedCount);
+            result.put("period", "30일");
+            
+            log.info("✅ [POST] /save/code/{} 완료: {}건 저장", trimmedCode, savedCount);
+            return ResponseEntity.ok(result);
+            
+        } catch (IllegalArgumentException e) {
+            log.warn("⚠️ 잘못된 종목코드 저장 요청: {}", e.getMessage());
+            return createErrorResponse(HttpStatus.BAD_REQUEST, 
+                "잘못된 요청", e.getMessage());
+        } catch (Exception e) {
+            log.error("❌ [POST] /save/code/{} 실패: {}", stockCode, e.getMessage(), e);
+            return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, 
+                "종목별 데이터 저장 실패", e.getMessage());
         }
     }
 
@@ -417,11 +454,11 @@ public class StockController {
         }
     }
 
-    @GetMapping("/timeseries/code")
+    @GetMapping("/timeseries/{code}")
     @ApiOperation(value = "종목코드로 시계열 데이터 조회 (기준일자별 정렬)")
     public ResponseEntity<Map<String, Object>> getStockTimeSeriesByCode(
             @ApiParam(value = "검색할 종목코드 (6자리)", example = "005930") 
-            @RequestParam String code,
+            @PathVariable String code,
             @ApiParam(value = "조회할 개수 (기본값: 30)", example = "30") 
             @RequestParam(required = false, defaultValue = "30") Integer limit) {
         try {
