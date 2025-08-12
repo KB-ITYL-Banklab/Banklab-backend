@@ -95,7 +95,7 @@ public class StockController {
         }
     }
 
-    @PostMapping("/save/{stockCode}")
+    @PostMapping("/save/code/{stockCode}")
     @ApiOperation(value = "종목코드 기준으로 최근 30일간 데이터 저장")
     public ResponseEntity<Map<String, Object>> saveStockDataByCode(
             @ApiParam(value = "종목코드 (6자리)", example = "005930") 
@@ -454,8 +454,79 @@ public class StockController {
         }
     }
 
+    @GetMapping("/timeseries/code")
+    @ApiOperation(value = "종목코드로 시계열 데이터 조회 (Query Parameter 방식)")
+    public ResponseEntity<Map<String, Object>> getStockTimeSeriesByCodeQuery(
+            @ApiParam(value = "검색할 종목코드 (6자리)", example = "005930") 
+            @RequestParam String code,
+            @ApiParam(value = "조회할 개수 (기본값: 30)", example = "30") 
+            @RequestParam(required = false, defaultValue = "30") Integer limit) {
+        try {
+            // 종목코드 검증 및 정리
+            String searchCode = code.trim();
+            if (searchCode.length() != 6) {
+                return createErrorResponse(HttpStatus.BAD_REQUEST, 
+                    "잘못된 종목코드", "종목코드는 6자리여야 합니다");
+            }
+            
+            log.info("📈 종목코드 시계열 데이터 조회 (Query): '{}' (최대 {}개)", searchCode, limit);
+            
+            List<FinanceStockVO> stocks = financeStockService.searchStocksByCode(searchCode);
+            
+            if (stocks.isEmpty()) {
+                Map<String, Object> result = createSuccessResponseMap("검색 결과가 없습니다", new ArrayList<>());
+                result.put("searchCode", searchCode);
+                result.put("count", 0);
+                return ResponseEntity.ok(result);
+            }
+            
+            // 기준일자별 정렬 (최신순) - 이미 서비스에서 정렬됨
+            
+            // 요청된 개수만큼 제한
+            List<FinanceStockVO> limitedStocks = stocks.stream()
+                .limit(limit)
+                .collect(Collectors.toList());
+            
+            // 시계열 데이터 형태로 변환
+            List<Map<String, Object>> timeSeriesData = new ArrayList<>();
+            for (FinanceStockVO stock : limitedStocks) {
+                Map<String, Object> dataPoint = new HashMap<>();
+                dataPoint.put("id", stock.getId());
+                dataPoint.put("bas_dt", stock.getBasDt() != null ? stock.getBasDt().toString() : null);
+                dataPoint.put("srtnCd", stock.getSrtnCd());
+                dataPoint.put("stockName", safeJsonString(stock.getItmsNm()));
+                dataPoint.put("clpr", stock.getClpr());
+                dataPoint.put("versus", stock.getVs());
+                dataPoint.put("fluctuationRate", stock.getFltRt());
+                dataPoint.put("tradingVolume", stock.getTrqu());
+                dataPoint.put("tradingValue", stock.getTrPrc());
+                dataPoint.put("mkp", stock.getMkp());
+                timeSeriesData.add(dataPoint);
+            }
+            
+            Map<String, Object> result = createSuccessResponseMap("종목코드 시계열 데이터 조회 성공", timeSeriesData);
+            result.put("searchCode", searchCode);
+            result.put("count", timeSeriesData.size());
+            result.put("totalFound", stocks.size());
+            result.put("limit", limit);
+            
+            log.info("✅ '{}' 종목코드 시계열 데이터 조회 완료: {}건 반환 (전체 {}건)", 
+                searchCode, timeSeriesData.size(), stocks.size());
+            return ResponseEntity.ok(result);
+            
+        } catch (IllegalArgumentException e) {
+            log.warn("⚠️ 잘못된 종목코드 시계열 조회 요청: {}", e.getMessage());
+            return createErrorResponse(HttpStatus.BAD_REQUEST, 
+                "잘못된 요청", e.getMessage());
+        } catch (Exception e) {
+            log.error("❌ 종목코드 시계열 데이터 조회 실패: {}", e.getMessage(), e);
+            return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, 
+                "종목코드 시계열 데이터 조회 실패", e.getMessage());
+        }
+    }
+
     @GetMapping("/timeseries/{code}")
-    @ApiOperation(value = "종목코드로 시계열 데이터 조회 (기준일자별 정렬)")
+    @ApiOperation(value = "종목코드로 시계열 데이터 조회 (Path Variable 방식)")
     public ResponseEntity<Map<String, Object>> getStockTimeSeriesByCode(
             @ApiParam(value = "검색할 종목코드 (6자리)", example = "005930") 
             @PathVariable String code,
