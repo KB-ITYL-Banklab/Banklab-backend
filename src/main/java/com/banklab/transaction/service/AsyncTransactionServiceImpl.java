@@ -22,6 +22,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.CompletionException;
 
 @Service
@@ -89,16 +90,51 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
 
             // 4. 카테고리 분류 완료 후
             if (isCategorized) {
-                // 4. 집계 업데이트
-                log.info("[START] 집계 내역 db 저장 시작, 계좌번호: {}", account.getResAccount());
-                redisService.set(key, "ANALYZING_DATA", 3);
-                summaryBatchService.initDailySummary(memberId, account, request.getStartDate());
-                log.info("[END] 집계 내역 db 저장 종료");
+                int maxRetry = 3;
+                int retryCount = 0;
+                String lockKey = "lock:summary:" + memberId + ":" + account.getResAccount();
+                String lockValue = UUID.randomUUID().toString();
+                boolean locked = false;
 
-                redisService.set(key, "DONE", 1);
+                try {
+                    while (retryCount < maxRetry) {
+                        locked = redisService.tryLock(lockKey, lockValue, 1); // 60초 락 유지
+                        if (locked) {
+                            break;
+                        }
+                        retryCount++;
+                        log.info("다른 작업이 집계 중입니다. 계좌번호: {} - {}초 후 재시도 {}/{}", account.getResAccount(), 30, retryCount, maxRetry);
+                        Thread.sleep(30_000); // 30초 대기
+                    }
+
+                    if (!locked) {
+                        log.warn("집계 락 획득 실패, 작업 종료 - 계좌번호: {}", account.getResAccount());
+                        return;
+                    }
+
+                    // 락 획득 후 작업 수행
+                    log.info("[START] 집계 내역 db 저장 시작, 계좌번호: {}", account.getResAccount());
+                    redisService.set(key, "ANALYZING_DATA", 3);
+                    summaryBatchService.initDailySummary(memberId, account, request.getStartDate());
+                    log.info("[END] 집계 내역 db 저장 종료");
+
+                    redisService.set(key, "DONE", 1);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    log.error("재시도 중 인터럽트 발생", e);
+                    redisService.set(key, "FAILED", 1);
+                } catch (Exception e) {
+                    log.error("집계 작업 중 예외 발생", e);
+                    redisService.set(key, "FAILED", 1);
+                } finally {
+                    if (locked) {
+                        redisService.unlock(lockKey, lockValue);
+                    }
+                }
             } else {
                 redisService.set(key, "FAILED", 1);
             }
+
 
         } catch (IOException | InterruptedException e) {
             log.error("거래 내역 불러오는 중 오류 발생");
@@ -112,7 +148,7 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
     }
 
 
-public void checkIsPresent(Long memberId, AccountVO account, TransactionRequestDto req) {
+    public void checkIsPresent(Long memberId, AccountVO account, TransactionRequestDto req) {
     LocalDate lastTransactionDate =
             transactionMapper.getLastTransactionDate(memberId, account.getResAccount());
 
@@ -122,12 +158,12 @@ public void checkIsPresent(Long memberId, AccountVO account, TransactionRequestD
     }
 }
 
-/**
- * @param account 계좌 정보
- * @param request 거래 내역 조회를 위한 요청 파라미터 (sDate, eDate, orderBy)
- * @return 거래 내역 조회를 위한 요청 DTO
- */
-public TransactionDTO makeTransactionDTO(AccountVO account, TransactionRequestDto request) {
+    /**
+     * @param account 계좌 정보
+     * @param request 거래 내역 조회를 위한 요청 파라미터 (sDate, eDate, orderBy)
+     * @return 거래 내역 조회를 위한 요청 DTO
+     */
+    public TransactionDTO makeTransactionDTO(AccountVO account, TransactionRequestDto request) {
     if (request == null) {
         request = new TransactionRequestDto();
         LocalDate endDate = LocalDate.now();

@@ -27,11 +27,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Log4j2
 public class CategoryService {
-
-    @Qualifier("asyncExecutor")
-    private final Executor asyncExecutor;
-
-
     private final CategoryMapper categoryMapper;
     private final TransactionMapper transactionMapper;
     private final KakaoMapService kakaoMapService;
