@@ -202,4 +202,11 @@
         ORDER BY COALESCE(tr_prc, 0) DESC
     </select>
 
+    <!-- 종목코드로 시계열 데이터 검색 (모든 날짜) -->
+    <select id="selectByStockCode" resultMap="FinanceStockResultMap">
+        SELECT * FROM finance_stock
+        WHERE srtn_cd = #{srtnCd}
+        ORDER BY bas_dt DESC
+    </select>
+
 </mapper>

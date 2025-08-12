@@ -406,6 +406,26 @@ public class FinanceStockServiceImpl implements FinanceStockService {
     }
     
     @Override
+    public List<FinanceStockVO> searchStocksByCode(String stockCode) {
+        if (stockCode == null || stockCode.trim().isEmpty()) {
+            throw new IllegalArgumentException("검색할 종목코드를 입력해주세요");
+        }
+        
+        try {
+            String searchCode = stockCode.trim();
+            log.info("🔍 종목코드 검색: '{}'", searchCode);
+            
+            List<FinanceStockVO> stocks = financeStockMapper.selectByStockCode(searchCode);
+            log.info("✅ '{}' 종목코드 검색 결과: {}건", searchCode, stocks.size());
+            
+            return stocks;
+        } catch (Exception e) {
+            log.error("❌ 종목코드 검색 실패 ('{}'): {}", stockCode, e.getMessage(), e);
+            return new ArrayList<>();
+        }
+    }
+    
+    @Override
     @Transactional
     public boolean updateStock(FinanceStockVO financeStock) {
         try {

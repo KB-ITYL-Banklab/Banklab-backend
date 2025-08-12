@@ -144,11 +144,13 @@ public class StockController {
             for (FinanceStockVO stock : stocks) {
                 Map<String, Object> safeStock = new HashMap<>();
                 safeStock.put("id", stock.getId());
+                safeStock.put("srtnCd", stock.getSrtnCd());
                 safeStock.put("stockCode", stock.getSrtnCd());
                 safeStock.put("stockName", safeJsonString(stock.getItmsNm()));
                 safeStock.put("closingPrice", stock.getClpr());
                 safeStock.put("baseDate", stock.getBasDt() != null ? stock.getBasDt().toString() : null);
                 safeStock.put("versus", stock.getVs());
+                safeStock.put("mkp", stock.getMkp());
                 safeStocks.add(safeStock);
             }
             
@@ -230,6 +232,7 @@ public class StockController {
             for (FinanceStockVO stock : top5Stocks) {
                 Map<String, Object> stockData = new HashMap<>();
                 stockData.put("id", stock.getId());
+                stockData.put("srtnCd", stock.getSrtnCd());
                 stockData.put("stockCode", stock.getSrtnCd());
                 stockData.put("stockName", safeJsonString(stock.getItmsNm()));
                 stockData.put("baseDate", stock.getBasDt() != null ? stock.getBasDt().toString() : null);
@@ -238,6 +241,7 @@ public class StockController {
                 stockData.put("fluctuationRate", stock.getFltRt());
                 stockData.put("tradingVolume", stock.getTrqu());
                 stockData.put("tradingValue", stock.getTrPrc());
+                stockData.put("mkp", stock.getMkp());
                 result.add(stockData);
             }
             
@@ -302,12 +306,14 @@ public class StockController {
                 Map<String, Object> dataPoint = new HashMap<>();
                 dataPoint.put("id", stock.getId());
                 dataPoint.put("bas_dt", stock.getBasDt() != null ? stock.getBasDt().toString() : null);
+                dataPoint.put("srtnCd", stock.getSrtnCd());
                 dataPoint.put("stockName", safeJsonString(stock.getItmsNm()));
                 dataPoint.put("clpr", stock.getClpr());
                 dataPoint.put("versus", stock.getVs());
                 dataPoint.put("fluctuationRate", stock.getFltRt());
                 dataPoint.put("tradingVolume", stock.getTrqu());
                 dataPoint.put("tradingValue", stock.getTrPrc());
+                dataPoint.put("mkp", stock.getMkp());
                 timeSeriesData.add(dataPoint);
             }
             
@@ -379,12 +385,14 @@ public class StockController {
                 Map<String, Object> dataPoint = new HashMap<>();
                 dataPoint.put("id", stock.getId());
                 dataPoint.put("bas_dt", stock.getBasDt() != null ? stock.getBasDt().toString() : null);
+                dataPoint.put("srtnCd", stock.getSrtnCd());
                 dataPoint.put("stockName", safeJsonString(stock.getItmsNm()));
                 dataPoint.put("clpr", stock.getClpr());
                 dataPoint.put("versus", stock.getVs());
                 dataPoint.put("fluctuationRate", stock.getFltRt());
                 dataPoint.put("tradingVolume", stock.getTrqu());
                 dataPoint.put("tradingValue", stock.getTrPrc());
+                dataPoint.put("mkp", stock.getMkp());
                 timeSeriesData.add(dataPoint);
             }
             
@@ -406,6 +414,77 @@ public class StockController {
             log.error("❌ 정확한 시계열 데이터 조회 실패: {}", e.getMessage(), e);
             return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, 
                 "정확한 시계열 데이터 조회 실패", e.getMessage());
+        }
+    }
+
+    @GetMapping("/timeseries/code")
+    @ApiOperation(value = "종목코드로 시계열 데이터 조회 (기준일자별 정렬)")
+    public ResponseEntity<Map<String, Object>> getStockTimeSeriesByCode(
+            @ApiParam(value = "검색할 종목코드 (6자리)", example = "005930") 
+            @RequestParam String code,
+            @ApiParam(value = "조회할 개수 (기본값: 30)", example = "30") 
+            @RequestParam(required = false, defaultValue = "30") Integer limit) {
+        try {
+            // 종목코드 검증 및 정리
+            String searchCode = code.trim();
+            if (searchCode.length() != 6) {
+                return createErrorResponse(HttpStatus.BAD_REQUEST, 
+                    "잘못된 종목코드", "종목코드는 6자리여야 합니다");
+            }
+            
+            log.info("📈 종목코드 시계열 데이터 조회: '{}' (최대 {}개)", searchCode, limit);
+            
+            List<FinanceStockVO> stocks = financeStockService.searchStocksByCode(searchCode);
+            
+            if (stocks.isEmpty()) {
+                Map<String, Object> result = createSuccessResponseMap("검색 결과가 없습니다", new ArrayList<>());
+                result.put("searchCode", searchCode);
+                result.put("count", 0);
+                return ResponseEntity.ok(result);
+            }
+            
+            // 기준일자별 정렬 (최신순) - 이미 서비스에서 정렬됨
+            
+            // 요청된 개수만큼 제한
+            List<FinanceStockVO> limitedStocks = stocks.stream()
+                .limit(limit)
+                .collect(Collectors.toList());
+            
+            // 시계열 데이터 형태로 변환
+            List<Map<String, Object>> timeSeriesData = new ArrayList<>();
+            for (FinanceStockVO stock : limitedStocks) {
+                Map<String, Object> dataPoint = new HashMap<>();
+                dataPoint.put("id", stock.getId());
+                dataPoint.put("bas_dt", stock.getBasDt() != null ? stock.getBasDt().toString() : null);
+                dataPoint.put("srtnCd", stock.getSrtnCd());
+                dataPoint.put("stockName", safeJsonString(stock.getItmsNm()));
+                dataPoint.put("clpr", stock.getClpr());
+                dataPoint.put("versus", stock.getVs());
+                dataPoint.put("fluctuationRate", stock.getFltRt());
+                dataPoint.put("tradingVolume", stock.getTrqu());
+                dataPoint.put("tradingValue", stock.getTrPrc());
+                dataPoint.put("mkp", stock.getMkp());
+                timeSeriesData.add(dataPoint);
+            }
+            
+            Map<String, Object> result = createSuccessResponseMap("종목코드 시계열 데이터 조회 성공", timeSeriesData);
+            result.put("searchCode", searchCode);
+            result.put("count", timeSeriesData.size());
+            result.put("totalFound", stocks.size());
+            result.put("limit", limit);
+            
+            log.info("✅ '{}' 종목코드 시계열 데이터 조회 완료: {}건 반환 (전체 {}건)", 
+                searchCode, timeSeriesData.size(), stocks.size());
+            return ResponseEntity.ok(result);
+            
+        } catch (IllegalArgumentException e) {
+            log.warn("⚠️ 잘못된 종목코드 시계열 조회 요청: {}", e.getMessage());
+            return createErrorResponse(HttpStatus.BAD_REQUEST, 
+                "잘못된 요청", e.getMessage());
+        } catch (Exception e) {
+            log.error("❌ 종목코드 시계열 데이터 조회 실패: {}", e.getMessage(), e);
+            return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, 
+                "종목코드 시계열 데이터 조회 실패", e.getMessage());
         }
     }
 
