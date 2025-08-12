@@ -1,7 +1,6 @@
 package com.banklab.activity.controller;
 
 import com.banklab.activity.dto.ContentViewLogDTO;
-import com.banklab.activity.dto.MyDataFetchLogDTO;
 import com.banklab.activity.dto.ReportViewLogDTO;
 import com.banklab.activity.service.ActivityService;
 import com.banklab.security.util.LoginUserProvider;
@@ -23,12 +22,14 @@ public class ActivityLogController {
     @ApiOperation(value = "금융 컨텐츠 열람 로그")
     public void logContentView(@RequestBody ContentViewLogDTO request) {
         Long memberId = loginUserProvider.getLoginMemberId();
+        activityService.saveContentViewLog(memberId, request);
     }
 
     @PostMapping("/compare")
     @ApiOperation(value = "상품 비교 기능 사용 로그")
     public void logCompareUsage() {
         Long memberId = loginUserProvider.getLoginMemberId();
+        activityService.saveCompareUsageLog(memberId);
     }
 
     @PostMapping("/report-view")
@@ -40,7 +41,8 @@ public class ActivityLogController {
 
     @PostMapping("/mydata-fetch")
     @ApiOperation(value = "마이데이터 조회 로그")
-    public void logMyDataFetch(@RequestBody MyDataFetchLogDTO request) {
+    public void logMyDataFetch() {
         Long memberId = loginUserProvider.getLoginMemberId();
+        activityService.saveMyDataFetch(memberId);
     }
 }
