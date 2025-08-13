@@ -52,13 +52,11 @@ public class StockApiController {
     /**
      * 표준화된 성공 응답 생성
      */
-    private Map<String, Object> createSuccessResponse(String message, Object data, Map<String, Object> authInfo) {
+    private Map<String, Object> createSuccessResponse(String message, Object data) {
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("message", message);
         response.put("data", data);
-        response.put("memberId", authInfo.get("memberId"));
-        response.put("email", authInfo.get("email"));
         return response;
     }
 
@@ -112,7 +110,7 @@ public class StockApiController {
             response.put("savedCount", stockList.size());
             response.put("stocks", userStocks);
 
-            return ResponseEntity.ok(createSuccessResponse("증권계좌 연동이 완료되었습니다.", response, authInfo));
+            return ResponseEntity.ok(createSuccessResponse("증권계좌 연동이 완료되었습니다.", response));
 
         } catch (SecurityException e) {
             log.error("인증 오류: {}", e.getMessage());
@@ -145,7 +143,7 @@ public class StockApiController {
             response.put("stocks", stockList);
             response.put("count", stockList.size());
 
-            return ResponseEntity.ok(createSuccessResponse("보유종목 목록 조회 완료", response, authInfo));
+            return ResponseEntity.ok(createSuccessResponse("보유종목 목록 조회 완료", response));
 
         } catch (SecurityException e) {
             log.error("인증 오류: {}", e.getMessage());
@@ -188,7 +186,7 @@ public class StockApiController {
             Map<String, Object> response = new HashMap<>();
             response.put("stocks", stockList);
 
-            return ResponseEntity.ok(createSuccessResponse("보유종목 정보 새로고침 완료", response, authInfo));
+            return ResponseEntity.ok(createSuccessResponse("보유종목 정보 새로고침 완료", response));
 
         } catch (SecurityException e) {
             log.error("인증 오류: {}", e.getMessage());
@@ -228,7 +226,7 @@ public class StockApiController {
 
             if (deleted) {
                 stockService.disconnectUserStocks(memberId, request.getConnectedId());
-                return ResponseEntity.ok(createSuccessResponse("증권계좌 연동 해제가 완료되었습니다.", null, authInfo));
+                return ResponseEntity.ok(createSuccessResponse("증권계좌 연동 해제가 완료되었습니다.", null));
             } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(createErrorResponse("커넥티드 아이디 삭제에 실패했습니다.", "DELETE_FAILED"));
@@ -309,7 +307,7 @@ public class StockApiController {
             response.put("timeSeriesCount", timeSeriesData != null ? timeSeriesData.size() : 0);
             response.put("timeSeriesLimit", limit);
 
-            return ResponseEntity.ok(createSuccessResponse("보유종목 상세정보 조회 완료", response, authInfo));
+            return ResponseEntity.ok(createSuccessResponse("보유종목 상세정보 조회 완료", response));
 
         } catch (SecurityException e) {
             log.error("인증 오류: {}", e.getMessage());

@@ -65,13 +65,11 @@ public class AccountController {
     /**
      * 표준화된 성공 응답 생성
      */
-    private Map<String, Object> createSuccessResponse(String message, Object data, Map<String, Object> authInfo) {
+    private Map<String, Object> createSuccessResponse(String message, Object data) {
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("message", message);
         response.put("data", data);
-        response.put("memberId", authInfo.get("memberId"));
-        response.put("email", authInfo.get("email"));
         return response;
     }
 
@@ -132,7 +130,7 @@ public class AccountController {
                                 .resAccount(account.getResAccount())
                                 .build());
             }
-            return ResponseEntity.ok(createSuccessResponse("계좌 연동이 완료되었습니다.", response, authInfo));
+            return ResponseEntity.ok(createSuccessResponse("계좌 연동이 완료되었습니다.", response));
 
         } catch (SecurityException e) {
             log.error("인증 오류: {}", e.getMessage());
@@ -165,7 +163,7 @@ public class AccountController {
             response.put("accounts", accountList);
             response.put("count", accountList.size());
 
-            return ResponseEntity.ok(createSuccessResponse("계좌 목록 조회 완료", response, authInfo));
+            return ResponseEntity.ok(createSuccessResponse("계좌 목록 조회 완료", response));
 
         } catch (SecurityException e) {
             log.error("인증 오류: {}", e.getMessage());
@@ -216,7 +214,7 @@ public class AccountController {
             Map<String, Object> response = new HashMap<>();
             response.put("accounts", accountList);
 
-            return ResponseEntity.ok(createSuccessResponse("계좌 잔액 새로고침 완료", response, authInfo));
+            return ResponseEntity.ok(createSuccessResponse("계좌 잔액 새로고침 완료", response));
 
         } catch (SecurityException e) {
             log.error("인증 오류: {}", e.getMessage());
@@ -262,7 +260,7 @@ public class AccountController {
 
             if (deleted) {
                 accountService.deleteAccount(memberId, request.getConnectedId());
-                return ResponseEntity.ok(createSuccessResponse("계좌 연동 해제가 완료되었습니다.", null, authInfo));
+                return ResponseEntity.ok(createSuccessResponse("계좌 연동 해제가 완료되었습니다.", null));
             } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(createErrorResponse("커넥티드 아이디 삭제에 실패했습니다.", "DELETE_FAILED"));
@@ -317,7 +315,7 @@ public class AccountController {
             period.put("end", endDate);
             response.put("period", period);
 
-            return ResponseEntity.ok(createSuccessResponse("거래내역 조회 완료", response, authInfo));
+            return ResponseEntity.ok(createSuccessResponse("거래내역 조회 완료", response));
 
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
