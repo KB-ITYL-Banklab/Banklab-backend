@@ -4,12 +4,10 @@ import com.banklab.character.service.CharacterService;
 import com.banklab.mission.domain.*;
 import com.banklab.mission.evaluator.EvaluatorRegistry;
 import com.banklab.mission.evaluator.MissionEvaluator;
-import com.banklab.mission.event.MissionCompletedEvent;
 import com.banklab.mission.mapper.MissionMapper;
 import com.banklab.mission.mapper.MissionProgressMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +22,6 @@ public class MissionProgressServiceImpl implements MissionProgressService {
     private final MissionProgressMapper missionProgressMapper;
     private final CharacterService characterService;
     private final EvaluatorRegistry evaluatorRegistry;
-    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     @Override
@@ -52,8 +49,8 @@ public class MissionProgressServiceImpl implements MissionProgressService {
             if (!isPersistent) {
                 int inserted = missionProgressMapper.insertExpGrant(grantVO);
                 if (inserted > 0) {
-                    eventPublisher.publishEvent(
-                            new MissionCompletedEvent(memberId, m.getMissionId(), m.getRewardExp())
+                    characterService.addExpAndLevelUp(
+                            memberId, m.getRewardExp()
                     );
                 }
             }
@@ -84,8 +81,8 @@ public class MissionProgressServiceImpl implements MissionProgressService {
             // 멱등 지급
             int inserted = missionProgressMapper.insertExpGrant(grantVO);
             if (inserted > 0) {
-                eventPublisher.publishEvent(
-                        new MissionCompletedEvent(memberId, m.getMissionId(), m.getRewardExp())
+                characterService.addExpAndLevelUp(
+                        memberId, m.getRewardExp()
                 );
             }
         }

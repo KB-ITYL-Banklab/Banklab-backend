@@ -5,7 +5,6 @@ import com.banklab.mission.domain.ExpGrantVO;
 import com.banklab.mission.domain.MissionType;
 import com.banklab.mission.dto.MissionStateDTO;
 import com.banklab.mission.dto.MissionsResponseDTO;
-import com.banklab.mission.event.MissionCompletedEvent;
 import com.banklab.mission.domain.MissionVO;
 import com.banklab.mission.dto.MissionDTO;
 import com.banklab.mission.evaluator.EvaluatorRegistry;
@@ -13,7 +12,6 @@ import com.banklab.mission.evaluator.MissionEvaluator;
 import com.banklab.mission.mapper.MissionMapper;
 import com.banklab.mission.mapper.MissionProgressMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +27,6 @@ public class MissionServiceImpl implements MissionService {
     private final MissionProgressMapper missionProgressMapper;
     private final CharacterService characterService;
     private final EvaluatorRegistry evaluatorRegistry;
-    private final ApplicationEventPublisher eventPublisher;
 
 
     @Override
@@ -46,7 +43,7 @@ public class MissionServiceImpl implements MissionService {
         List<MissionVO> nextLevelMissions = missionMapper.findByLevelId(nextLevel);
 
         // 이전 레벨의 보완/지속성 미션들 조회
-        List<MissionVO> previousOptionalMissions = missionMapper.findPreviousSupplementalMissions(currentLevel);
+        List<MissionVO> previousOptionalMissions = missionMapper.findPreviousSupplementalMissions(nextLevel);
 
         // 합쳐서 반환
         List<MissionVO> all = new ArrayList<>();
@@ -80,9 +77,7 @@ public class MissionServiceImpl implements MissionService {
 
             // 멱등 지급 + EXP 반영
             if (missionProgressMapper.insertExpGrant(grant) > 0) {
-                eventPublisher.publishEvent(
-                        new MissionCompletedEvent(memberId, m.getMissionId(), m.getRewardExp())
-                );
+                characterService.addExpAndLevelUp(memberId, m.getRewardExp());
             }
         }
     }
