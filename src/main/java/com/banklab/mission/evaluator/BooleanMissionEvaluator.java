@@ -1,5 +1,6 @@
 package com.banklab.mission.evaluator;
 
+import com.banklab.activity.domain.EventType;
 import com.banklab.activity.service.ActivityService;
 import com.banklab.financeContents.service.FinanceQuizService;
 import com.banklab.mission.domain.ConditionKey;
@@ -38,14 +39,19 @@ public class BooleanMissionEvaluator implements MissionEvaluator {
 
         return switch (key) {
             case DAILY_QUIZ_SOLVED -> financeQuizService.hasUserSolvedTodayQuiz(memberId) ? 1 : 0;
-            case MYDATA_FETCHED_RECENTLY -> activityService.hasRecentMyDataLog(memberId) ? 1 : 0;
-            case RECENT_FINANCIAL_ACTIVITY -> activityService.hasRecentContentLog(memberId) ? 1 : 0;
-            case TYPE_TEST_RECENT -> isWithin60Days(memberId) ? 1 : 0;
+            case MYDATA_FETCHED_RECENTLY -> activityService.hasRecent(
+                    memberId, EventType.MYDATA_FETCH, mission.getRecentDays()) ? 1 : 0;
+            case RECENT_FINANCIAL_ACTIVITY -> hasRecentContentLog(memberId, mission.getRecentDays()) ? 1 : 0;
+            case TYPE_TEST_RECENT -> hasRecentTypeTest(memberId, mission.getRecentDays()) ? 1 : 0;
             default -> throw new UnsupportedOperationException("Unknown key: " + key);
         };
     }
 
-    private boolean isWithin60Days(Long memberId) {
+    private boolean hasRecentContentLog(Long memberId, int recentDays) {
+        return activityService.hasRecent(memberId, EventType.CONTENT_VIEW, recentDays);
+    }
+
+    private boolean hasRecentTypeTest(Long memberId, int recentDays) {
         String updatedAt = typeTestService.getUserInvestmentType(memberId).getUpdatedAt();
         if (updatedAt == null || updatedAt.isEmpty()) {
             return false; // 날짜 없음
@@ -56,6 +62,6 @@ public class BooleanMissionEvaluator implements MissionEvaluator {
         LocalDate updatedDate = LocalDate.parse(updatedAt, formatter);
 
         long daysBetween = ChronoUnit.DAYS.between(updatedDate, LocalDate.now());
-        return daysBetween <= 60;
+        return daysBetween <= recentDays;
     }
 }

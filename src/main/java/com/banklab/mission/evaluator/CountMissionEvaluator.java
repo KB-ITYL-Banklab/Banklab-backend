@@ -1,5 +1,6 @@
 package com.banklab.mission.evaluator;
 
+import com.banklab.activity.domain.EventType;
 import com.banklab.activity.service.ActivityService;
 import com.banklab.mission.domain.ConditionKey;
 import com.banklab.mission.domain.MissionCycle;
@@ -41,17 +42,17 @@ public class CountMissionEvaluator implements MissionEvaluator {
             }
             case CONTENT_VIEW_COUNT -> {
                 if (cycle.equals(MissionCycle.DAILY)) {
-                    yield activityService.countTodayContentView(memberId);
+                    yield activityService.countToday(memberId, EventType.CONTENT_VIEW);
                 }
-                yield activityService.countAllContentView(memberId);
+                yield activityService.countAll(memberId, EventType.CONTENT_VIEW);
             }
             case COMPARE_USAGE_COUNT -> {
                 if (cycle.equals(MissionCycle.WEEKLY)) {
-                    yield activityService.countThisWeekCompareUsage(memberId);
+                    yield activityService.countThisWeek(memberId, EventType.COMPARE_USAGE);
                 }
-                yield activityService.countAllCompareUsage(memberId);
+                yield activityService.countAll(memberId, EventType.COMPARE_USAGE);
             }
-            case SPENDING_REPORT_VIEW_COUNT -> activityService.countAllSpendingReportView(memberId);
+            case SPENDING_REPORT_VIEW_COUNT -> activityService.countAll(memberId, EventType.SPENDING_REPORT_VIEW);
             default -> throw new UnsupportedOperationException("Unknown key: " + key);
         };
     }

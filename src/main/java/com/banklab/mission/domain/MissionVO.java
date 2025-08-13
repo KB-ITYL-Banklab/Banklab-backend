@@ -20,4 +20,5 @@ public class MissionVO {
     private ConditionType conditionType;
     private int targetValue;
     private MissionCycle missionCycle;
+    private int recentDays;
 }

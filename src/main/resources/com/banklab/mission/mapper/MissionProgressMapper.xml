@@ -8,33 +8,34 @@
         SELECT * FROM member_mission_progress
         WHERE member_id = #{memberId}
     </select>
-    <select id="countCompletedMission" resultType="java.lang.Integer">
-        SELECT COUNT(1)
-        FROM member_mission_progress
-        WHERE member_id = #{memberId}
-          AND mission_id = #{missionId}
-          AND completed = TRUE
-    </select>
     <select id="get" resultType="MissionProgressVO">
         SELECT * FROM member_mission_progress
         WHERE member_id = #{memberId}
             AND mission_id = #{missionId}
     </select>
-    <insert id="insert">
-        INSERT INTO member_mission_progress (member_id, mission_id)
-        VALUES (#{memberId}, #{missionId})
+    <insert id="upsertProgress">
+        INSERT INTO member_mission_progress
+            (member_id, mission_id, period_start_date, progress_value)
+        VALUES
+            (#{memberId}, #{missionId}, #{periodStartDate}, #{progressValue})
+            ON DUPLICATE KEY UPDATE
+                progress_value = progress_value + VALUES(progress_value)
     </insert>
-    <update id="updateProgress">
-        UPDATE member_mission_progress SET progress_value = #{progressValue}
-        WHERE member_id = #{memberId} AND mission_id = #{missionId}
-    </update>
-    <update id="markCompleted">
-        UPDATE member_mission_progress
-        SET completed = TRUE,
-            completed_at = NOW(),
-            updated_at = NOW()
-        WHERE member_id = #{memberId}
-          AND mission_id = #{missionId}
-          AND completed = FALSE
-    </update>
+
+    <select id="existsExpGrant" resultType="java.lang.Boolean">
+        SELECT EXISTS(
+            SELECT 1
+            FROM exp_grant_log
+            WHERE member_id = #{memberId}
+              AND mission_id = #{missionId}
+              AND period_start_date = #{periodStartDate}
+        )
+    </select>
+    <insert id="insertExpGrant">
+        INSERT INTO exp_grant_log
+            (member_id, mission_id, mission_cycle, period_start_date, granted_exp)
+        VALUES
+            (#{memberId}, #{missionId}, #{missionCycle}, #{periodStartDate}, #{grantedExp})
+            ON DUPLICATE KEY UPDATE mission_id = mission_id
+    </insert>
 </mapper>

@@ -11,4 +11,5 @@ public interface CharacterMapper {
     CharacterLevelVO getLevelInfo(int levelId);
     int insertCharacter(CharacterVO character);
     int updateCharacter(@Param("memberId") Long memberId, @Param("levelId") int levelId, @Param("exp") int exp);
+    Integer lockAndGetLevel(@Param("memberId") Long memberId);
 }

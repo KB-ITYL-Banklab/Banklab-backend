@@ -31,4 +31,13 @@
         SELECT * FROM mission
         WHERE mission_id = #{missionId}
     </select>
+    <!--  현재 레벨에서 평가 가능한 미션만  -->
+    <select id="findByLevelAndKey" resultType="MissionVO">
+        SELECT * FROM mission
+        WHERE condition_key = #{conditionKey}
+        AND (
+            level_id = #{levelId}
+            OR (type IN ('OPTIONAL','PERSISTENT') AND level_id &lt; #{levelId})
+        )
+    </select>
 </mapper>

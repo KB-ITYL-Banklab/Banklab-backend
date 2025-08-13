@@ -10,6 +10,7 @@ import com.banklab.mission.domain.MissionVO;
 import com.banklab.mission.evaluator.CriteriaMissionEvaluator;
 import com.banklab.mission.mapper.MissionMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CharacterServiceImpl implements CharacterService {
@@ -56,6 +58,7 @@ public class CharacterServiceImpl implements CharacterService {
                 .build();
 
         characterMapper.insertCharacter(newCharacter);
+
         return getCharacter(memberId);
     }
 
@@ -73,29 +76,19 @@ public class CharacterServiceImpl implements CharacterService {
         return 1;
     }
 
-
-//    @Override
-//    public void syncLevelAndExp(Long memberId) {
-//        MemberCharacterVO character = characterMapper.getMemberCharacter(memberId);
-//
-//        int gainedExp = missionService.calculateExp(memberId);
-//        character.addExp(gainedExp);
-//
-//        // 레벨업 가능한 레벨까지 체크
-//        int nextLevel = character.getCurrentLevel().getLevelId() + 1;
-//        CharacterLevelVO next = characterMapper.getLevelInfo(nextLevel);
-//        while (character.canLevelUp(next)) {
-//            character.levelUp(next);
-//            next = characterMapper.getLevelInfo(next.getLevelId() + 1);
-//        }
-//
-//        // 변경된 상태 저장
-//        characterMapper.updateCharacter(memberId, character.getCurrentLevel().getLevelId(), character.getExp());
-//    }
-
-    @Override
+    /** 같은 트랜잭션 내 동시성 안전: 행 잠금 */
     @Transactional
+    @Override
+    public int lockAndGetLevel(Long memberId) {
+        Integer lvl = characterMapper.lockAndGetLevel(memberId);
+        if (lvl == null) throw new IllegalStateException("Character not found: " + memberId);
+        return lvl;
+    }
+
+    @Transactional
+    @Override
     public boolean addExpAndLevelUp(Long memberId, int gainedExp) {
+        log.info("gainedExp" + gainedExp);
         if (gainedExp <= 0) return false;
 
         // 현재 캐릭터 상태 조회 (경합 방지하려면 for update 사용 권장)

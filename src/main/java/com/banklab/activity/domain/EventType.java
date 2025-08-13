@@ -1,0 +1,6 @@
+package com.banklab.activity.domain;
+
+public enum EventType {
+    CONTENT_VIEW, COMPARE_USAGE, SPENDING_REPORT_VIEW, MYDATA_FETCH,
+    QUIZ_ATTEMPT, QUIZ_CORRECT, TYPE_TEST_DONE, DAILY_QUIZ
+}
