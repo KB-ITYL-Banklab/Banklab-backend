@@ -48,13 +48,11 @@ public class CashController {
     /**
      * 표준화된 성공 응답 생성
      */
-    private Map<String, Object> createSuccessResponse(String message, Object data, Map<String, Object> authInfo) {
+    private Map<String, Object> createSuccessResponse(String message, Object data) {
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("message", message);
         response.put("data", data);
-        response.put("memberId", authInfo.get("memberId"));
-        response.put("email", authInfo.get("email"));
         return response;
     }
 
@@ -87,7 +85,7 @@ public class CashController {
             Map<String, Object> response = new HashMap<>();
             response.put("cash", cashDTO);
 
-            return ResponseEntity.ok(createSuccessResponse("현금 정보 조회 완료", response, authInfo));
+            return ResponseEntity.ok(createSuccessResponse("현금 정보 조회 완료", response));
 
         } catch (SecurityException e) {
             log.error("인증 오류: {}", e.getMessage());
@@ -133,7 +131,7 @@ public class CashController {
             Map<String, Object> response = new HashMap<>();
             response.put("cash", updatedCash);
 
-            return ResponseEntity.ok(createSuccessResponse("현금 금액이 설정되었습니다.", response, authInfo));
+            return ResponseEntity.ok(createSuccessResponse("현금 금액이 설정되었습니다.", response));
 
         } catch (SecurityException e) {
             log.error("인증 오류: {}", e.getMessage());

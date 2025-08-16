@@ -50,26 +50,81 @@ public class RequestConnectedId {
         bodyMap.put("accountList", list);
 
         String result = ApiRequest.request(urlPath, bodyMap);
-        //System.out.println(result);
         log.info("🔍 CODEF API 전체 응답: " + result);
 
         JsonNode root = mapper.readTree(result);
-        log.info("🔍 파싱된 JSON: " + root.toString());
 
+        // 1. 먼저 결과 코드 확인
+        JsonNode resultNode = root.path("result");
+        if (resultNode.isMissingNode() || resultNode.isNull()) {
+            log.error("응답에서 result 필드를 찾을 수 없습니다.");
+            throw new RuntimeException("CODEF API 응답 형식이 올바르지 않습니다.");
+        }
+
+        String resultCode = resultNode.path("code").asText();
+        String resultMessage = resultNode.path("message").asText();
+
+        log.info("🔍 CODEF API 결과 코드: {}, 메시지: {}", resultCode, resultMessage);
+
+        // 2. 성공 코드가 아닌 경우 예외 처리
+        if (!"CF-00000".equals(resultCode)) {
+            log.error("커넥티드 아이디 발급 실패 - 코드: {}, 메시지: {}", resultCode, resultMessage);
+
+            // data.errorList에서 구체적인 에러 정보 확인 (우선순위)
+            String finalErrorCode = resultCode;
+            String finalErrorMessage = resultMessage;
+
+            JsonNode dataNode = root.path("data");
+            if (!dataNode.isMissingNode() && !dataNode.isNull()) {
+                JsonNode errorListNode = dataNode.path("errorList");
+                if (errorListNode.isArray() && errorListNode.size() > 0) {
+                    JsonNode firstError = errorListNode.get(0);
+                    String errorCode = firstError.path("code").asText();
+                    String errorMessage = firstError.path("message").asText();
+
+                    if (!errorCode.isEmpty()) {
+                        // errorList의 에러 정보를 우선 사용
+                        finalErrorCode = errorCode;
+                        finalErrorMessage = errorMessage;
+                        log.info("🔍 data.errorList에서 구체적인 에러 정보 사용 - 코드: {}, 메시지: {}", finalErrorCode, finalErrorMessage);
+                    }
+                }
+            }
+
+            // 특정 에러 코드에 따른 사용자 친화적 메시지
+            String userMessage = getUserFriendlyErrorMessage(finalErrorCode, finalErrorMessage);
+            throw new RuntimeException(userMessage);
+        }
+
+        // 3. 성공한 경우에만 connectedId 추출
         JsonNode connectedIdNode = root.path("data").path("connectedId");
+        if (connectedIdNode.isMissingNode() || connectedIdNode.isNull() || connectedIdNode.asText().isEmpty()) {
+            log.error("성공 응답이지만 connectedId를 찾을 수 없습니다.");
+            throw new RuntimeException("계좌 연결 정보를 생성할 수 없습니다.");
+        }
+
         String connectedId = connectedIdNode.asText();
-        log.info("🔍 추출된 connectedId: " + connectedId);
+        log.info("🔍 추출된 connectedId: {}", connectedId);
+        log.info("커넥티드 아이디 발급 완료: {}", connectedId);
+
         return connectedId;
-        //if (connectedIdNode != null && !connectedIdNode.isNull()) {
-        //    String connectedId = connectedIdNode.asText();
-        //    log.info("🔍 추출된 connectedId: " + connectedId);
-        //    //log.info("커넥티드 아이디 발급 완료: {}", connectedId);
-        //    return connectedId;  // connectedId 반환
-        //}
-        //else {
-        //    log.error("connectedId를 응답에서 찾을 수 없습니다.");
-        //    throw new RuntimeException("connectedId를 응답에서 찾을 수 없습니다.");
-        //}
+    }
+
+    /**
+     * 에러 코드에 따른 사용자 친화적 메시지 반환
+     */
+    private static String getUserFriendlyErrorMessage(String resultCode, String resultMessage) {
+        switch (resultCode) {
+            case "CF-12803":
+                return "아이디 또는 비밀번호가 올바르지 않습니다.\n로그인 정보를 확인 후 다시 시도해주세요.";
+            case "CF-12703":
+                return "은행 서버에 일시적인 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.";
+            case "CF-04000":
+                return "계좌 연결에 실패했습니다.\n로그인 정보를 확인해주세요.";
+            default:
+                // 알려지지 않은 에러코드는 원본 메시지를 개행 처리하여 전달
+                return String.format("계좌 연결에 실패했습니다.\n(오류코드: %s)\n%s", resultCode, resultMessage);
+        }
     }
 
     /**
@@ -81,6 +136,8 @@ public class RequestConnectedId {
      * @throws Exception the exception
      */
     public static boolean deleteConnectedId(String connectedId, String organization, String businessType, String clientType) throws Exception {
+        log.info("커넥티드 아이디 삭제 요청 시작 - connectedId: {}, 은행코드: {}", connectedId, organization);
+
         String urlPath = CommonConstant.TEST_DOMAIN + CommonConstant.DELETE_ACCOUNT;
 
         HashMap<String, Object> bodyMap = new HashMap<String, Object>();
@@ -98,25 +155,26 @@ public class RequestConnectedId {
         bodyMap.put("connectedId", connectedId);
 
         String result = ApiRequest.request(urlPath, bodyMap);
+        log.info("🔍 CODEF API 삭제 응답: " + result);
 
         JsonNode root = mapper.readTree(result);
 
         JsonNode resultNode = root.path("result");
         if (resultNode != null && !resultNode.isNull()) {
             String resultCode = resultNode.path("code").asText();
-            log.info("응답 코드 : {}", resultCode);
+            String resultMessage = resultNode.path("message").asText();
+            log.info("삭제 응답 코드: {}, 메시지: {}", resultCode, resultMessage);
 
             boolean isSuccess = "CF-00000".equals(resultCode);
             if (isSuccess) {
                 log.info("connectedId '{}'의 삭제가 성공적으로 진행되었습니다!", connectedId);
             } else {
-                log.warn("connectedId '{}'의 삭제가 실패했습니다. 응답 코드: {}", connectedId, resultCode);
+                log.warn("connectedId '{}'의 삭제가 실패했습니다. 응답 코드: {}, 메시지: {}", connectedId, resultCode, resultMessage);
             }
             return isSuccess;
         }
 
+        log.error("삭제 응답에서 result 필드를 찾을 수 없습니다.");
         return false;
     }
-
 }
-
