@@ -3,18 +3,12 @@ package com.banklab.category.service;
 import com.banklab.category.domain.CategoryVO;
 import com.banklab.category.dto.CategoryDTO;
 import com.banklab.category.gemini.service.GeminiService;
-import com.banklab.category.kakaomap.service.KakaoMapService;
 import com.banklab.category.mapper.CategoryMapper;
 import com.banklab.common.redis.RedisKeyUtil;
-import com.banklab.common.redis.RedisService;
 import com.banklab.transaction.domain.TransactionHistoryVO;
 import com.banklab.transaction.mapper.TransactionMapper;
-import com.banklab.transaction.summary.service.SummaryBatchService;
-import com.google.common.util.concurrent.RateLimiter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -29,8 +23,8 @@ import java.util.stream.Collectors;
 public class CategoryService {
     private final CategoryMapper categoryMapper;
     private final TransactionMapper transactionMapper;
-    private final KakaoMapService kakaoMapService;
     private final GeminiService geminiService;
+    private final UtilService utilService;
 
     public void categorizeTransactions(List<TransactionHistoryVO> transactions, String key) {
         List<String> descriptions = transactions.stream()
@@ -55,17 +49,17 @@ public class CategoryService {
             String redisKey = RedisKeyUtil.category(desc);
 
             // 1. Redis 캐시 확인 (동기)
-            Long categoryId = kakaoMapService.isStoredInRedis(redisKey);
+            Long categoryId = utilService.isStoredInRedis(redisKey);
             if (categoryId != null) {
                 descMap.put(desc, categoryId);
                 continue;
             }
 
             CompletableFuture<Long> future = CompletableFuture
-                    .supplyAsync(() -> kakaoMapService.mapToInternalCategory(desc), executor)
+                    .supplyAsync(() -> utilService.mapToInternalCategory(desc), executor)
                     .thenApplyAsync(category -> {
                         if (category != 8L) {
-                            kakaoMapService.storeInRedis(redisKey, String.valueOf(category));
+                            utilService.storeInRedis(redisKey, String.valueOf(category));
                             descMap.put(desc, category);
                         } else {
                             synchronized (toClassifyViaApi) {
@@ -114,44 +108,11 @@ public class CategoryService {
 
                 String redisKey = RedisKeyUtil.category(desc);
                 descMap.put(desc, categoryId);
-                kakaoMapService.storeInRedis(redisKey, String.valueOf(categoryId));
+                utilService.storeInRedis(redisKey, String.valueOf(categoryId));
             }
         }
-
-        /** Kakao API
-         for(String desc : toClassifyViaApi){
-         String redisKey = "category::"+desc;
-         try{
-         long categoryId = kakaoMapService.getCategoryByDesc(redisKey, desc);
-         descMap.put(desc, categoryId);
-         }catch (Exception e){
-         log.error("카테고리 분류 중 에러 발생");
-         }
-         /** 비동기 처리
-         descMap.put(desc,
-         CompletableFuture.supplyAsync(() -> {
-         try {
-         // 동시에 실행되는 작업이 10개 초과인 경우 대기 (병렬 제한)
-         concurrentLimit.acquire();
-         rateLimiter.acquire();  // 초당 요청 수 제한 (속도 제한)
-         getCategoryWithCache(desc);
-         return getCategoryWithCache(desc);  // 실제 분류
-         } catch (Exception e) {
-         log.error("카테고리 분류 api 호출 중 에러 발생", e);
-         throw new RuntimeException(e);
-         }finally {
-         concurrentLimit.release();
-         }
-         }, asyncExecutor)
-         );
-
-         }
-         */
-        // 이제 모든 분류 끝났으니 바로 저장 호출
+        // 카테고리 저장
         saveCategories(transactions, descMap);
-//        // 비동기 작업이 다 끝난 경우 DB 저장 (전체 분류가 다 끝난 경우)
-//        CompletableFuture<Void> allDone = CompletableFuture.allOf(descMap.values().toArray(new CompletableFuture[0]));
-//        return allDone.thenRun(() -> saveCategories(transactions, descMap));
     }
 
     private long convertCategoryNameToId(String categoryName) {
@@ -166,7 +127,6 @@ public class CategoryService {
             default -> 8; // 기타
         };
     }
-
 
     /**
      * @param transactions CODEF에서 받아온 거래 내역
@@ -197,7 +157,6 @@ public class CategoryService {
         transactionMapper.updateCategories(transactions);
         log.info("[END] 카테고리 저장 완료 : Thread: {}", Thread.currentThread().getName());
     }
-
 
     public List<CategoryDTO> findAll() {
         return categoryMapper.findAll().stream()

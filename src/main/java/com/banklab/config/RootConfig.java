@@ -38,7 +38,6 @@ import java.util.stream.Collectors;
         "com.banklab.character.mapper",
         "com.banklab.mission.mapper",
         "com.banklab.activity.mapper"
-
 })
 
 @ComponentScan(basePackages = {
@@ -59,7 +58,6 @@ import java.util.stream.Collectors;
         "com.banklab.verification.service",
         "com.banklab.common.redis",
         "com.banklab.category.gemini",
-        "com.banklab.category.kakaomap",
         "com.banklab.calculator.service",
         "com.banklab.cash.service",
         "com.banklab.character.service",
