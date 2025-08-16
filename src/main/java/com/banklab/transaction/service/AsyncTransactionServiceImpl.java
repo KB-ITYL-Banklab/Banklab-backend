@@ -114,7 +114,7 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
 
                     // 락 획득 후 작업 수행
                     log.info("[START] 집계 내역 db 저장 시작, 계좌번호: {}", account.getResAccount());
-                    redisService.set(key, "ANALYZING_DATA", 3);
+                    redisService.set(key, "ANALYZING_DATA", 10);
                     summaryBatchService.initDailySummary(memberId, account, request.getStartDate());
                     log.info("[END] 집계 내역 db 저장 종료");
 
