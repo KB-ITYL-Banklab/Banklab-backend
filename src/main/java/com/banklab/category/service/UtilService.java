@@ -1,99 +1,23 @@
-package com.banklab.category.kakaomap.service;
+package com.banklab.category.service;
 
-import com.banklab.category.kakaomap.client.KakaoMapClient;
-import com.banklab.category.kakaomap.dto.KakaoMapSearchResponseDto;
 import com.banklab.common.redis.RedisService;
-import com.google.common.util.concurrent.RateLimiter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Semaphore;
 
 @Service
 @RequiredArgsConstructor
-public class KakaoMapService {
-    private final KakaoMapClient kakaoMapClient;
+@Log4j2
+public class UtilService {
     private final RedisService redisService;
 
-    private static final Logger log = LoggerFactory.getLogger(KakaoMapService.class);
-    // 2초당 약 1회 호출 제한 (환경에 맞게 조절)
-    private final RateLimiter rateLimiter = RateLimiter.create(0.5);
-
-    // 동시 최대 3개 요청 제한 (환경에 맞게 조절)
-    private final Semaphore semaphore = new Semaphore(1);
-    
-    // 고도화 고려
-//    private static final String REDIS_FAILED_SET_KEY = "category:failed_desc_set";
-    public long getCategoryByDesc(String redisKey, String desc) {
-    KakaoMapSearchResponseDto response;
-        try {
-            semaphore.acquire();
-            rateLimiter.acquire();
-            response = getCategoryWithRetry(desc, 1);
-
-            String categoryName = null;
-            if (response != null && !response.getDocuments().isEmpty()) {
-                categoryName = response.getDocuments().get(0).getCategoryName();
-            }
-
-            // 2. 응답이 없거나 categoryName이 비어 있는 경우 기타로 분류
-            if (categoryName == null || categoryName.isEmpty()) {
-                return 8L;
-            }
-            log.info("api로 호출 상호명{}, 카테고리: {}",desc, categoryName);
-            // 3. 최종 카테고리 매핑 및 로그
-            Long categoryId = mapToInternalCategory(categoryName);
-            storeInRedis(redisKey, String.valueOf(categoryId));
-            return categoryId;
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }finally {
-            semaphore.release();
-        }
-    }
-    // 실패 카테고리 배치 처리용 : 고도화 시 사용
-//    private void pushToFailedQueue(String desc) {
-//        redisService.sAdd(REDIS_FAILED_SET_KEY, desc);
-//    }
-    private KakaoMapSearchResponseDto getCategoryWithRetry(String desc, int maxRetries) {
-        int retryCount = 0;
-        long waitTime = 10000; // 10초
-        while (retryCount < maxRetries) {
-            try {
-                return kakaoMapClient.getCategoryByDesc(desc);
-            } catch (HttpClientErrorException.TooManyRequests e) {
-                log.error("Http 에러 발생. 상태 코드: {}, 응답: {}", e.getStatusCode(), e.getResponseBodyAsString());
-                try {
-                    Thread.sleep(waitTime);
-                } catch (InterruptedException ex) {
-                    throw new RuntimeException(ex);
-                }
-                retryCount++;
-                waitTime *= 2; // Exponential backoff
-            } catch (Exception e) {
-                // 기타 예외 처리
-                log.error("카카오 API 호출 중 예외 발생: {}", e.getMessage(), e);
-                break;
-            }
-        }
-        return null;
-    }
-
-    // 30분 정도 분류한 카테고리 캐시에 저장
     public void storeInRedis(String redisKey, String categoryId) {
         redisService.set(redisKey, categoryId, 30);
     }
 
     public Long isStoredInRedis(String redisKey) {
-
         String cachedCategory = redisService.get(redisKey);
         if (cachedCategory != null) {
             try {
