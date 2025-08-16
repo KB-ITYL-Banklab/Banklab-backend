@@ -91,21 +91,58 @@ public class StockApiController {
             log.info("증권계좌 연동 시작 - email: {}, memberId: {}, stockCode: {}",
                     email, memberId, stockRequest.getStockCode());
 
-            // 1. 커넥티드 아이디 발급
-            String userConnectedId = RequestConnectedId.createConnectedId(
-                    stockRequest.getStockId(),
-                    stockRequest.getStockPassword(),
-                    stockRequest.getStockCode(),
-                    "ST",
-                    "A");
+            String userConnectedId = null;
+            List<StockVO> stockList = null;
 
-            // 2. 커넥티드 아이디로 보유종목 정보 조회 및 DB 저장
-            List<StockVO> stockList = StockResponse.requestStocks(
-                    memberId, stockRequest.getStockCode(), userConnectedId, stockRequest.getAccount(), stockRequest.getAccountPassword());
+            try {
+                // 1. 커넥티드 아이디 발급 (로그인 정보 검증)
+                userConnectedId = RequestConnectedId.createConnectedId(
+                        stockRequest.getStockId(),
+                        stockRequest.getStockPassword(),
+                        stockRequest.getStockCode(),
+                        "ST",
+                        "A");
+
+                // 2. 커넥티드 아이디로 보유종목 정보 조회
+                stockList = StockResponse.requestStocks(
+                        memberId, stockRequest.getStockCode(), userConnectedId,
+                        stockRequest.getAccount(), stockRequest.getAccountPassword());
+
+                if (stockList == null || stockList.isEmpty()) {
+                    // 커넥티드 아이디 정리 후 에러 응답
+                    try {
+                        RequestConnectedId.deleteConnectedId(userConnectedId, stockRequest.getStockCode(), "ST", "A");
+                    } catch (Exception cleanupEx) {
+                        log.warn("커넥티드 아이디 정리 실패: {}", cleanupEx.getMessage());
+                    }
+
+                    return ResponseEntity.badRequest()
+                            .body(createErrorResponse("연결된 보유종목을 찾을 수 없습니다.", "NO_STOCKS_FOUND"));
+                }
+
+            } catch (RuntimeException e) {
+                // CODEF API에서 발생한 사용자 친화적 에러 메시지 그대로 전달
+                log.error("CODEF API 오류: {}", e.getMessage());
+
+                // 커넥티드 아이디가 생성되었다면 정리
+                if (userConnectedId != null) {
+                    try {
+                        RequestConnectedId.deleteConnectedId(userConnectedId, stockRequest.getStockCode(), "ST", "A");
+                    } catch (Exception cleanupEx) {
+                        log.warn("커넥티드 아이디 정리 실패: {}", cleanupEx.getMessage());
+                    }
+                }
+
+                return ResponseEntity.badRequest()
+                        .body(createErrorResponse(e.getMessage(), "CODEF_API_ERROR"));
+            }
+
+            // 3. DB에 보유종목 정보 저장
             stockService.saveStocks(stockList);
 
-            // 3. 저장된 보유종목 정보 조회하여 반환
+            // 4. 저장된 보유종목 정보 조회하여 반환
             List<StockVO> userStocks = stockService.getUserStocks(memberId);
+
             response.put("connectedId", userConnectedId);
             response.put("savedCount", stockList.size());
             response.put("stocks", userStocks);
@@ -118,7 +155,7 @@ public class StockApiController {
                     .body(createErrorResponse(e.getMessage(), "AUTHENTICATION_ERROR"));
 
         } catch (Exception e) {
-            log.error("증권계좌 연동 중 오류 발생", e);
+            log.error("증권계좌 연동 중 예상치 못한 오류 발생", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(createErrorResponse("증권계좌 연동 중 오류가 발생했습니다.", "INTERNAL_ERROR"));
         }
