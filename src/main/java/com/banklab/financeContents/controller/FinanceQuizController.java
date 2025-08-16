@@ -2,6 +2,8 @@ package com.banklab.financeContents.controller;
 
 import com.banklab.financeContents.dto.*;
 import com.banklab.financeContents.service.FinanceQuizService;
+import com.banklab.mission.domain.ConditionKey;
+import com.banklab.mission.service.MissionProgressService;
 import com.banklab.security.util.LoginUserProvider;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -28,6 +30,9 @@ public class FinanceQuizController {
     
     @Autowired
     private LoginUserProvider loginUserProvider;
+
+    @Autowired
+    private MissionProgressService missionProgressService;
 
     @ApiOperation(value = "헬스 체크", notes = "서비스 상태를 확인합니다.")
     @GetMapping("/health")
@@ -169,9 +174,11 @@ public class FinanceQuizController {
             System.out.println("Received request: " + request);
             System.out.println("User Answer: " + request.getUserAnswer());
             System.out.println("User Answer Length: " + (request.getUserAnswer() != null ? request.getUserAnswer().length() : "null"));
-            
-            DailyQuizResultDTO result = financeQuizService.processDailyQuizResults(request);
+            Long memberId = loginUserProvider.getLoginMemberId();
+            DailyQuizResultDTO result = financeQuizService.processDailyQuizResults(memberId, request);
             System.out.println("DB 저장 성공, 응답 데이터: " + result);
+            missionProgressService.onEvent(memberId, ConditionKey.DAILY_QUIZ_SOLVED);
+            missionProgressService.onEvent(memberId, ConditionKey.QUIZ_SUCCESS_RATE);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);

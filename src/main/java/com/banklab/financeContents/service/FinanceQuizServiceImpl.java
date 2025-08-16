@@ -24,8 +24,6 @@ public class FinanceQuizServiceImpl implements FinanceQuizService {
 
     @Autowired
     private FinanceQuizMapper financeQuizMapper;
-
-    private final LoginUserProvider loginUserProvider;
     
     @Autowired
     private UserQuizResultMapper userQuizResultMapper;
@@ -119,10 +117,9 @@ public class FinanceQuizServiceImpl implements FinanceQuizService {
     }
 
     @Override
-    public DailyQuizResultDTO processDailyQuizResults(DailyQuizRequestDTO request) {
+    public DailyQuizResultDTO processDailyQuizResults(Long memberId, DailyQuizRequestDTO request) {
         System.out.println("=== processDailyQuizResults 시작 ===");
         System.out.println("Request: " + request);
-        Long memberId = loginUserProvider.getLoginMemberId();
         
         // 입력 검증
         if (request == null) {

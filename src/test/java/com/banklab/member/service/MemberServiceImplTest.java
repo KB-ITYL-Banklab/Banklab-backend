@@ -1,5 +1,6 @@
 package com.banklab.member.service;
 
+import com.banklab.config.MailConfig;
 import com.banklab.config.RedisConfig;
 import com.banklab.config.RootConfig;
 import com.banklab.member.dto.MemberDTO;
@@ -20,7 +21,7 @@ import java.util.NoSuchElementException;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {RootConfig.class, SecurityConfig.class, RedisConfig.class})
+@ContextConfiguration(classes = {RootConfig.class, SecurityConfig.class, RedisConfig.class, MailConfig.class})
 @Log4j2
 @Transactional
 class MemberServiceImplTest {

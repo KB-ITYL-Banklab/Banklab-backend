@@ -14,7 +14,6 @@ import com.banklab.transaction.dto.response.TransactionDetailDTO;
 import com.banklab.transaction.dto.request.TransactionRequestDto;
 import com.banklab.transaction.service.AsyncTransactionService;
 import com.banklab.transaction.service.TransactionService;
-import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -34,7 +33,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/account")
 @RequiredArgsConstructor
-@Api(tags = "계좌 관리 API", description = "계좌 연동, 잔액 새로고침, 계좌 연동해제")
 public class AccountController {
 
     private final AccountService accountService;
@@ -65,13 +63,11 @@ public class AccountController {
     /**
      * 표준화된 성공 응답 생성
      */
-    private Map<String, Object> createSuccessResponse(String message, Object data, Map<String, Object> authInfo) {
+    private Map<String, Object> createSuccessResponse(String message, Object data) {
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("message", message);
         response.put("data", data);
-        response.put("memberId", authInfo.get("memberId"));
-        response.put("email", authInfo.get("email"));
         return response;
     }
 
@@ -90,7 +86,6 @@ public class AccountController {
      * 은행 계좌 연동
      */
     @PostMapping("/link")
-    @ApiOperation(value = "은행 계좌 연동", notes = "은행 로그인 정보로 계좌를 연동하고 DB에 저장.")
     public ResponseEntity<Map<String, Object>> linkAccount(
             @RequestBody AccountRequestDTO accountRequest
     ) {
@@ -105,26 +100,61 @@ public class AccountController {
 
             log.info("계좌 연동 시작 - email: {}, memberId: {}, bankCode: {}", email, memberId, accountRequest.getBankCode());
 
-            // 1. 커넥티드 아이디 발급
-            String userConnectedId = RequestConnectedId.createConnectedId(
-                    accountRequest.getBankId(),
-                    accountRequest.getBankPassword(),
-                    accountRequest.getBankCode(),
-                    "BK",
-                    "P");
+            String userConnectedId = null;
+            List<AccountVO> accountList = null;
 
-            // 2. 커넥티드 아이디로 계좌 정보 조회 및 DB 저장
-            List<AccountVO> accountList = AccountResponse.requestAccounts(memberId, accountRequest.getBankCode(), userConnectedId);
+            try {
+                // 1. 커넥티드 아이디 발급 (로그인 정보 검증)
+                userConnectedId = RequestConnectedId.createConnectedId(
+                        accountRequest.getBankId(),
+                        accountRequest.getBankPassword(),
+                        accountRequest.getBankCode(),
+                        "BK",
+                        "P");
+
+                // 2. 커넥티드 아이디로 계좌 정보 조회
+                accountList = AccountResponse.requestAccounts(memberId, accountRequest.getBankCode(), userConnectedId);
+
+                if (accountList == null || accountList.isEmpty()) {
+                    // 커넥티드 아이디 정리 후 에러 응답
+                    try {
+                        RequestConnectedId.deleteConnectedId(userConnectedId, accountRequest.getBankCode(), "BK", "P");
+                    } catch (Exception cleanupEx) {
+                        log.warn("커넥티드 아이디 정리 실패: {}", cleanupEx.getMessage());
+                    }
+
+                    return ResponseEntity.badRequest()
+                            .body(createErrorResponse("연결된 계좌를 찾을 수 없습니다.", "NO_ACCOUNTS_FOUND"));
+                }
+
+            } catch (RuntimeException e) {
+                // CODEF API에서 발생한 사용자 친화적 에러 메시지 그대로 전달
+                log.error("CODEF API 오류: {}", e.getMessage());
+
+                // 커넥티드 아이디가 생성되었다면 정리
+                if (userConnectedId != null) {
+                    try {
+                        RequestConnectedId.deleteConnectedId(userConnectedId, accountRequest.getBankCode(), "BK", "P");
+                    } catch (Exception cleanupEx) {
+                        log.warn("커넥티드 아이디 정리 실패: {}", cleanupEx.getMessage());
+                    }
+                }
+
+                return ResponseEntity.badRequest()
+                        .body(createErrorResponse(e.getMessage(), "CODEF_API_ERROR"));
+            }
+
+            // 3. DB에 계좌 정보 저장
             int savedCount = accountService.saveAccounts(accountList);
 
-
-            // 3. 저장된 계좌 정보 조회하여 반환
+            // 4. 저장된 계좌 정보 조회하여 반환
             List<AccountDTO> accountDTOList = accountService.getUserAccounts(memberId);
+
             response.put("connectedId", userConnectedId);
             response.put("savedCount", savedCount);
             response.put("accounts", accountDTOList);
 
-            // 거래 내역 불러오기
+            // 5. 거래 내역 비동기 로딩
             for(AccountDTO account : accountDTOList){
                 redisService.set(RedisKeyUtil.transaction(memberId,account.getResAccount()), "FETCHING_TRANSACTIONS",10);
                 asyncTransactionService.getTransactions(memberId,
@@ -132,7 +162,8 @@ public class AccountController {
                                 .resAccount(account.getResAccount())
                                 .build());
             }
-            return ResponseEntity.ok(createSuccessResponse("계좌 연동이 완료되었습니다.", response, authInfo));
+
+            return ResponseEntity.ok(createSuccessResponse("계좌 연동이 완료되었습니다.", response));
 
         } catch (SecurityException e) {
             log.error("인증 오류: {}", e.getMessage());
@@ -140,7 +171,7 @@ public class AccountController {
                     .body(createErrorResponse(e.getMessage(), "AUTHENTICATION_ERROR"));
 
         } catch (Exception e) {
-            log.error("계좌 연동 중 오류 발생", e);
+            log.error("계좌 연동 중 예상치 못한 오류 발생", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(createErrorResponse("계좌 연동 중 오류가 발생했습니다.", "INTERNAL_ERROR"));
         }
@@ -165,7 +196,7 @@ public class AccountController {
             response.put("accounts", accountList);
             response.put("count", accountList.size());
 
-            return ResponseEntity.ok(createSuccessResponse("계좌 목록 조회 완료", response, authInfo));
+            return ResponseEntity.ok(createSuccessResponse("계좌 목록 조회 완료", response));
 
         } catch (SecurityException e) {
             log.error("인증 오류: {}", e.getMessage());
@@ -216,7 +247,7 @@ public class AccountController {
             Map<String, Object> response = new HashMap<>();
             response.put("accounts", accountList);
 
-            return ResponseEntity.ok(createSuccessResponse("계좌 잔액 새로고침 완료", response, authInfo));
+            return ResponseEntity.ok(createSuccessResponse("계좌 잔액 새로고침 완료", response));
 
         } catch (SecurityException e) {
             log.error("인증 오류: {}", e.getMessage());
@@ -262,7 +293,7 @@ public class AccountController {
 
             if (deleted) {
                 accountService.deleteAccount(memberId, request.getConnectedId());
-                return ResponseEntity.ok(createSuccessResponse("계좌 연동 해제가 완료되었습니다.", null, authInfo));
+                return ResponseEntity.ok(createSuccessResponse("계좌 연동 해제가 완료되었습니다.", null));
             } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(createErrorResponse("커넥티드 아이디 삭제에 실패했습니다.", "DELETE_FAILED"));
@@ -317,7 +348,7 @@ public class AccountController {
             period.put("end", endDate);
             response.put("period", period);
 
-            return ResponseEntity.ok(createSuccessResponse("거래내역 조회 완료", response, authInfo));
+            return ResponseEntity.ok(createSuccessResponse("거래내역 조회 완료", response));
 
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

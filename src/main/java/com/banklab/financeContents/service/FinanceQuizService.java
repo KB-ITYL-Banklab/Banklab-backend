@@ -49,7 +49,7 @@ public interface FinanceQuizService {
      * @param request 퀴즈 답안 요청
      * @return 퀴즈 결과 및 포인트 정보
      */
-    DailyQuizResultDTO processDailyQuizResults(DailyQuizRequestDTO request);
+    DailyQuizResultDTO processDailyQuizResults(Long memberId, DailyQuizRequestDTO request);
     
     /**
      * 사용자가 오늘 퀴즈를 이미 풀었는지 확인

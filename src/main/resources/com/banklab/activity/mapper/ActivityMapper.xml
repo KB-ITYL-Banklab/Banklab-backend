@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.banklab.activity.mapper.ActivityMapper">
+
+    <insert id="insertEvent">
+        INSERT IGNORE INTO activity_event (member_id, event_type, event_time, payload_json, dedup_key)
+        VALUES (#{memberId}, #{eventType}, NOW(), #{payloadJson}, #{dedupKey})
+    </insert>
+
+    <insert id="upsertDailyAgg">
+        INSERT INTO activity_daily_agg (member_id, activity_date, key_name, count_value)
+        VALUES (#{memberId}, #{activityDate}, #{keyName}, #{cnt})
+            ON DUPLICATE KEY UPDATE
+                                 count_value = count_value + VALUES(count_value)
+    </insert>
+
+    <select id="sumCount" resultType="int">
+        SELECT COALESCE(SUM(count_value),0)
+        FROM activity_daily_agg
+        WHERE member_id = #{memberId}
+          AND key_name  = #{keyName}
+          AND activity_date BETWEEN #{start, jdbcType=DATE} AND #{end, jdbcType=DATE}
+    </select>
+
+    <insert id="insertExpGrant">
+        INSERT INTO exp_grant_log (member_id, mission_id, granted_exp)
+        VALUES (#{memberId}, #{missionId}, #{exp})
+        ON DUPLICATE KEY UPDATE member_id = member_id
+        <!-- UNIQUE(member_id, mission_id) 위반 시 noop -->
+    </insert>
+
+</mapper>
