@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.EnumSet;
@@ -57,9 +58,9 @@ public class BooleanMissionEvaluator implements MissionEvaluator {
             return false; // 날짜 없음
         }
 
-        // 날짜 형식에 맞춰 포맷터 지정
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate updatedDate = LocalDate.parse(updatedAt, formatter);
+        LocalDate updatedDate = LocalDateTime
+                .parse(updatedAt, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                .toLocalDate();
 
         long daysBetween = ChronoUnit.DAYS.between(updatedDate, LocalDate.now());
         return daysBetween <= recentDays;

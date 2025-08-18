@@ -86,7 +86,6 @@ public class CharacterServiceImpl implements CharacterService {
     @Transactional
     @Override
     public boolean addExpAndLevelUp(Long memberId, int gainedExp) {
-        log.info("gainedExp" + gainedExp);
         if (gainedExp <= 0) return false;
 
         // 현재 캐릭터 상태 조회 (경합 방지하려면 for update 사용 권장)
