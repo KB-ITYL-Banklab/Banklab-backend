@@ -79,16 +79,13 @@ public class CharacterServiceImpl implements CharacterService {
     /** 같은 트랜잭션 내 동시성 안전: 행 잠금 */
     @Transactional
     @Override
-    public int lockAndGetLevel(Long memberId) {
-        Integer lvl = characterMapper.lockAndGetLevel(memberId);
-        if (lvl == null) throw new IllegalStateException("Character not found: " + memberId);
-        return lvl;
+    public Integer lockAndGetLevel(Long memberId) {
+        return characterMapper.lockAndGetLevel(memberId);
     }
 
     @Transactional
     @Override
     public boolean addExpAndLevelUp(Long memberId, int gainedExp) {
-        log.info("gainedExp" + gainedExp);
         if (gainedExp <= 0) return false;
 
         // 현재 캐릭터 상태 조회 (경합 방지하려면 for update 사용 권장)
