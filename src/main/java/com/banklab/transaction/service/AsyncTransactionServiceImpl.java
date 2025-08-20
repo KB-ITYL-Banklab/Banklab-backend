@@ -46,6 +46,7 @@ public class AsyncTransactionServiceImpl implements AsyncTransactionService {
      * @param memberId 사용자 ID
      * @param request  거래 내역 조회 요청 DTO (계좌 번호 포함)
      */
+    @Async
     public void getTransactions(long memberId, TransactionRequestDto request) {
         if (request == null || request.getResAccount() == null || request.getResAccount().isBlank()) {
             throw new IllegalArgumentException("계좌 번호가 반드시 필요합니다.");
