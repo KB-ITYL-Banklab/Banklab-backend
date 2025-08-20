@@ -89,9 +89,6 @@ public class StockApiController {
             Long memberId = (Long) authInfo.get("memberId");
             String email = (String) authInfo.get("email");
 
-            log.info("증권계좌 연동 시작 - email: {}, memberId: {}, stockCode: {}",
-                    email, memberId, stockRequest.getStockCode());
-
             String userConnectedId = null;
             List<StockVO> stockList = null;
 
@@ -174,8 +171,6 @@ public class StockApiController {
             Long memberId = (Long) authInfo.get("memberId");
             String email = (String) authInfo.get("email");
 
-            log.info("보유종목 목록 조회 - email: {}, memberId: {}", email, memberId);
-
             List<StockVO> stockList = stockService.getUserStocks(memberId);
 
             Map<String, Object> response = new HashMap<>();
@@ -208,9 +203,6 @@ public class StockApiController {
             Map<String, Object> authInfo = extractAuthInfo();
             Long memberId = (Long) authInfo.get("memberId");
             String email = (String) authInfo.get("email");
-
-            log.info("보유종목 정보 새로고침 - email: {}, memberId: {}, stockCode: {}",
-                    email, memberId, request.getStockCode());
 
             // 보유종목 새로고침
             stockService.refreshUserStocks(
@@ -251,9 +243,6 @@ public class StockApiController {
             Map<String, Object> authInfo = extractAuthInfo();
             Long memberId = (Long) authInfo.get("memberId");
             String email = (String) authInfo.get("email");
-
-            log.info("증권계좌 연동 해제 - email: {}, memberId: {}, stockCode: {}, account: {}",
-                    email, memberId, request.getStockCode(), request.getAccount());
 
             // 연동 해제
             boolean deleted = RequestConnectedId.deleteConnectedId(
@@ -297,9 +286,6 @@ public class StockApiController {
             Map<String, Object> authInfo = extractAuthInfo();
             Long memberId = (Long) authInfo.get("memberId");
             String email = (String) authInfo.get("email");
-
-            log.info("보유종목 상세정보 조회 - email: {}, memberId: {}, stockId: {}",
-                    email, memberId, stockId);
 
             // 1. 보유종목 기본정보 조회
             StockVO stockInfo = stockService.getStockById(stockId, memberId);

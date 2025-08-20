@@ -17,7 +17,6 @@ public class StockResponse {
 
 
     public static List<StockVO> requestStocks(Long memberId, String stockCode, String connectedId, String account, String accountPassword) throws Exception {
-        log.info("계좌 정보 조회 요청 시작 - memberId: {}, 은행코드: {}, connectedId: {}", memberId, stockCode, connectedId);
 
         String urlPath = CommonConstant.TEST_DOMAIN + CommonConstant.KR_ST_1_P_005;
 
@@ -32,7 +31,7 @@ public class StockResponse {
         bodyMap.put("add_password", "");
 
         String result = ApiRequest.request(urlPath, bodyMap);
-        log.info("CODEF API 응답 : {}", result);
+        //log.info("CODEF API 응답 : {}", result);
 
         // Json Parsing
         JsonNode root = mapper.readTree(result);
@@ -67,7 +66,6 @@ public class StockResponse {
                         // errorList의 에러 정보를 우선 사용
                         finalErrorCode = errorCode;
                         finalErrorMessage = errorMessage;
-                        log.info("🔍 data.errorList에서 구체적인 에러 정보 사용 - 코드: {}, 메시지: {}", finalErrorCode, finalErrorMessage);
                     }
                 }
             }
@@ -86,10 +84,11 @@ public class StockResponse {
         String resDepositReceivedD1 = dataNode.path("resDepositReceivedD1").asText(); // 예수금 D+1
         String resDepositReceivedD2 = dataNode.path("resDepositReceivedD2").asText(); // 예수금 D+2
 
-        log.info("계좌번호 : {}", resAccount);
-        log.info("예수금 : {}", resDepositReceived);
-        log.info("예수금 D+1 : {}", resDepositReceivedD1);
-        log.info("예수금 D+2 : {}", resDepositReceivedD2);
+        // 디버깅용
+        //log.info("계좌번호 : {}", resAccount);
+        //log.info("예수금 : {}", resDepositReceived);
+        //log.info("예수금 D+1 : {}", resDepositReceivedD1);
+        //log.info("예수금 D+2 : {}", resDepositReceivedD2);
 
         JsonNode resItemList = dataNode.path("resItemList");
 
@@ -118,23 +117,22 @@ public class StockResponse {
             stockDTO.setResEarningsRate(resItem.path("resEarningsRate").asText());
             stockDTO.setResAccountCurrency(resItem.path("resAccountCurrency").asText());
 
-            // 출력
-            log.info("상품유형 : {}", stockDTO.getResProductType());
-            log.info("종목명 : {}", stockDTO.getResItemName());
-            log.info("종목코드 : {}", stockDTO.getResItemCode());
-            log.info("수량 : {}", stockDTO.getResQuantity());
-            log.info("현재가 : {}원", stockDTO.getResPresentAmt());
-            log.info("매입금액 : {}원", stockDTO.getResPurchaseAmount());
-            log.info("평가금액 : {}원", stockDTO.getResValuationAmt());
-            log.info("평가손익 : {}원", stockDTO.getResValuationPL());
-            log.info("수익률 : {}%", stockDTO.getResEarningsRate());
-            log.info("통화코드 : {}", stockDTO.getResAccountCurrency());
+            // 디버깅용 출력
+            //log.info("상품유형 : {}", stockDTO.getResProductType());
+            //log.info("종목명 : {}", stockDTO.getResItemName());
+            //log.info("종목코드 : {}", stockDTO.getResItemCode());
+            //log.info("수량 : {}", stockDTO.getResQuantity());
+            //log.info("현재가 : {}원", stockDTO.getResPresentAmt());
+            //log.info("매입금액 : {}원", stockDTO.getResPurchaseAmount());
+            //log.info("평가금액 : {}원", stockDTO.getResValuationAmt());
+            //log.info("평가손익 : {}원", stockDTO.getResValuationPL());
+            //log.info("수익률 : {}%", stockDTO.getResEarningsRate());
+            //log.info("통화코드 : {}", stockDTO.getResAccountCurrency());
 
             StockVO vo = stockDTO.toVO(memberId, connectedId, stockCode);
             stockVOList.add(vo);
         }
 
-        log.info("보유 종목 수 : {}", stockVOList.size());
         return stockVOList;
     }
 
