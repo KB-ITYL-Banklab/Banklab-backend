@@ -17,7 +17,18 @@ public interface CharacterService {
      */
     CharacterDTO createCharacter(Long memberId);
 
-//    void syncLevelAndExp(Long memberId);
+    /**
+     * lock 멤버 캐릭터 레벨 조회
+     * @param memberId
+     * @return
+     */
     Integer lockAndGetLevel(Long memberId);
+
+    /**
+     * 경험치 계산 및 레벨업 확인
+     * @param memberId
+     * @param gainedExp
+     * @return
+     */
     boolean addExpAndLevelUp(Long memberId, int gainedExp);
 }

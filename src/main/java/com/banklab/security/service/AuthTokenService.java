@@ -19,6 +19,7 @@ public class AuthTokenService {
     private final JwtProcessor jwtProcessor;
     private final RedisService redisService;
 
+    // 토큰 발급 후 HttpOnly 쿠키에 저장
     public void issueTokenAndSetCookie(HttpServletResponse response, MemberVO member) {
         String email = member.getEmail();
         Long memberId = member.getMemberId();
