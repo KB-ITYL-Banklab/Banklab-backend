@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -26,7 +27,8 @@ public class MissionProgressServiceImpl implements MissionProgressService {
     @Transactional
     @Override
     public void onEvent(Long memberId, ConditionKey conditionKey) {
-        int currentLevel = characterService.lockAndGetLevel(memberId); // FOR UPDATE
+        Integer currentLevel = characterService.lockAndGetLevel(memberId); // FOR UPDATE
+        if (currentLevel == null) return;
         List<MissionVO> missions = missionMapper.findByLevelAndKey(currentLevel + 1, conditionKey.name());
         if (missions.isEmpty()) return;
 
@@ -42,8 +44,8 @@ public class MissionProgressServiceImpl implements MissionProgressService {
             if (!completed) continue;
 
             // 보상 직전 레벨 재검증(경합 대비)
-            int levelNow = characterService.lockAndGetLevel(memberId);
-            if (levelNow != currentLevel) continue;
+            Integer levelNow = characterService.lockAndGetLevel(memberId);
+            if (!Objects.equals(levelNow, currentLevel)) continue;
 
             boolean isPersistent = MissionType.PERSISTENT.equals(m.getType());
             if (!isPersistent) {
@@ -60,7 +62,8 @@ public class MissionProgressServiceImpl implements MissionProgressService {
     @Transactional
     @Override
     public void onCriteriaChanged(Long memberId) {
-        int currentLevel = characterService.lockAndGetLevel(memberId);
+        Integer currentLevel = characterService.lockAndGetLevel(memberId); // FOR UPDATE
+        if (currentLevel == null) return;
         // 자산기반 미션들만(현재 레벨) 뽑기
         List<MissionVO> missions = missionMapper.findByType(MissionType.CRITERIA);
         if (missions.isEmpty()) return;
@@ -75,8 +78,8 @@ public class MissionProgressServiceImpl implements MissionProgressService {
             if (!completed) continue;
 
             // 보상 직전 레벨 재검증
-            int levelNow = characterService.lockAndGetLevel(memberId);
-            if (levelNow != m.getLevelId()) continue;
+            Integer levelNow = characterService.lockAndGetLevel(memberId);
+            if (!Objects.equals(levelNow, currentLevel)) continue;
 
             // 멱등 지급
             int inserted = missionProgressMapper.insertExpGrant(grantVO);
