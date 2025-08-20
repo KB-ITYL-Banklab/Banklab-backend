@@ -20,6 +20,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -155,14 +156,13 @@ public class AccountController {
             response.put("accounts", accountDTOList);
 
             // 5. 거래 내역 비동기 로딩
-            for(AccountDTO account : accountDTOList){
-                redisService.set(RedisKeyUtil.transaction(memberId,account.getResAccount()), "FETCHING_TRANSACTIONS",10);
+            for (AccountDTO account : accountDTOList) {
+                redisService.set(RedisKeyUtil.transaction(memberId, account.getResAccount()), "FETCHING_TRANSACTIONS", 10);
                 asyncTransactionService.getTransactions(memberId,
                         TransactionRequestDto.builder()
                                 .resAccount(account.getResAccount())
                                 .build());
             }
-
             return ResponseEntity.ok(createSuccessResponse("계좌 연동이 완료되었습니다.", response));
 
         } catch (SecurityException e) {
@@ -237,13 +237,13 @@ public class AccountController {
             List<AccountDTO> accountList = accountService.getUserAccounts(memberId);
 
             // 거래 내역 새로 고침
-            for(AccountDTO account : accountList){
+            for (AccountDTO account : accountList) {
                 asyncTransactionService.getTransactions(memberId,
                         TransactionRequestDto.builder()
                                 .resAccount(account.getResAccount())
                                 .build());
             }
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("accounts", accountList);
 
