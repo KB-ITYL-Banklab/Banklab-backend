@@ -37,7 +37,6 @@ public class AccountServiceImpl implements AccountService {
             if (memberId == null) memberId = accountVO.getMemberId();
         }
 
-        log.info("{}개 계좌 저장", count);
 
         if (memberId != null) {
             publisher.publishEvent(new AssetSyncedEvent(memberId));

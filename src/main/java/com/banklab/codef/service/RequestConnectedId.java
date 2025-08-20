@@ -50,7 +50,7 @@ public class RequestConnectedId {
         bodyMap.put("accountList", list);
 
         String result = ApiRequest.request(urlPath, bodyMap);
-        log.info("🔍 CODEF API 전체 응답: " + result);
+        //log.info("CODEF API 전체 응답: " + result);
 
         JsonNode root = mapper.readTree(result);
 
@@ -63,8 +63,6 @@ public class RequestConnectedId {
 
         String resultCode = resultNode.path("code").asText();
         String resultMessage = resultNode.path("message").asText();
-
-        log.info("🔍 CODEF API 결과 코드: {}, 메시지: {}", resultCode, resultMessage);
 
         // 2. 성공 코드가 아닌 경우 예외 처리
         if (!"CF-00000".equals(resultCode)) {
@@ -86,7 +84,6 @@ public class RequestConnectedId {
                         // errorList의 에러 정보를 우선 사용
                         finalErrorCode = errorCode;
                         finalErrorMessage = errorMessage;
-                        log.info("🔍 data.errorList에서 구체적인 에러 정보 사용 - 코드: {}, 메시지: {}", finalErrorCode, finalErrorMessage);
                     }
                 }
             }
@@ -104,7 +101,6 @@ public class RequestConnectedId {
         }
 
         String connectedId = connectedIdNode.asText();
-        log.info("🔍 추출된 connectedId: {}", connectedId);
         log.info("커넥티드 아이디 발급 완료: {}", connectedId);
 
         return connectedId;
@@ -155,7 +151,7 @@ public class RequestConnectedId {
         bodyMap.put("connectedId", connectedId);
 
         String result = ApiRequest.request(urlPath, bodyMap);
-        log.info("🔍 CODEF API 삭제 응답: " + result);
+        //log.info("CODEF API 삭제 응답: " + result);
 
         JsonNode root = mapper.readTree(result);
 

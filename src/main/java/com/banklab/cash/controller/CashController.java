@@ -78,8 +78,6 @@ public class CashController {
             Long memberId = (Long) authInfo.get("memberId");
             String email = (String) authInfo.get("email");
 
-            log.info("현금 정보 조회 - email: {}, memberId: {}", email, memberId);
-
             CashDTO cashDTO = cashService.getCashByMemberId(memberId);
 
             Map<String, Object> response = new HashMap<>();
@@ -111,9 +109,6 @@ public class CashController {
             Map<String, Object> authInfo = extractAuthInfo();
             Long memberId = (Long) authInfo.get("memberId");
             String email = (String) authInfo.get("email");
-
-            log.info("현금 금액 설정 - email: {}, memberId: {}, amount: {}",
-                    email, memberId, request.getAmount());
 
             // 입력값 검증
             if (request.getAmount() == null) {
