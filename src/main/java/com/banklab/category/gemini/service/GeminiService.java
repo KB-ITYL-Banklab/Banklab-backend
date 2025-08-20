@@ -56,6 +56,11 @@ public class GeminiService {
         return "응답 없음";
     }
 
+    /**
+     * Gemini에게 상호명을 파악 및 카테고리 분류 요청
+     * @param descriptions: 분류해야하는 상호명 리스트
+     * @return  분류된 상호명 리스트
+     */
     public List<String> classifyCategories(Set<String> descriptions) {
         String joinedDescriptions = String.join(", ", descriptions);
 

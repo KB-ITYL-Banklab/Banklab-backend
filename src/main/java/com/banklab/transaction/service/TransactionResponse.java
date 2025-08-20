@@ -22,11 +22,12 @@ public class TransactionResponse {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     /**
-     * CODEF API에서 거래 내역 조회
-     * @param request: 거래 내역 조회를 위한 필수 파라미터
-     * @return  거래 내역 리스트 (카테고리 추가)
-     * @throws IOException
-     * @throws InterruptedException
+     * CODEF API를 호출하여 거래 내역을 조회하고, 결과를 TransactionHistoryVO 리스트로 파싱합니다.
+     * @param memberId 사용자 ID
+     * @param request 거래 내역 조회를 위한 필수 파라미터 (connectedId, organization, account 등)
+     * @return 파싱된 거래 내역 VO 리스트
+     * @throws IOException API 요청 또는 JSON 파싱 중 오류 발생 시
+     * @throws InterruptedException API 요청 중 인터럽트 발생 시
      */
     public static List<TransactionHistoryVO> requestTransactions(Long memberId, TransactionDTO request) throws IOException, InterruptedException {
         String urlPath = CommonConstant.TEST_DOMAIN + CommonConstant.KR_BK_1_P_002;

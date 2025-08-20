@@ -26,6 +26,16 @@ public class CategoryService {
     private final GeminiService geminiService;
     private final UtilService utilService;
 
+    /**
+     * 거래 내역 리스트를 받아 각 거래의 상호명을 분석하여 카테고리를 분류하고 저장합니다.
+     * 처리 순서:
+     * 1. Redis 캐시에서 상호명에 해당하는 카테고리가 있는지 확인합니다.
+     * 2. 캐시에 없으면, 내부 키워드 매칭(UtilService)을 병렬로 시도합니다.
+     * 3. 내부 매칭으로 분류되지 않은 상호명들은 Gemini API를 통해 일괄 조회하여 분류합니다.
+     * 4. 최종 분류된 결과를 거래 내역에 적용하고 DB에 저장합니다.
+     * @param transactions 카테고리를 분류할 거래 내역(TransactionHistoryVO) 리스트
+     * @param key Redis에서 작업 상태를 추적하기 위한 키 (현재는 사용되지 않음)
+     */
     public void categorizeTransactions(List<TransactionHistoryVO> transactions, String key) {
         List<String> descriptions = transactions.stream()
                 .map(TransactionHistoryVO::getDescription)
@@ -35,7 +45,6 @@ public class CategoryService {
                 .distinct()
                 .toList();
 
-
         ExecutorService executor = Executors.newFixedThreadPool(8); // 적절한 풀 사이즈
         Map<String, CompletableFuture<Long>> futureMap = new HashMap<>();
         
@@ -43,8 +52,6 @@ public class CategoryService {
         Map<String, Long> descMap = new ConcurrentHashMap<>();
         Set<String> toClassifyViaApi = Collections.synchronizedSet(new LinkedHashSet<>());
 
-        log.info("내부 필터링 병렬 처리 시작");
-        Instant start = Instant.now();
         for (String desc : descriptions) {
             String redisKey = RedisKeyUtil.category(desc);
 
@@ -76,30 +83,13 @@ public class CategoryService {
         CompletableFuture.allOf(futureMap.values().toArray(new CompletableFuture[0])).join();
         executor.shutdown();
 
-        Instant end = Instant.now();
-        long elapsedMillis = Duration.between(start, end).toMillis();
-        log.info("내부 필터링 완료 - 전체 소요 시간: {} ms", elapsedMillis);
-
-
-        log.info("API 호출로 분류해야 하는 상호명 개수: {}", toClassifyViaApi.size());
-        log.info("======여기서 최대 1분 소요됩니다.======");
-
         // 4. 매핑 안 된 목록 GEMINI 호출
         if (!toClassifyViaApi.isEmpty()) {
-            log.info("GEMINI 호출 시작");
-            start = Instant.now();
-
             List<String> geminiResponses = geminiService.classifyCategories(toClassifyViaApi);
-
-            end = Instant.now();
-            elapsedMillis = Duration.between(start, end).toMillis();
-            log.info("GEMINI 호출 완료 - 소요 시간: {} ms", elapsedMillis);
-
 
             // SET -> List
             List<String> toClassifyList = new ArrayList<>(toClassifyViaApi);
             int limit = Math.min(toClassifyList.size(), geminiResponses.size());
-            log.warn("toClassifyViaApi size: {}, geminiResponses size: {}", toClassifyViaApi.size(), geminiResponses.size());
 
             for (int i = 0; i < limit; i++) {
                 String desc = toClassifyList.get(i);
