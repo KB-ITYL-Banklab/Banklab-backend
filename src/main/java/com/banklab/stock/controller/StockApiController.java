@@ -1,7 +1,7 @@
 package com.banklab.stock.controller;
 
 import com.banklab.codef.service.RequestConnectedId;
-import com.banklab.common.redis.RedisService;
+import com.banklab.mission.event.AssetSyncedEvent;
 import com.banklab.security.util.LoginUserProvider;
 import com.banklab.stock.domain.StockVO;
 import com.banklab.stock.dto.StockManageRequestDTO;
@@ -12,6 +12,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +30,7 @@ public class StockApiController {
 
     private final StockService stockService;
     private final LoginUserProvider loginUserProvider;
-    private final RedisService redisService;
+    private final ApplicationEventPublisher publisher;
 
     /**
      * 로그인한 사용자 정보 추출 및 검증
@@ -139,6 +140,7 @@ public class StockApiController {
 
             // 3. DB에 보유종목 정보 저장
             stockService.saveStocks(stockList);
+            publisher.publishEvent(new AssetSyncedEvent(memberId));
 
             // 4. 저장된 보유종목 정보 조회하여 반환
             List<StockVO> userStocks = stockService.getUserStocks(memberId);
