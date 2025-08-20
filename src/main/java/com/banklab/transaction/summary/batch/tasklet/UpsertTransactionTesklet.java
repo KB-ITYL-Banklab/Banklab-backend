@@ -39,8 +39,6 @@ public class UpsertTransactionTesklet implements Tasklet {
             List<AccountVO> accounts = accountMapper.selectAccountsByUserId(memberId);
         }
 
-
-
         LocalDate lastDay;
         LocalDate today = LocalDate.now();
 
