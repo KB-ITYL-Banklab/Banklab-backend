@@ -18,11 +18,22 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Log4j2
-public class ComparisonServiceImpl implements ComparisonService{
+public class ComparisonServiceImpl implements ComparisonService {
     private final ComparisonMapper comparisonMapper;
     private final TransactionService transactionService;
     private final MemberService memberService;
 
+    /**
+     * 1. 현재 사용자의 나이를 기준으로 또래 계산 (ex. 20~24: 5살 단위)
+     * 2. 또래 그룹의 기간별 카테고리 지출 조회
+     * 3. 또래 그룹의 기간별 총 지출 조회
+     *
+     * @param memberId  사용자 고유 ID
+     * @param email     사용자 email
+     * @param startDate 조회 시작일
+     * @param endDate   조회 마지막일
+     * @return 또래 그룹의 카테고리별 지출, 총 지출 정렬 반환
+     */
     @Override
     @Transactional(readOnly = true)
     public PeerComparisonResponseDTO getPeerCategoryCompare(Long memberId, String email, Date startDate, Date endDate) {
@@ -34,14 +45,16 @@ public class ComparisonServiceImpl implements ComparisonService{
             endDate = java.sql.Date.valueOf(now.withDayOfMonth(now.lengthOfMonth()));
         }
 
+        // 1. 사용자 나이 구하기
         String birth = memberService.get(memberId, email).getBirth();
 
-        int age =calculateAge(birth);
-        int ageFrom = (age/5) *5;
-        int ageTo = ageFrom+4;
+        // 2. 사용자 또래 그룹 나이 범위 계산
+        int age = calculateAge(birth);
+        int ageFrom = (age / 5) * 5;
+        int ageTo = ageFrom + 4;
 
         try {
-            // 또래 카테고리별 평균 지출
+            // 3. 또래 카테고리별 평균 지출 조회
             List<CategoryComparisonDTO> peerCategoryExpense = comparisonMapper.getPeerCategoryExpense(
                     memberId,
                     startDate,
@@ -49,8 +62,8 @@ public class ComparisonServiceImpl implements ComparisonService{
                     ageFrom,
                     ageTo
             );
-            
-            // 또래 평균 전체 지출
+
+            // 4. 또래 평균 총지출 조회
             Long peerAvgTotalExpense = comparisonMapper.getPeerTotalAvgExpense(
                     memberId,
                     startDate,
@@ -59,8 +72,7 @@ public class ComparisonServiceImpl implements ComparisonService{
                     ageTo
             );
 
-
-            // 정렬 코드는 여기서 수행
+            // 5. 카테고리별 지출 내림차순, 지출액이 같다면 카테고리 id 오름차순 정렬
             peerCategoryExpense.sort((a, b) -> {
                 int cmp = Double.compare(b.getAvgExpense(), a.getAvgExpense()); // 내림차순
                 if (cmp == 0) {
@@ -74,43 +86,13 @@ public class ComparisonServiceImpl implements ComparisonService{
                     .peerAvgTotalExpense(peerAvgTotalExpense)
                     .build();
 
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("또래 조회 중 오류 발생", e);
             throw new RuntimeException("또래 조회 중 오류 발생");
         }
     }
 
-    @Override
-    public PeerComparisonResponseDTO compareWithPeer(Long memberId, String startDate, String endDate) {
-        return null;
-    }
-
-    public List<CategoryExpenseDTO> getMyCategoryCompare(Long memberId,Date startDate, Date endDate){
-        LocalDate now = LocalDate.now();
-        if (startDate == null) {
-            startDate = java.sql.Date.valueOf(now.withDayOfMonth(1));
-        }
-        if (endDate == null) {
-            endDate = java.sql.Date.valueOf(now.withDayOfMonth(now.lengthOfMonth()));
-        }
-        try{
-            List<CategoryExpenseDTO> users   = transactionService.getCategoryExpense(memberId, startDate, endDate);
-            for(CategoryExpenseDTO dto: users){
-                log.info("total: {}, days: {}",dto.getTotalExpense(), dto.getExpenseDays());
-                Integer days = dto.getExpenseDays();
-                long total = dto.getTotalExpense();
-
-                double avg = (days==null || days==0) ? 0
-                        :(double)total/days;
-                dto.setAvgExpense(avg);
-            }
-
-            return users;
-        }catch (Exception e){
-            throw new  RuntimeException("사용자의 카테고리 평균을 가져오는 중 오류 발생",e);
-        }
-    }
-    private int calculateAge(String birthDateStr){
+    private int calculateAge(String birthDateStr) {
         LocalDate birthDate = LocalDate.parse(birthDateStr);
         return java.time.Period.between(birthDate, LocalDate.now()).getYears();
     }

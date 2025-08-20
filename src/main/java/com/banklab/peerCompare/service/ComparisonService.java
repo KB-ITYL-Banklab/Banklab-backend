@@ -10,7 +10,4 @@ public interface ComparisonService {
             String email,
             Date startDate,
             Date endDate);
-
-    PeerComparisonResponseDTO compareWithPeer(Long memberId, String startDate, String endDate);
-//    List<CategoryExpenseDTO> getMyCategoryCompare(Long memberId,Date startDate, Date endDate);
 }
