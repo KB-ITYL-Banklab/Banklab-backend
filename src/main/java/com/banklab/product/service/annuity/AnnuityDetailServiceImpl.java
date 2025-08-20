@@ -70,9 +70,6 @@ public class AnnuityDetailServiceImpl implements AnnuityDetailService {
                 .pnsnStrtAgeNm(option.getPnsnStrtAgeNm())
                 .pnsnRecpAmt(option.getPnsnRecpAmt())
                 .build();
-
-
-
     }
 
     /**

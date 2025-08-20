@@ -37,14 +37,8 @@ public class CalculatorController {
     @PostMapping("/deposit")
     public ResponseEntity<DepositCalculateResponse> calculateDeposit(
             @RequestBody DepositCalculateRequest request) {
-
-        log.info("예금 계산 요청: 원금={}, 금리={}%, 기간={}개월, 복리={}",
-                request.getPrincipal(), request.getRate(), request.getTermMonths(), request.getIsCompound());
-
         DepositCalculateResponse response = calculatorService.calculateDeposit(request);
         activityService.saveCompareUsageLog(loginUserProvider.getLoginMemberId());
-        log.info("예금 계산 결과: 총이자={}", response.getResults().getTotalInterest());
-
         return ResponseEntity.ok(response);
     }
 
@@ -58,21 +52,8 @@ public class CalculatorController {
     @PostMapping("/savings")
     public ResponseEntity<SavingsCalculateResponse> calculateSavings(
             @RequestBody SavingsCalculateRequest request) {
-
-        log.info("적금 계산 요청: 월납입={}원, 금리={}%, 기간={}개월, 목표금액={}",
-                request.getMonthlyPayment(), request.getRate(), request.getTermMonths(), request.getTargetAmount());
-
         SavingsCalculateResponse response = calculatorService.calculateSavings(request);
         activityService.saveCompareUsageLog(loginUserProvider.getLoginMemberId());
-        if (response.getResults() != null) {
-            log.info("적금 계산 결과: 총이자={}", response.getResults().getTotalInterest());
-        } else {
-            log.info("적금 목표금액 계산 완료: 일반과세={}원, 세금우대={}원, 비과세={}원", 
-                    response.getSavingsSpecific().getRequiredMonthlyPaymentGeneral(),
-                    response.getSavingsSpecific().getRequiredMonthlyPaymentPreferential(),
-                    response.getSavingsSpecific().getRequiredMonthlyPaymentExempt());
-        }
-
         return ResponseEntity.ok(response);
     }
 
@@ -85,14 +66,8 @@ public class CalculatorController {
     @PostMapping("/loan")
     public ResponseEntity<LoanCalculateResponse> calculateLoan(
             @RequestBody LoanCalculateRequest request) {
-
-        log.info("대출 계산 요청: 대출금액={}원, 금리={}%, 기간={}개월, 상환방식={}",
-                request.getLoanAmount(), request.getLoanRate(), request.getLoanTermMonths(), request.getRepaymentMethod());
-
         LoanCalculateResponse response = calculatorService.calculateLoan(request);
         activityService.saveCompareUsageLog(loginUserProvider.getLoginMemberId());
-        log.info("대출 계산 결과: 총비용={}, 총이자={}", response.getResults().getTotalCost(), response.getResults().getTotalInterest());
-
         return ResponseEntity.ok(response);
     }
 
@@ -118,8 +93,6 @@ public class CalculatorController {
     @GetMapping("/profile")
     public ResponseEntity<UserInvestmentProfileResponse> getUserProfile() {
         Long memberId = loginUserProvider.getLoginMemberId();
-
-        log.info("사용자 투자 프로필 조회 요청: memberId={}", memberId);
         UserInvestmentProfileResponse response = userProfileService.getUserInvestmentProfile(memberId);
         return ResponseEntity.ok(response);
     }

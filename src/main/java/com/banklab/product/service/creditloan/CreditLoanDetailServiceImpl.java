@@ -24,8 +24,6 @@ public class CreditLoanDetailServiceImpl implements CreditLoanDetailService {
     @Override
     public CreditLoanWithOptionsDto getCreditLoanWithOptions(String dclsMonth, String finCoNo, String finPrdtCd) {
         try {
-            log.info("신용대출 상품과 옵션 조회: dclsMonth={}, finCoNo={}, finPrdtCd={}", dclsMonth, finCoNo, finPrdtCd);
-            
             // 1. 상품 조회
             CreditLoanProduct product = creditLoanProductMapper.findByProductKey(dclsMonth, finCoNo, finPrdtCd);
             if (product == null) {
@@ -35,7 +33,6 @@ public class CreditLoanDetailServiceImpl implements CreditLoanDetailService {
 
             // 2. 옵션 조회
             List<CreditLoanOption> options = creditLoanOptionMapper.findOptionsByProduct(dclsMonth, finCoNo, finPrdtCd);
-            System.out.println(options.toString());
             
             // 3. DTO 변환
             List<CreditLoanOptionDto> optionDTOs = options.stream()
@@ -101,8 +98,6 @@ public class CreditLoanDetailServiceImpl implements CreditLoanDetailService {
                 .crdtPrdtType(product.getCrdtPrdtType())
                 .crdtPrdtTypeNm(product.getCrdtPrdtTypeNm())
                 .cbName(product.getCbName())
-//                .spclCnd(product.getSpclCnd())
-//                .etcNote(product.getEtcNote())
                 .dclsStrtDay(product.getDclsStrtDay() != null ? product.getDclsStrtDay().toString() : null)
                 .dclsEndDay(product.getDclsEndDay() != null ? product.getDclsEndDay().toString() : null)
                 .options(options)

@@ -43,10 +43,8 @@ public class BatchClaudeAiAnalysisService {
      * Batch 분석 - 한 번의 API 호출로 여러 상품 분석
      */
     public List<RiskAnalysisResponse> batchAnalyzeProductRisks(List<BatchRiskAnalysisRequest> requests) {
-        log.info("배치 위험도 분석 시작 - 상품 수: {}", requests.size());
-        
         try {
-            // 배치 크기 제한 (Claude API 안정성 고려) - 5개로 다시 축소
+            // 배치 크기 제한 - 5개
             int batchSize = Math.min(requests.size(), 5);
             
             if (requests.size() <= batchSize) {
@@ -72,7 +70,7 @@ public class BatchClaudeAiAnalysisService {
                 List<BatchRiskAnalysisRequest> batch = requests.subList(start, end);
                 
                 try {
-                    Thread.sleep(5000); // 배치 간 딜레이 증가 (2000ms -> 5000ms)
+                    Thread.sleep(5000); // 배치 간 딜레이
                     return processBatch(batch);
                 } catch (Exception e) {
                     log.error("배치 {} 처리 실패", i, e);
@@ -89,11 +87,7 @@ public class BatchClaudeAiAnalysisService {
         log.info("배치 처리 시작 - 요청 수: {}", requests.size());
         try {
             String prompt = buildBatchPrompt(requests);
-            log.debug("생성된 프롬프트 길이: {} chars", prompt.length());
-            
             String response = callClaudeApi(prompt);
-            log.info("Claude API 응답 받음 - 길이: {} chars", response.length());
-            
             return parseBatchResponse(response, requests.size());
         } catch (Exception e) {
             log.error("배치 처리 실패 - 요청 수: {}", requests.size(), e);
@@ -125,43 +119,42 @@ public class BatchClaudeAiAnalysisService {
                 연금: 변액연금, 최소보장 없음, 고도 복잡 구조
                 기타: 원금손실 위험 상품
                 
-                상품별 정밀 분석 기준
-                예금/적금 위험요소 분석
-                금리변동성 측정:
+                ## 상품별 정밀 분석 기준
+                ### 예금/적금 위험요소 분석
+                **금리변동성 측정**:
                 기준금리 연동 여부 (한국은행 기준금리/CD금리 연동시 위험 증가)
                 변동금리 구간 폭 (±1%p 이상시 위험 증가)
                 단계별 금리 적용 복잡성 (3단계 이상시 위험 증가)
                 
-                복합우대조건 위험도:
+                **복합우대조건 위험도:**
                 우대조건 개수: 1개(안전) → 2-3개(보통) → 4개이상(위험)
                 조건 달성 난이도: 급여이체(쉬움) → 카드실적(보통) → 복합실적(어려움)
                 중도해지 패널티: 없음(안전) → 이자감소(보통) → 원금손실(위험)
                 
-                대출상품 바젤3 기준 분석
-                바젤3 규제 준수 평가:
+                ### 대출상품 바젤3 기준 분석
+                **바젤3 규제 준수 평가:**
                 LTV/DTI 규제 준수도 (규제 한계선 근접시 위험 증가)
                 자본건전성 기준 (BIS 비율 8% 이상 유지 은행 상품 선별)
                 신용위험 가중치 (100% 이상 가중치 적용 상품은 고위험)
                 
-                연체율 기반 위험도:
+                **연체율 기반 위험도:**
                 신용대출: 업계 평균 연체율 3-5% 기준 평가
                 담보대출: 담보가치 하락 위험, LTV 비율별 연체율 차등 평가
                 전세자금대출: 전세가격 변동성, 깡통전세 위험도 반영
                 
-                연금상품 구조 분석
-                복합상품 구조 분석:
-                
+                ### 연금상품 구조 분석
+                **복합상품 구조 분석:**
                 보장/변액 혼합비율 (변액 비중 높을수록 위험 증가)
                 수수료 구조: 단순(1-2종) → 복합(3-4종) → 고도복합(5종이상)
                 해지환급금 산정 복잡성 (복잡한 계산식일수록 위험 증가)
                 
-                장기 리스크 평가:
+                **장기 리스크 평가:**
                 인플레이션 위험: 명목수익률 vs 실질수익률 격차 분석
                 장기수익률 변동성: 과거 10년 데이터 기반 변동성 측정
                 조기해지 손실률: 가입기간별 해지손실 구간 평가 (10년미만 고위험)
                 
                 ## 종합 위험도 판정 로직
-                가중치 적용
+                ### 가중치 적용
                 대출상품: 무조건 HIGH (바젤3 기본 위험 분류)
                 
                 예적금:금리변동성 (40%) + 복합우대조건 (60%) = 종합점수
@@ -170,7 +163,7 @@ public class BatchClaudeAiAnalysisService {
                 연금상품:복합구조 (50%) + 장기리스크 (50%) = 종합점수
                 75점 이상: HIGH, 45-74점: MEDIUM, 44점 이하: LOW
                 
-                추가 위험요소
+                ### 추가 위험요소
                 금융회사 건전성: 경영평가 하위권 회사 상품은 위험도 +1단계
                 상품 복잡성: 설명서 10페이지 초과시 위험도 증가
                 중도해지 제약: 높은 패널티나 제약시 위험도 증가
@@ -243,9 +236,7 @@ public class BatchClaudeAiAnalysisService {
                         Map.of("role", "user", "content", prompt)
                     )
                 );
-                
-                log.debug("Claude API 호출 시작 - 시도 {}/{}", attempt, maxRetries);
-                
+
                 HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
                 ResponseEntity<Map> response = restTemplate.postForEntity(apiUrl, entity, Map.class);
                 
@@ -264,8 +255,6 @@ public class BatchClaudeAiAnalysisService {
                 }
                 
                 String responseText = (String) content.get(0).get("text");
-                log.info("Claude API 호출 성공 - 응답 길이: {} chars (시도 {})", 
-                        responseText != null ? responseText.length() : 0, attempt);
                 
                 return responseText;
                 
@@ -310,13 +299,7 @@ public class BatchClaudeAiAnalysisService {
     
     private List<RiskAnalysisResponse> parseBatchResponse(String response, int expectedCount) {
         try {
-            log.info("=== PARSING RESPONSE ===");
-            log.info("Expected count: {}", expectedCount);
-            log.info("Raw response length: {} chars", response.length());
-            log.debug("Raw response preview: {}", response.length() > 500 ? response.substring(0, 500) + "..." : response);
-
             String jsonPart = extractJsonFromResponse(response);
-            log.info("Extracted JSON length: {} chars", jsonPart.length());
             
             // JSON이 이미 올바른 형태인지 먼저 확인
             List<Map<String, Object>> results;
@@ -326,26 +309,18 @@ public class BatchClaudeAiAnalysisService {
                     jsonPart,
                     new TypeReference<List<Map<String, Object>>>() {}
                 );
-                log.info("JSON parsing successful (원본) - parsed {} results", results.size());
                 
             } catch (Exception firstParseError) {
                 log.warn("원본 JSON 파싱 실패, 정제 후 재시도: {}", firstParseError.getMessage());
-                
                 try {
                     // 두 번째 시도: 정제 후 파싱
                     String sanitizedJson = sanitizeJson(jsonPart);
-                    log.info("Sanitized JSON length: {} chars", sanitizedJson.length());
-                    log.debug("Sanitized JSON preview: {}", sanitizedJson.length() > 1000 ? sanitizedJson.substring(0, 1000) + "..." : sanitizedJson);
-                    
                     results = objectMapper.readValue(
                         sanitizedJson,
                         new TypeReference<List<Map<String, Object>>>() {}
                     );
-                    log.info("JSON parsing successful (정제 후) - parsed {} results", results.size());
-                    
                 } catch (Exception secondParseError) {
                     log.error("정제 후에도 JSON 파싱 실패", secondParseError);
-                    log.error("Failed JSON content: {}", jsonPart);
                     
                     // 파싱 완전 실패 - 빈 배열로 처리
                     results = new ArrayList<>();
@@ -359,9 +334,7 @@ public class BatchClaudeAiAnalysisService {
                     Map<String, Object> result = results.get(i);
                     RiskAnalysisResponse mapped = mapToRiskAnalysisResponse(result);
                     responses.add(mapped);
-                    log.debug("Successfully mapped result #{}: {}", i + 1, mapped.getRiskLevel());
                 } catch (Exception e) {
-                    log.warn("Failed to map result #{}: {}", i + 1, results.get(i), e);
                     // 매핑 실패 시 기본값 추가
                     responses.add(createSafeRiskAnalysisResponse("MEDIUM", "응답 매핑 실패로 인한 기본 평가"));
                 }
@@ -372,14 +345,10 @@ public class BatchClaudeAiAnalysisService {
                 responses.add(createSafeRiskAnalysisResponse("MEDIUM", "응답 개수 부족으로 인한 기본 평가"));
                 log.warn("Added default response for missing result #{}", responses.size());
             }
-            
-            log.info("Final response count: {} (expected: {})", responses.size(), expectedCount);
             return responses;
                 
         } catch (Exception e) {
             log.error("전체 배치 AI 응답 파싱 실패", e);
-            log.error("Response that failed: {}", response.length() > 500 ? response.substring(0, 500) + "..." : response);
-            
             // 파싱 실패 시 모든 항목에 대해 기본값들 반환
             List<RiskAnalysisResponse> fallbackResponses = new ArrayList<>();
             for (int i = 0; i < expectedCount; i++) {
@@ -421,22 +390,18 @@ public class BatchClaudeAiAnalysisService {
     
     private String extractJsonFromResponse(String response) {
         try {
-            log.debug("원본 응답에서 JSON 추출 시작 - 길이: {} chars", response.length());
-            
             // 마크다운 코드 블록 제거
             if (response.contains("```json")) {
                 int start = response.indexOf("```json") + 7;
                 int end = response.indexOf("```", start);
                 if (end > start) {
                     response = response.substring(start, end).trim();
-                    log.debug("```json 블록에서 추출: {} chars", response.length());
                 }
             } else if (response.contains("```")) {
                 int start = response.indexOf("```") + 3;
                 int end = response.indexOf("```", start);
                 if (end > start) {
                     response = response.substring(start, end).trim();
-                    log.debug("``` 블록에서 추출: {} chars", response.length());
                 }
             }
             
@@ -445,7 +410,6 @@ public class BatchClaudeAiAnalysisService {
             int end = response.lastIndexOf("]") + 1;
             if (start >= 0 && end > start) {
                 String jsonArray = response.substring(start, end);
-                log.debug("JSON 배열 추출 성공: {} chars", jsonArray.length());
                 return jsonArray;
             }
             
@@ -486,7 +450,6 @@ public class BatchClaudeAiAnalysisService {
                     if (jsonObject.contains("product_index") && jsonObject.contains("risk_level")) {
                         jsonObjects.add(jsonObject);
                         objectCount++;
-                        log.debug("JSON 객체 #{} 추출: {} chars", objectCount, jsonObject.length());
                     }
                     objectStart = pos;
                 } else {
@@ -520,9 +483,7 @@ public class BatchClaudeAiAnalysisService {
             
             // 3. JSON이 이미 올바른 형태인지 확인 - 간단한 유효성 검사
             if (sanitized.startsWith("[") && sanitized.endsWith("]")) {
-                // 이미 올바른 JSON 배열 형태라면 최소한의 처리만
-                log.debug("JSON이 이미 올바른 형태입니다 - 최소 처리만 수행");
-                
+
                 // 위험한 제어 문자만 제거 (ASCII 0-8, 11-12, 14-31, 127)
                 // 단, 일반적인 줄바꿈(\n=10), 캐리지리턴(\r=13), 탭(\t=9)은 유지
                 sanitized = sanitized.replaceAll("[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\x7F]", "");
@@ -531,9 +492,6 @@ public class BatchClaudeAiAnalysisService {
             }
             
             // 4. JSON이 손상된 경우에만 복구 시도
-            log.debug("JSON 복구 시도 중...");
-            
-            // 이중 이스케이프된 문자들 복구
             sanitized = sanitized.replaceAll("\\\\\\\\n", "\\\\n");
             sanitized = sanitized.replaceAll("\\\\\\\\t", "\\\\t");
             sanitized = sanitized.replaceAll("\\\\\\\\r", "\\\\r");

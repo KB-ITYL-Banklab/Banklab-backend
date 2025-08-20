@@ -27,13 +27,10 @@ public class UserProfileServiceImpl implements UserProfileService {
     
     @Override
     public UserInvestmentProfileResponse getUserInvestmentProfile(Long userId) {
-        log.info("사용자 투자 프로필 조회 요청: userId={}", userId);
-        
         // DB에서 사용자 투자 프로필 조회
         Map<String, String> profileInfo = userProfileMapper.findUserInvestmentInfoByUserId(userId);
         
         if (profileInfo == null || profileInfo.isEmpty()) {
-            log.warn("사용자 투자 프로필을 찾을 수 없습니다: userId={}", userId);
             throw new RuntimeException("사용자 투자 프로필을 찾을 수 없습니다.");
         }
         
@@ -45,9 +42,6 @@ public class UserProfileServiceImpl implements UserProfileService {
                 .defaultAmount(defaultAmount)
                 .defaultTermMonths(defaultTermMonths)
                 .build();
-        
-        log.info("사용자 투자 프로필 조회 결과: defaultAmount={}, defaultTermMonths={}", 
-                response.getDefaultAmount(), response.getDefaultTermMonths());
         
         return response;
     }

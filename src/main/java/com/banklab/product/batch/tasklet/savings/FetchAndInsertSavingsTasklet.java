@@ -31,8 +31,6 @@ public class FetchAndInsertSavingsTasklet implements Tasklet {
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-        log.info("=== 적금 상품 Upsert 배치 시작 ===");
-        
         SavingsProductAndOptionListDto dto = savingsApiService.fetchProductsFromApi();
         
         int insertedProducts = 0;
@@ -55,13 +53,11 @@ public class FetchAndInsertSavingsTasklet implements Tasklet {
                 // 신규 상품 삽입
                 savingsProductMapper.insertSavingsProduct(newProduct);
                 insertedProducts++;
-                log.debug("신규 적금 상품 삽입: {}", newProduct.getFinPrdtNm());
             } else if (!existingProduct.getFinCoSubmDay().equals(newProduct.getFinCoSubmDay())) {
                 // fin_co_subm_day가 다르면 변경된 것으로 판단하여 업데이트
                 newProduct.setId(existingProduct.getId());
                 savingsProductMapper.updateSavingsProduct(newProduct);
                 updatedProducts++;
-                log.debug("적금 상품 업데이트: {}", newProduct.getFinPrdtNm());
             }
         }
 
@@ -83,13 +79,11 @@ public class FetchAndInsertSavingsTasklet implements Tasklet {
                 // 신규 옵션 삽입
                 savingsOptionMapper.insertSavingsOption(newOption);
                 insertedOptions++;
-                log.debug("신규 적금 옵션 삽입: {} - {}개월", newOption.getFinPrdtCd(), newOption.getSaveTrm());
             } else if (isOptionChanged(existingOption, newOption)) {
                 // 금리 정보가 변경되었으면 업데이트
                 newOption.setId(existingOption.getId());
                 savingsOptionMapper.updateSavingsOption(newOption);
                 updatedOptions++;
-                log.debug("적금 옵션 업데이트: {} - {}개월", newOption.getFinPrdtCd(), newOption.getSaveTrm());
             }
         }
         

@@ -37,8 +37,6 @@ public class AnnuityDetailController {
                         dclsMonth, finCoNo, finPrdtCd);
                 return ResponseEntity.notFound().build();
             }
-
-            log.info("연금저축 상품 옵션 조회 성공: 상품명={}, 옵션수={}", result.getFinPrdtNm(), result.getOptionCount());
             return ResponseEntity.ok(result);
 
         } catch (Exception e) {

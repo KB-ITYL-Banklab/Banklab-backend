@@ -22,7 +22,6 @@ public class RiskAnalysisScheduler {
      */
     @Scheduled(cron = "0 30 2 * * *")
     public void scheduledTodayUpdatedRiskAnalysis() {
-        log.info("정기 위험도 분석 시작 (오늘 업데이트된 상품만)...");
         try {
             riskAnalysisService.batchAnalyzeTodayUpdatedProductsRisk();
             log.info("정기 위험도 분석 완료 (오늘 업데이트된 상품만)");
@@ -36,7 +35,6 @@ public class RiskAnalysisScheduler {
      */
     @Scheduled(cron = "0 0 3 * * SUN")
     public void scheduledFullRiskAnalysis() {
-        log.info("주간 전체 위험도 분석 시작...");
         try {
             riskAnalysisService.batchAnalyzeAllProductsRisk();
             log.info("주간 전체 위험도 분석 완료");

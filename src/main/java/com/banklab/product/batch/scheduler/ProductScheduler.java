@@ -47,8 +47,6 @@ public class ProductScheduler {
     @Scheduled(cron = "0 0 2 * * *")
     public void runDepositBatch() {
         try {
-            log.info("=== 예금 상품 배치 시작 (02:00) ===");
-            
             JobParameters jobParameters = new JobParametersBuilder()
                     .addLong("timestamp", System.currentTimeMillis())
                     .toJobParameters();
@@ -68,8 +66,6 @@ public class ProductScheduler {
     @Scheduled(cron = "0 5 2 * * *")
     public void runSavingsBatch() {
         try {
-            log.info("=== 적금 상품 배치 시작 (02:05) ===");
-            
             JobParameters jobParameters = new JobParametersBuilder()
                     .addLong("timestamp", System.currentTimeMillis())
                     .toJobParameters();
@@ -89,8 +85,6 @@ public class ProductScheduler {
     @Scheduled(cron = "0 10 2 * * *")
     public void runCreditLoanBatch() {
         try {
-            log.info("=== 신용대출 상품 배치 시작 (02:10) ===");
-            
             JobParameters jobParameters = new JobParametersBuilder()
                     .addLong("timestamp", System.currentTimeMillis())
                     .toJobParameters();
@@ -107,8 +101,6 @@ public class ProductScheduler {
     @Scheduled(cron = "0 15 2 * * *")
     public void runAnnuityBatch() {
         try {
-            log.info("=== 연금저축 상품 배치 시작 (02:15) ===");
-
             JobParameters jobParameters = new JobParametersBuilder()
                     .addLong("timestamp", System.currentTimeMillis())
                     .toJobParameters();
@@ -124,8 +116,6 @@ public class ProductScheduler {
     @Scheduled(cron = "0 20 2 * * *")
     public void runMortgageLoanBatch() {
         try {
-            log.info("=== 주택담보대출 상품 배치 시작 (02:15) ===");
-
             JobParameters jobParameters = new JobParametersBuilder()
                     .addLong("timestamp", System.currentTimeMillis())
                     .toJobParameters();
@@ -141,8 +131,6 @@ public class ProductScheduler {
     @Scheduled(cron = "0 25 2 * * *")
     public void runRentHouseLoanBatch() {
         try {
-            log.info("=== 전세자금대출 상품 배치 시작 (02:15) ===");
-
             JobParameters jobParameters = new JobParametersBuilder()
                     .addLong("timestamp", System.currentTimeMillis())
                     .toJobParameters();
