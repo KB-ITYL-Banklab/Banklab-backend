@@ -27,7 +27,7 @@ import javax.sql.DataSource;
 public class StockDataUpdateRunner {
 
     public static void main(String[] args) {
-        log.info("🚀 주식 데이터 업데이트 시작");
+        // log.info("🚀 주식 데이터 업데이트 시작");
         
         try {
             // 최소한의 Spring 컨텍스트 로드 (Security 제외)
@@ -35,19 +35,19 @@ public class StockDataUpdateRunner {
             FinanceStockService financeStockService = context.getBean(FinanceStockService.class);
             
             // 1. 오래된 데이터 삭제
-            log.info("🗑️ 30일 이전 데이터 삭제 중...");
+            // log.info("🗑️ 30일 이전 데이터 삭제 중...");
             int deletedCount = financeStockService.deleteOldData();
-            log.info("✅ 삭제 완료: {}건", deletedCount);
+            // log.info("✅ 삭제 완료: {}건", deletedCount);
             
             // 2. 최근 30일간 상위 200개 종목 데이터 저장
-            log.info("📊 최근 30일간 데이터 저장 중...");
+            // log.info("📊 최근 30일간 데이터 저장 중...");
             int savedCount = financeStockService.saveRecentStockData(30, 1000);
-            log.info("✅ 저장 완료: {}건", savedCount);
+            // log.info("✅ 저장 완료: {}건", savedCount);
             
-            log.info("🎉 업데이트 완료! 삭제: {}건, 저장: {}건", deletedCount, savedCount);
+            // log.info("🎉 업데이트 완료! 삭제: {}건, 저장: {}건", deletedCount, savedCount);
             
         } catch (Exception e) {
-            log.error("❌ 업데이트 실패: {}", e.getMessage(), e);
+            // log.error("❌ 업데이트 실패: {}", e.getMessage(), e);
             System.exit(1);
         }
     }

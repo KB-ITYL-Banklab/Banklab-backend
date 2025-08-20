@@ -22,13 +22,13 @@ public class UpbitDataScheduler {
      */
     @Scheduled(cron = "0 0 9 * * *")
     public void collectDailyUpbitData() {
-        log.info("=== 업비트 일일 데이터 수집 스케줄러 시작 ===");
+        // log.info("=== 업비트 일일 데이터 수집 스케줄러 시작 ===");
         
         try {
             upbitDataService.collectAndSaveUpbitData();
-            log.info("=== 업비트 일일 데이터 수집 스케줄러 완료 ===");
+            // log.info("=== 업비트 일일 데이터 수집 스케줄러 완료 ===");
         } catch (Exception e) {
-            log.error("=== 업비트 일일 데이터 수집 스케줄러 실패 ===", e);
+            // log.error("=== 업비트 일일 데이터 수집 스케줄러 실패 ===", e);
         }
     }
 
@@ -37,13 +37,13 @@ public class UpbitDataScheduler {
      */
     // @Scheduled(fixedRate = 600000) // 10분 = 600,000ms
     public void collectUpbitDataForTest() {
-        log.info("=== 업비트 데이터 수집 테스트 스케줄러 시작 ===");
+        // log.info("=== 업비트 데이터 수집 테스트 스케줄러 시작 ===");
         
         try {
             upbitDataService.collectAndSaveUpbitData();
-            log.info("=== 업비트 데이터 수집 테스트 스케줄러 완료 ===");
+            // log.info("=== 업비트 데이터 수집 테스트 스케줄러 완료 ===");
         } catch (Exception e) {
-            log.error("=== 업비트 데이터 수집 테스트 스케줄러 실패 ===", e);
+            // log.error("=== 업비트 데이터 수집 테스트 스케줄러 실패 ===", e);
         }
     }
 
@@ -51,13 +51,13 @@ public class UpbitDataScheduler {
      * 수동 실행용 메서드
      */
     public void manualCollectUpbitData() {
-        log.info("=== 업비트 데이터 수동 수집 시작 ===");
+        // log.info("=== 업비트 데이터 수동 수집 시작 ===");
         
         try {
             upbitDataService.collectAndSaveUpbitData();
-            log.info("=== 업비트 데이터 수동 수집 완료 ===");
+            // log.info("=== 업비트 데이터 수동 수집 완료 ===");
         } catch (Exception e) {
-            log.error("=== 업비트 데이터 수동 수집 실패 ===", e);
+            // log.error("=== 업비트 데이터 수동 수집 실패 ===", e);
             throw e;
         }
     }

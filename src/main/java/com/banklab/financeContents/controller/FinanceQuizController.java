@@ -130,10 +130,10 @@ public class FinanceQuizController {
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            System.err.println("=== GET /api/quiz/today 오류 발생 ===");
-            System.err.println("Error message: " + e.getMessage());
-            System.err.println("Error type: " + e.getClass().getName());
-            e.printStackTrace();
+            // System.err.println("=== GET /api/quiz/today 오류 발생 ===");
+            // System.err.println("Error message: " + e.getMessage());
+            // System.err.println("Error type: " + e.getClass().getName());
+            // e.printStackTrace();
             
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
@@ -170,13 +170,13 @@ public class FinanceQuizController {
     @PostMapping("/daily-result")
     public ResponseEntity<Map<String, Object>> processDailyQuizResults(@RequestBody DailyQuizRequestDTO request) {
         try {
-            System.out.println("=== POST /api/quiz/daily-result 호출됨 ===");
-            System.out.println("Received request: " + request);
-            System.out.println("User Answer: " + request.getUserAnswer());
-            System.out.println("User Answer Length: " + (request.getUserAnswer() != null ? request.getUserAnswer().length() : "null"));
+            // System.out.println("=== POST /api/quiz/daily-result 호출됨 ===");
+            // System.out.println("Received request: " + request);
+            // System.out.println("User Answer: " + request.getUserAnswer());
+            // System.out.println("User Answer Length: " + (request.getUserAnswer() != null ? request.getUserAnswer().length() : "null"));
             Long memberId = loginUserProvider.getLoginMemberId();
             DailyQuizResultDTO result = financeQuizService.processDailyQuizResults(memberId, request);
-            System.out.println("DB 저장 성공, 응답 데이터: " + result);
+            // System.out.println("DB 저장 성공, 응답 데이터: " + result);
             missionProgressService.onEvent(memberId, ConditionKey.DAILY_QUIZ_SOLVED);
             missionProgressService.onEvent(memberId, ConditionKey.QUIZ_SUCCESS_RATE);
             
@@ -188,22 +188,22 @@ public class FinanceQuizController {
             return ResponseEntity.ok(response);
         } catch (IllegalStateException e) {
             // 이미 오늘 퀴즈를 완료한 경우
-            System.out.println("IllegalStateException: " + e.getMessage());
+            // System.out.println("IllegalStateException: " + e.getMessage());
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
             errorResponse.put("message", e.getMessage());
             errorResponse.put("alreadySolved", true);
             return ResponseEntity.status(403).body(errorResponse);
         } catch (IllegalArgumentException e) {
-            System.out.println("IllegalArgumentException: " + e.getMessage());
-            e.printStackTrace();
+            // System.out.println("IllegalArgumentException: " + e.getMessage());
+            // e.printStackTrace();
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
             errorResponse.put("message", "잘못된 요청입니다: " + e.getMessage());
             return ResponseEntity.badRequest().body(errorResponse);
         } catch (Exception e) {
-            System.out.println("Exception: " + e.getMessage());
-            e.printStackTrace();
+            // System.out.println("Exception: " + e.getMessage());
+            // e.printStackTrace();
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
             errorResponse.put("message", "서버 오류가 발생했습니다.");

@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
 @Component
 public class FinanceStockScheduler {
     
-    private static final Logger log = LoggerFactory.getLogger(FinanceStockScheduler.class);
+    // private static final Logger log = LoggerFactory.getLogger(FinanceStockScheduler.class);
     
     @Autowired
     private FinanceStockService financeStockService;
@@ -39,33 +39,33 @@ public class FinanceStockScheduler {
     @Scheduled(cron = "0 0 9 * * MON-FRI")
     public void collectDailyStockData() {
         if (!schedulerEnabled) {
-            log.debug("주식 스케줄러가 비활성화되어 있습니다.");
+            // log.debug("주식 스케줄러가 비활성화되어 있습니다.");
             return;
         }
         
         try {
-            log.info("🕘 [스케줄러] 일일 상위 200개 종목 데이터 수집 시작 - {}", LocalDateTime.now());
+            // log.info("🕘 [스케줄러] 일일 상위 200개 종목 데이터 수집 시작 - {}", LocalDateTime.now());
             
             LocalDate yesterday = LocalDate.now().minusDays(1);
             LocalDate targetDate = getLastBusinessDay(yesterday);
             
-            log.info("📅 수집 대상 날짜: {}", targetDate);
+            // log.info("📅 수집 대상 날짜: {}", targetDate);
             
             // 오래된 데이터 먼저 삭제 (30일 이전)
             int deletedCount = financeStockService.deleteOldData();
-            log.info("🗑️ [스케줄러] 30일 이전 오래된 데이터 {}건 삭제", deletedCount);
+            // log.info("🗑️ [스케줄러] 30일 이전 오래된 데이터 {}건 삭제", deletedCount);
             
             // 상위 200개 종목 데이터 저장
             int savedCount = financeStockService.saveTopStockDataFromApi(targetDate, 200);
             
             if (savedCount > 0) {
-                log.info("✅ [스케줄러] 일일 상위 200개 종목 데이터 수집 완료: {}건 ({})", savedCount, targetDate);
+                // log.info("✅ [스케줄러] 일일 상위 200개 종목 데이터 수집 완료: {}건 ({})", savedCount, targetDate);
             } else {
-                log.warn("⚠️ [스케줄러] 일일 주식 데이터 수집 실패: 데이터 없음 ({})", targetDate);
+                // log.warn("⚠️ [스케줄러] 일일 주식 데이터 수집 실패: 데이터 없음 ({})", targetDate);
             }
             
         } catch (Exception e) {
-            log.error("❌ [스케줄러] 일일 주식 데이터 수집 실패: {}", e.getMessage(), e);
+            // log.error("❌ [스케줄러] 일일 주식 데이터 수집 실패: {}", e.getMessage(), e);
         }
     }
     
@@ -77,28 +77,28 @@ public class FinanceStockScheduler {
     @Scheduled(cron = "0 0 6 * * SUN")
     public void collectRecentStockData() {
         if (!schedulerEnabled) {
-            log.debug("주식 스케줄러가 비활성화되어 있습니다.");
+            // log.debug("주식 스케줄러가 비활성화되어 있습니다.");
             return;
         }
         
         try {
-            log.info("🕕 [스케줄러] 주간 최근 30일 데이터 일괄 수집 시작 - {}", LocalDateTime.now());
+            // log.info("🕕 [스케줄러] 주간 최근 30일 데이터 일괄 수집 시작 - {}", LocalDateTime.now());
             
             // 오래된 데이터 삭제
             int deletedCount = financeStockService.deleteOldData();
-            log.info("🗑️ [스케줄러] 30일 이전 오래된 데이터 {}건 삭제", deletedCount);
+            // log.info("🗑️ [스케줄러] 30일 이전 오래된 데이터 {}건 삭제", deletedCount);
             
             // 최근 30일 상위 200개 종목 데이터 저장
             int savedCount = financeStockService.saveRecentStockData(30, 200);
             
             if (savedCount > 0) {
-                log.info("✅ [스케줄러] 주간 최근 30일 데이터 수집 완료: {}건", savedCount);
+                // log.info("✅ [스케줄러] 주간 최근 30일 데이터 수집 완료: {}건", savedCount);
             } else {
-                log.warn("⚠️ [스케줄러] 주간 데이터 수집 실패: 데이터 없음");
+                // log.warn("⚠️ [스케줄러] 주간 데이터 수집 실패: 데이터 없음");
             }
             
         } catch (Exception e) {
-            log.error("❌ [스케줄러] 주간 데이터 수집 실패: {}", e.getMessage(), e);
+            // log.error("❌ [스케줄러] 주간 데이터 수집 실패: {}", e.getMessage(), e);
         }
     }
     
@@ -110,17 +110,17 @@ public class FinanceStockScheduler {
     @Scheduled(cron = "0 0 18 * * MON-FRI")
     public void updateTodayStockData() {
         if (!schedulerEnabled) {
-            log.debug("주식 스케줄러가 비활성화되어 있습니다.");
+            // log.debug("주식 스케줄러가 비활성화되어 있습니다.");
             return;
         }
         
         try {
-            log.info("🕕 [스케줄러] 당일 상위 100개 종목 데이터 업데이트 시작 - {}", LocalDateTime.now());
+            // log.info("🕕 [스케줄러] 당일 상위 100개 종목 데이터 업데이트 시작 - {}", LocalDateTime.now());
             
             LocalDate today = LocalDate.now();
             
             if (today.getDayOfWeek().getValue() >= 6) {
-                log.info("📅 주말이므로 당일 업데이트를 건너뜀");
+                // log.info("📅 주말이므로 당일 업데이트를 건너뜀");
                 return;
             }
             
@@ -128,13 +128,13 @@ public class FinanceStockScheduler {
             int savedCount = financeStockService.saveTopStockDataFromApi(today, 100);
             
             if (savedCount > 0) {
-                log.info("✅ [스케줄러] 당일 상위 100개 종목 데이터 업데이트 완료: {}건 ({})", savedCount, today);
+                // log.info("✅ [스케줄러] 당일 상위 100개 종목 데이터 업데이트 완료: {}건 ({})", savedCount, today);
             } else {
-                log.warn("⚠️ [스케줄러] 당일 주식 데이터 업데이트 실패: 데이터 없음 ({})", today);
+                // log.warn("⚠️ [스케줄러] 당일 주식 데이터 업데이트 실패: 데이터 없음 ({})", today);
             }
             
         } catch (Exception e) {
-            log.error("❌ [스케줄러] 당일 주식 데이터 업데이트 실패: {}", e.getMessage(), e);
+            // log.error("❌ [스케줄러] 당일 주식 데이터 업데이트 실패: {}", e.getMessage(), e);
         }
     }
     
@@ -146,12 +146,12 @@ public class FinanceStockScheduler {
     @Scheduled(cron = "0 0 10 * * SAT")
     public void collectMajorStockData() {
         if (!schedulerEnabled) {
-            log.debug("주식 스케줄러가 비활성화되어 있습니다.");
+            // log.debug("주식 스케줄러가 비활성화되어 있습니다.");
             return;
         }
         
         try {
-            log.info("🕙 [스케줄러] 주요 종목 데이터 재수집 시작 - {}", LocalDateTime.now());
+            // log.info("🕙 [스케줄러] 주요 종목 데이터 재수집 시작 - {}", LocalDateTime.now());
             
             String[] majorStocks = {
                 "005930", // 삼성전자
@@ -177,14 +177,14 @@ public class FinanceStockScheduler {
                     Thread.sleep(1000); // 1초 대기 (API 호출 간격 조절)
                     
                 } catch (Exception e) {
-                    log.warn("⚠️ 주요 종목 {} 수집 실패: {}", stockCode, e.getMessage());
+                    // log.warn("⚠️ 주요 종목 {} 수집 실패: {}", stockCode, e.getMessage());
                 }
             }
             
-            log.info("✅ [스케줄러] 주요 종목 데이터 재수집 완료: {}/{}개", successCount, majorStocks.length);
+            // log.info("✅ [스케줄러] 주요 종목 데이터 재수집 완료: {}/{}개", successCount, majorStocks.length);
             
         } catch (Exception e) {
-            log.error("❌ [스케줄러] 주요 종목 데이터 재수집 실패: {}", e.getMessage(), e);
+            // log.error("❌ [스케줄러] 주요 종목 데이터 재수집 실패: {}", e.getMessage(), e);
         }
     }
     
@@ -196,12 +196,12 @@ public class FinanceStockScheduler {
     @Scheduled(cron = "0 0 2 1 * *")
     public void cleanupOldData() {
         if (!schedulerEnabled) {
-            log.debug("주식 스케줄러가 비활성화되어 있습니다.");
+            // log.debug("주식 스케줄러가 비활성화되어 있습니다.");
             return;
         }
         
         try {
-            log.info("🧹 [스케줄러] 오래된 주식 데이터 정리 시작 - {}", LocalDateTime.now());
+            // log.info("🧹 [스케줄러] 오래된 주식 데이터 정리 시작 - {}", LocalDateTime.now());
             
             // 6개월 전 날짜 계산
             LocalDate sixMonthsAgo = LocalDate.now().minusMonths(6);
@@ -209,11 +209,11 @@ public class FinanceStockScheduler {
             // 실제 정리 로직은 필요에 따라 구현
             // 예: financeStockService.deleteOldData(sixMonthsAgo);
             
-            log.info("📅 {}일 이전 데이터 정리 대상", sixMonthsAgo);
-            log.info("ℹ️ [스케줄러] 데이터 정리 로직은 필요시 구현 예정");
+            // log.info("📅 {}일 이전 데이터 정리 대상", sixMonthsAgo);
+            // log.info("ℹ️ [스케줄러] 데이터 정리 로직은 필요시 구현 예정");
             
         } catch (Exception e) {
-            log.error("❌ [스케줄러] 오래된 데이터 정리 실패: {}", e.getMessage(), e);
+            // log.error("❌ [스케줄러] 오래된 데이터 정리 실패: {}", e.getMessage(), e);
         }
     }
     

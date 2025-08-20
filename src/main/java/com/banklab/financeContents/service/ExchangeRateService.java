@@ -62,13 +62,13 @@ public class ExchangeRateService {
     public ExchangeRateResponse getExchangeRates(String searchDate) {
         try {
             String url = buildApiUrl(searchDate);
-            log.info("환율 API 호출: {}", url);
+            // log.info("환율 API 호출: {}", url);
             
             HttpGet request = new HttpGet(url);
             HttpResponse response = httpClient.execute(request);
             
             String responseBody = EntityUtils.toString(response.getEntity(), "UTF-8");
-            log.debug("API 응답: {}", responseBody);
+            // log.debug("API 응답: {}", responseBody);
             
             if (response.getStatusLine().getStatusCode() == 200) {
                 List<ExchangeRateDto> exchangeRates = objectMapper.readValue(
@@ -85,7 +85,7 @@ public class ExchangeRateService {
                     .build();
                     
             } else {
-                log.error("API 호출 실패. 상태코드: {}", response.getStatusLine().getStatusCode());
+                // log.error("API 호출 실패. 상태코드: {}", response.getStatusLine().getStatusCode());
                 return ExchangeRateResponse.builder()
                     .success(false)
                     .message("환율 정보 조회 실패")
@@ -95,7 +95,7 @@ public class ExchangeRateService {
             }
             
         } catch (IOException e) {
-            log.error("환율 API 호출 중 오류 발생", e);
+            // log.error("환율 API 호출 중 오류 발생", e);
             return ExchangeRateResponse.builder()
                 .success(false)
                 .message("API 호출 중 오류 발생: " + e.getMessage())
@@ -103,7 +103,7 @@ public class ExchangeRateService {
                 .count(0)
                 .build();
         } catch (Exception e) {
-            log.error("환율 데이터 처리 중 오류 발생", e);
+            // log.error("환율 데이터 처리 중 오류 발생", e);
             return ExchangeRateResponse.builder()
                 .success(false)
                 .message("데이터 처리 중 오류 발생: " + e.getMessage())
@@ -120,13 +120,13 @@ public class ExchangeRateService {
     public ExchangeRateResponse getExchangeRateByCurrency(String searchDate, String data) {
         try {
             String url = buildApiUrlWithCurrency(searchDate, data);
-            log.info("특정 통화 환율 API 호출: {}", url);
+            // log.info("특정 통화 환율 API 호출: {}", url);
             
             HttpGet request = new HttpGet(url);
             HttpResponse response = httpClient.execute(request);
             
             String responseBody = EntityUtils.toString(response.getEntity(), "UTF-8");
-            log.debug("API 응답: {}", responseBody);
+            // log.debug("API 응답: {}", responseBody);
             
             if (response.getStatusLine().getStatusCode() == 200) {
                 List<ExchangeRateDto> exchangeRates = objectMapper.readValue(
@@ -143,7 +143,7 @@ public class ExchangeRateService {
                     .build();
                     
             } else {
-                log.error("API 호출 실패. 상태코드: {}", response.getStatusLine().getStatusCode());
+                // log.error("API 호출 실패. 상태코드: {}", response.getStatusLine().getStatusCode());
                 return ExchangeRateResponse.builder()
                     .success(false)
                     .message("환율 정보 조회 실패")
@@ -153,7 +153,7 @@ public class ExchangeRateService {
             }
             
         } catch (Exception e) {
-            log.error("환율 API 호출 중 오류 발생", e);
+            // log.error("환율 API 호출 중 오류 발생", e);
             return ExchangeRateResponse.builder()
                 .success(false)
                 .message("API 호출 중 오류 발생: " + e.getMessage())

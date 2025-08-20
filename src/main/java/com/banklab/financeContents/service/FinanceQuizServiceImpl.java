@@ -118,8 +118,8 @@ public class FinanceQuizServiceImpl implements FinanceQuizService {
 
     @Override
     public DailyQuizResultDTO processDailyQuizResults(Long memberId, DailyQuizRequestDTO request) {
-        System.out.println("=== processDailyQuizResults 시작 ===");
-        System.out.println("Request: " + request);
+        // System.out.println("=== processDailyQuizResults 시작 ===");
+        // System.out.println("Request: " + request);
         
         // 입력 검증
         if (request == null) {
@@ -207,15 +207,15 @@ public class FinanceQuizServiceImpl implements FinanceQuizService {
         userQuizResult.setCorrectProblem(newCorrectProblemCount);
         userQuizResult.setAccumulatedPoints(totalAccumulatedPoints);
         
-        System.out.println("=== DB Upsert 시도 ===");
-        System.out.println("저장할 데이터 - memberId: " + userQuizResult.getMemberId());
-        System.out.println("저장할 데이터 - userAnswer: " + userQuizResult.getUserAnswer());
-        System.out.println("저장할 데이터 - problem: " + userQuizResult.getProblem());
-        System.out.println("저장할 데이터 - correctProblem: " + userQuizResult.getCorrectProblem());
-        System.out.println("저장할 데이터 - accumulatedPoints: " + userQuizResult.getAccumulatedPoints());
+        // System.out.println("=== DB Upsert 시도 ===");
+        // System.out.println("저장할 데이터 - memberId: " + userQuizResult.getMemberId());
+        // System.out.println("저장할 데이터 - userAnswer: " + userQuizResult.getUserAnswer());
+        // System.out.println("저장할 데이터 - problem: " + userQuizResult.getProblem());
+        // System.out.println("저장할 데이터 - correctProblem: " + userQuizResult.getCorrectProblem());
+        // System.out.println("저장할 데이터 - accumulatedPoints: " + userQuizResult.getAccumulatedPoints());
         
         int upsertResult = userQuizResultMapper.upsertUserQuizResult(userQuizResult);
-        System.out.println("DB Upsert 결과 (영향받은 행 수): " + upsertResult);
+        // System.out.println("DB Upsert 결과 (영향받은 행 수): " + upsertResult);
         
         if (upsertResult <= 0) {
             throw new RuntimeException("DB Upsert에 실패했습니다.");

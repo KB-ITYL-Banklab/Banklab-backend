@@ -24,14 +24,14 @@ public class UpbitDataCollectorRunner {
      */
     // @PostConstruct
     public void initializeUpbitData() {
-        log.info("=== 애플리케이션 시작 시 업비트 데이터 초기 수집 ===");
+        // log.info("=== 애플리케이션 시작 시 업비트 데이터 초기 수집 ===");
         
         try {
             // 시작 시 한 번 데이터 수집
             upbitDataScheduler.manualCollectUpbitData();
-            log.info("=== 업비트 데이터 초기 수집 완료 ===");
+            // log.info("=== 업비트 데이터 초기 수집 완료 ===");
         } catch (Exception e) {
-            log.error("=== 업비트 데이터 초기 수집 실패 ===", e);
+            // log.error("=== 업비트 데이터 초기 수집 실패 ===", e);
         }
     }
 }
