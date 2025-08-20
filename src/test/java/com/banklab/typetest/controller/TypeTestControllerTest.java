@@ -1,5 +1,6 @@
 package com.banklab.typetest.controller;
 
+import com.banklab.mission.service.MissionProgressService;
 import com.banklab.security.util.LoginUserProvider;
 import com.banklab.typetest.domain.Question;
 import com.banklab.typetest.dto.TypeTestResultDTO;
@@ -28,14 +29,18 @@ class TypeTestControllerTest {
     @Mock
     private TypeTestService typeTestService;
 
-    private TypeTestController typeTestController;
-
     @Mock
     private LoginUserProvider loginUserProvider;
 
+    @Mock
+    private MissionProgressService missionProgressService; // MissionProgressService 목 객체 추가
+
+    private TypeTestController typeTestController;
+
     @BeforeEach
     void setUp() {
-        typeTestController = new TypeTestController(typeTestService, loginUserProvider);
+        // 생성자에 missionProgressService 목 객체 추가
+        typeTestController = new TypeTestController(typeTestService, loginUserProvider, missionProgressService);
     }
 
     @Test
