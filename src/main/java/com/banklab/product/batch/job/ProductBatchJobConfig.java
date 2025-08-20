@@ -78,8 +78,6 @@ public class ProductBatchJobConfig {
     public Job depositRefreshJob() {
         return jobBuilderFactory.get("depositRefreshJob")
                 .start(fetchAndInsertDepositStep())
-//                .start(deleteDepositStep())
-//                .next(fetchAndInsertDepositStep())
                 .build();
     }
 
@@ -101,8 +99,6 @@ public class ProductBatchJobConfig {
     public Job savingsRefreshJob() {
         return jobBuilderFactory.get("savingsRefreshJob")
                 .start(fetchAndInsertSavingsStep())
-//                .start(deleteSavingsStep())
-//                .next(fetchAndInsertSavingsStep())
                 .build();
     }
 
@@ -124,8 +120,6 @@ public class ProductBatchJobConfig {
     public Job creditLoanRefreshJob() {
         return jobBuilderFactory.get("creditLoanRefreshJob")
                 .start(fetchAndInsertCreditLoanStep())
-//                .start(deleteCreditLoanStep())
-//                .next(fetchAndInsertCreditLoanStep())
                 .build();
     }
 
@@ -147,8 +141,6 @@ public class ProductBatchJobConfig {
     public Job annuityRefreshJob() {
         return jobBuilderFactory.get("annuityRefreshJob")
                 .start(fetchAndInsertAnnuityStep())
-//                .start(deleteAnnuityStep())
-//                .next(fetchAndInsertAnnuityStep())
                 .build();
     }
 
@@ -170,8 +162,6 @@ public class ProductBatchJobConfig {
     public Job mortgageLoanRefreshJob() {
         return jobBuilderFactory.get("mortgageLoanRefreshJob")
                 .start(fetchAndInsertMortgageLoanStep())
-//                .start(deleteMortgageLoanStep())
-//                .next(fetchAndInsertMortgageLoanStep())
                 .build();
     }
 
@@ -193,8 +183,6 @@ public class ProductBatchJobConfig {
     public Job rentHouseLoanRefreshJob() {
         return jobBuilderFactory.get("rentHouseLoanRefreshJob")
                 .start(fetchAndInsertRentHouseLoanStep())
-//                .start(deleteRentHouseLoanStep())
-//                .next(fetchAndInsertRentHouseLoanStep())
                 .build();
     }
 

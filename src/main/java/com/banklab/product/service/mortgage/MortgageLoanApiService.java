@@ -25,8 +25,6 @@ public class MortgageLoanApiService {
     public MortgageLoanProductAndOptionListDto fetchProductsFromApi() {
         String fullUrl = API_URL + "?auth=" + API_KEY + "&topFinGrpNo=020000&pageNo=1";
 
-        System.out.println("Mortgage Loan API 호출 URL: " + fullUrl);
-
         try {
             // HTTP 헤더 설정
             HttpHeaders headers = new HttpHeaders();
@@ -42,9 +40,6 @@ public class MortgageLoanApiService {
                     entity,
                     String.class
             );
-
-            System.out.println("Mortgage Loan API 응답 상태: " + stringResponse.getStatusCode());
-            System.out.println("Mortgage Loan API 응답 Body: " + stringResponse.getBody());
 
             if (stringResponse.getBody() == null || stringResponse.getBody().isEmpty()) {
                 throw new RuntimeException("Mortgage Loan API 응답이 비어있습니다.");
@@ -76,16 +71,11 @@ public class MortgageLoanApiService {
             dto.setOptions(result.getOptionList().stream()
                     .collect(Collectors.toList()));
 
-            System.out.println("Mortgage Loan API 호출 성공: 상품 " + result.getBaseList().size() + "개, 옵션 " + result.getOptionList().size() + "개");
-
             return dto;
 
         } catch (ResourceAccessException e) {
-            System.err.println("Mortgage Loan API 네트워크 연결 오류: " + e.getMessage());
             throw new RuntimeException("Mortgage Loan API 서버에 연결할 수 없습니다: " + e.getMessage(), e);
         } catch (Exception e) {
-            System.err.println("Mortgage Loan API 호출 오류: " + e.getMessage());
-            e.printStackTrace();
             throw new RuntimeException("Mortgage Loan API 호출 중 오류가 발생했습니다: " + e.getMessage(), e);
         }
     }

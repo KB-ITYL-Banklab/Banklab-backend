@@ -58,7 +58,6 @@ public class RiskAnalysisService {
                     // 기존 위험도 평가 삭제 (개별적으로)
                     try {
                         productRiskRatingMapper.deleteByProductTypeAndId(request.getProductType(), request.getProductId());
-                        log.debug("기존 위험도 평가 삭제: {} {}", request.getProductType(), request.getProductId());
                     } catch (Exception e) {
                         log.warn("기존 위험도 평가 삭제 실패 (계속 진행): {} {}", request.getProductType(), request.getProductId(), e);
                     }
@@ -73,9 +72,6 @@ public class RiskAnalysisService {
                             .build();
                     
                     productRiskRatingMapper.insertRiskRating(riskRating);
-                    log.info("위험도 평가 저장 성공: {} {} -> {} (ID: {})",
-                            request.getProductType(), request.getProductId(), 
-                            analysis.getRiskLevelEnum(), riskRating.getId());
 
                     results.add(riskRating);
 
@@ -397,7 +393,6 @@ public class RiskAnalysisService {
      * 예금 상품 위험도 분석
      */
     public void batchAnalyzeDepositProductsRisk() {
-        log.info("예금 상품에 대한 배치 위험도 분석 시작...");
         List<BatchRiskAnalysisRequest> requests = new ArrayList<>();
         List<DepositProduct> products = depositProductMapper.findAllDepositProducts();
         for (DepositProduct product : products) {
@@ -424,7 +419,6 @@ public class RiskAnalysisService {
      * 적금 상품 위험도 분석
      */
     public void batchAnalyzeSavingsProductsRisk() {
-        log.info("적금 상품에 대한 배치 위험도 분석 시작...");
         List<BatchRiskAnalysisRequest> requests = new ArrayList<>();
         List<SavingsProduct> products = savingsProductMapper.findAllSavingsProducts();
         for (SavingsProduct product : products) {
@@ -451,7 +445,6 @@ public class RiskAnalysisService {
      * 신용대출 상품 위험도 분석
      */
     public void batchAnalyzeCreditLoanProductsRisk() {
-        log.info("신용대출 상품에 대한 배치 위험도 분석 시작...");
         List<BatchRiskAnalysisRequest> requests = new ArrayList<>();
         List<CreditLoanProduct> products = creditLoanProductMapper.findAllCreditLoanProducts();
         for (CreditLoanProduct product : products) {
@@ -482,7 +475,6 @@ public class RiskAnalysisService {
      * 연금 상품 위험도 분석
      */
     public void batchAnalyzeAnnuityProductsRisk() {
-        log.info("연금 상품에 대한 배치 위험도 분석 시작...");
         List<BatchRiskAnalysisRequest> requests = new ArrayList<>();
         List<AnnuityProduct> products = annuityProductMapper.findAllAnnuityProducts();
         for (AnnuityProduct product : products) {
@@ -515,7 +507,6 @@ public class RiskAnalysisService {
      * 주택담보대출 상품 위험도 분석
      */
     public void batchAnalyzeMortgageLoanProductsRisk() {
-        log.info("주택담보대출 상품에 대한 배치 위험도 분석 시작...");
         List<BatchRiskAnalysisRequest> requests = new ArrayList<>();
         List<MortgageLoanProduct> products = mortgageLoanProductMapper.findAllMortgageLoanProducts();
         for (MortgageLoanProduct product : products) {
@@ -547,7 +538,6 @@ public class RiskAnalysisService {
      * 전세자금대출 상품 위험도 분석
      */
     public void batchAnalyzeRentHouseLoanProductsRisk() {
-        log.info("전세자금대출 상품에 대한 배치 위험도 분석 시작...");
         List<BatchRiskAnalysisRequest> requests = new ArrayList<>();
         List<RentHouseLoanProduct> products = rentHouseLoanProductMapper.findAllRentHouseLoanProducts();
         for (RentHouseLoanProduct product : products) {

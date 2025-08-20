@@ -27,9 +27,6 @@ public class RentHouseLoanDetailServiceImpl implements RentHouseLoanDetailServic
     @Override
     public RentHouseLoanWithOptionsDto getRentHouseLoanWithOptions(String dclsMonth, String finCoNo, String finPrdtCd) {
         try {
-            System.out.println("dcls"+dclsMonth+"finCoNo"+finCoNo+"finPrdtCd"+finPrdtCd);
-            log.info("전세자금대출 상품과 옵션 조회: dclsMonth={}, finCoNo={}, finPrdtCd={}", dclsMonth, finCoNo, finPrdtCd);
-
             // 1. 상품 조회
             RentHouseLoanProduct product = rentHouseLoanProductMapper.findByProductKey(dclsMonth, finCoNo, finPrdtCd);
             if (product == null) {

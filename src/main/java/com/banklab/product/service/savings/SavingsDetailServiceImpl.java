@@ -24,9 +24,6 @@ public class SavingsDetailServiceImpl implements SavingsDetailService {
     @Override
     public SavingsWithOptionsDto getSavingsWithOptions(String dclsMonth, String finCoNo, String finPrdtCd) {
         try {
-            System.out.println("dcls"+dclsMonth+"finCoNo"+finCoNo+"finPrdtCd"+finPrdtCd);
-            log.info("적금 상품과 옵션 조회: dclsMonth={}, finCoNo={}, finPrdtCd={}", dclsMonth, finCoNo, finPrdtCd);
-            
             // 1. 상품 조회
             SavingsProduct product = savingsProductMapper.findByProductKey(dclsMonth, finCoNo, finPrdtCd);
             if (product == null) {
