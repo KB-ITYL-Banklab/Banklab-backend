@@ -54,7 +54,6 @@ public class TypeTestServiceImpl implements TypeTestService {
 
             // 오늘 검사한 경우 (updated_at이 오늘이면 아무 작업도 하지 않음)
             if (existingData != null && existingData.getUpdatedAt().toLocalDate().isEqual(LocalDate.now())) {
-                log.info("이미 검사한 사용자");
                 return createFailResult("오늘은 이미 검사하셨습니다. 내일 다시 시도해주세요.");
             }
 
@@ -391,8 +390,7 @@ public class TypeTestServiceImpl implements TypeTestService {
                 addScoreForAnswer(answer, typeScores);
             }
         }
-        
-        log.info("기본 성향 점수: {}", typeScores);
+
         
         // 2. 제약조건에 따른 투자유형 조정
         if (constraints != null && !constraints.isEmpty()) {
@@ -421,25 +419,8 @@ public class TypeTestServiceImpl implements TypeTestService {
                 typeScores.put(2L, typeScores.getOrDefault(2L, 0) + 50); // 중립형 보너스
             }
         }
-        
-        log.info("제약조건 적용 후 점수: {}", typeScores);
-        
         Long finalTypeId = findTypeWithHighestScore(typeScores);
-        log.info("최종 결정된 투자유형: {} ({})", finalTypeId, getInvestmentTypeName(finalTypeId));
-        
         return finalTypeId;
-    }
-    
-    /**
-     * 투자유형 이름 조회 (로깅용)
-     */
-    private String getInvestmentTypeName(Long typeId) {
-        switch (typeId.intValue()) {
-            case 1: return "안정형";
-            case 2: return "중립형"; 
-            case 3: return "공격형";
-            default: return "알 수 없음";
-        }
     }
 
     private void addScoreForAnswer(AnswerDTO answer, Map<Long, Integer> typeScores) {

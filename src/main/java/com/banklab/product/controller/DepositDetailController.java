@@ -27,9 +27,6 @@ public class DepositDetailController {
             @PathVariable String finCoNo,
             @PathVariable String finPrdtCd) {
         
-        log.info("예금 상품 옵션 조회 요청: dclsMonth={}, finCoNo={}, finPrdtCd={}", 
-                dclsMonth, finCoNo, finPrdtCd);
-        
         try {
             DepositWithOptionsDto result = depositDetailService.getDepositWithOptions(dclsMonth, finCoNo, finPrdtCd);
             
@@ -38,8 +35,7 @@ public class DepositDetailController {
                         dclsMonth, finCoNo, finPrdtCd);
                 return ResponseEntity.notFound().build();
             }
-            
-            log.info("예금 상품 옵션 조회 성공: 상품명={}, 옵션수={}", result.getFinPrdtNm(), result.getOptionCount());
+
             return ResponseEntity.ok(result);
             
         } catch (Exception e) {

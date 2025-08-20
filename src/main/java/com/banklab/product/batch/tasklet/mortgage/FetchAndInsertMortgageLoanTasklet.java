@@ -27,8 +27,6 @@ public class FetchAndInsertMortgageLoanTasklet implements Tasklet {
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-        log.info("=== 주택담보대출 상품 Upsert 배치 시작 ===");
-        
         MortgageLoanProductAndOptionListDto dto = mortgageLoanApiService.fetchProductsFromApi();
         
         int insertedProducts = 0;
@@ -51,13 +49,11 @@ public class FetchAndInsertMortgageLoanTasklet implements Tasklet {
                 // 신규 상품 삽입
                 mortgageLoanProductMapper.insertMortgageLoanProduct(newProduct);
                 insertedProducts++;
-                log.debug("신규 주택담보대출 상품 삽입: {}", newProduct.getFinPrdtNm());
             } else if (!existingProduct.getFinCoSubmDay().equals(newProduct.getFinCoSubmDay())) {
                 // fin_co_subm_day가 다르면 변경된 것으로 판단하여 업데이트
                 newProduct.setId(existingProduct.getId());
                 mortgageLoanProductMapper.updateMortgageLoanProduct(newProduct);
                 updatedProducts++;
-                log.debug("주택담보대출 상품 업데이트: {}", newProduct.getFinPrdtNm());
             }
         }
 
@@ -79,13 +75,11 @@ public class FetchAndInsertMortgageLoanTasklet implements Tasklet {
                 // 신규 옵션 삽입
                 mortgageLoanOptionMapper.insertMortgageLoanOption(newOption);
                 insertedOptions++;
-                log.debug("신규 주택담보대출 옵션 삽입: {} - {}", newOption.getFinPrdtCd(), newOption.getLendRateTypeNm());
             } else if (isOptionChanged(existingOption, newOption)) {
                 // 금리 정보가 변경되었으면 업데이트
                 newOption.setId(existingOption.getId());
                 mortgageLoanOptionMapper.updateMortgageLoanOption(newOption);
                 updatedOptions++;
-                log.debug("주택담보대출 옵션 업데이트: {} - {}", newOption.getFinPrdtCd(), newOption.getLendRateTypeNm());
             }
         }
         

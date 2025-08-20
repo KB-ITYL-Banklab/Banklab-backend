@@ -49,20 +49,15 @@ public class EnhancedProductRecommendationService {
             UserInvestmentProfile userProfile) {
 
         try {
-            log.info("맞춤형 상품 추천 시작 - 투자유형: {}, 제약조건: {}, 프로필: {}",
-                    investmentTypeId, constraints, userProfile);
 
             // 기존 추천 시스템에서 상품 목록 가져오기
             List<RecommendedProductDTO> baseRecommendations = fallbackRecommendationService.getRecommendedProducts(investmentTypeId);
-            log.info("기존 추천 상품 수: {}", baseRecommendations.size());
 
             // 하드 제약조건 적용 (절대적 필터링)
             List<RecommendedProductDTO> constraintFiltered = applyConstraintsToRecommendations(baseRecommendations, constraints);
-            log.info("제약조건 적용 후: {}", constraintFiltered.size());
 
             // 4개 이하일 경우 그대로 반환
             if (constraintFiltered.size() <= 4) {
-                log.info("필터링 후 4개 이하이므로 전체 반환: {}", constraintFiltered.size());
                 return constraintFiltered;
             }
 
@@ -75,7 +70,6 @@ public class EnhancedProductRecommendationService {
             }
 
         } catch (Exception e) {
-            log.error("맞춤형 추천 시스템 오류, 기존 추천으로 fallback", e);
             return fallbackRecommendationService.getRecommendedProducts(investmentTypeId);
         }
     }
@@ -92,7 +86,6 @@ public class EnhancedProductRecommendationService {
             List<ConstraintType> constraints) {
 
         if (constraints == null || constraints.isEmpty()) {
-            log.info("제약조건이 없으므로 모든 추천 상품 반환");
             return recommendations;
         }
 
@@ -101,14 +94,12 @@ public class EnhancedProductRecommendationService {
                     // 고위험 상품 제외 조건
                     if (constraints.contains(ConstraintType.HIGH_RISK_FORBIDDEN) &&
                         "HIGH".equals(product.getRiskLevel())) {
-                        log.debug("고위험 상품 제외: {}", product.getProductName());
                         return false;
                     }
                     return true;
                 })
                 .collect(Collectors.toList());
 
-        log.info("제약조건 적용 후 필터링된 상품 개수: {}", filtered.size());
         return filtered;
     }
 
@@ -139,8 +130,6 @@ public class EnhancedProductRecommendationService {
                     finalRecommendations.add(filteredProducts.get(index));
                 }
             }
-
-            log.info("AI 추천 완료: {} 개 상품 선별", finalRecommendations.size());
             return finalRecommendations.isEmpty() ?
                 selectBest4WithRules(filteredProducts, userProfile, constraints) :
                 finalRecommendations;
@@ -163,8 +152,6 @@ public class EnhancedProductRecommendationService {
             List<RecommendedProductDTO> filteredProducts,
             UserInvestmentProfile userProfile,
             List<ConstraintType> constraints) {
-
-        log.info("규칙 기반 상품 선별 시작");
 
         // 사용자 프로필에 따른 점수 계산
         List<ProductScore> scoredProducts = filteredProducts.stream()
@@ -431,8 +418,6 @@ public class EnhancedProductRecommendationService {
      */
     private List<Integer> parseAIResponse(String response) {
         try {
-            log.info("AI 응답: {}", response);
-
             String jsonPart = extractJsonFromResponse(response);
             List<Integer> indices = objectMapper.readValue(jsonPart, new TypeReference<List<Integer>>() {});
 

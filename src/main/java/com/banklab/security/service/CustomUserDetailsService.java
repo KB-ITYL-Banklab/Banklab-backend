@@ -3,16 +3,18 @@ package com.banklab.security.service;
 import com.banklab.member.mapper.MemberMapper;
 import com.banklab.security.account.domain.CustomUser;
 import com.banklab.security.account.domain.MemberVO;
+import com.banklab.security.oauth2.domain.OAuth2Provider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component      // Spring Bean으로 등록
-@RequiredArgsConstructor   // final 필드에 대한 생성자 자동 생성
+@Component
+@RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final MemberMapper mapper;  // MyBatis 매퍼 주입
@@ -31,7 +33,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         }
 
         // 소셜 유저인 경우 로그인 차단 (고도화 시 사용)
-//        if (vo.getProvider() != OAuthProvider.LOCAL) {
+//        if (vo.getProvider() != OAuth2Provider.LOCAL) {
 //            throw new BadCredentialsException("소셜 계정은 일반 로그인할 수 없습니다.");
 //        }
 

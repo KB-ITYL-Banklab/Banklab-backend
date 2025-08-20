@@ -24,11 +24,4 @@ public class MissionController {
         List<MissionDTO> missions = missionService.getAvailableMissions(memberId);
         return ResponseEntity.ok(missions);
     }
-
-    @PostMapping("/evaluate")
-    @ApiOperation(value = "모든 미션 조건 평가")
-    public ResponseEntity<?> evaluateMissions() {
-        Long memberId = loginUserProvider.getLoginMemberId();
-        return null;
-    }
 }

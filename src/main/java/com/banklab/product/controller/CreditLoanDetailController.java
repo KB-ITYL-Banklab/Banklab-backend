@@ -35,8 +35,6 @@ public class CreditLoanDetailController {
                         dclsMonth, finCoNo, finPrdtCd);
                 return ResponseEntity.notFound().build();
             }
-            
-            log.info("신용대출 상품 옵션 조회 성공: 상품명={}, 옵션수={}", result.getFinPrdtNm(), result.getOptionCount());
             return ResponseEntity.ok(result);
             
         } catch (Exception e) {

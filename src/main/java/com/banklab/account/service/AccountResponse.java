@@ -18,7 +18,6 @@ public class AccountResponse {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     public static List<AccountVO> requestAccounts(Long memberId, String bankCode, String connectedId) throws Exception {
-        log.info("계좌 정보 조회 요청 시작 - memberId: {}, 은행코드: {}, connectedId: {}", memberId, bankCode, connectedId);
 
         String urlPath = CommonConstant.TEST_DOMAIN + CommonConstant.KR_BK_1_P_001;
 
@@ -31,7 +30,7 @@ public class AccountResponse {
 
 
         String result = ApiRequest.request(urlPath, bodyMap);
-        log.info("🔍 CODEF API 전체 응답: " + result);
+        //log.info("CODEF API 전체 응답: " + result);
 
         // Json Parsing
         JsonNode root = mapper.readTree(result);
@@ -65,7 +64,6 @@ public class AccountResponse {
                         // errorList의 에러 정보를 우선 사용
                         finalErrorCode = errorCode;
                         finalErrorMessage = errorMessage;
-                        log.info("🔍 data.errorList에서 구체적인 에러 정보 사용 - 코드: {}, 메시지: {}", finalErrorCode, finalErrorMessage);
                     }
                 }
             }
@@ -99,7 +97,6 @@ public class AccountResponse {
             processAccount(dataNode, accountType, typeName, accountVOList, memberId, connectedId, bankCode);
         }
 
-        log.info("계좌 정보 조회 완료 - 총 {}개 계좌", accountVOList.size());
         return accountVOList;
     }
 
@@ -123,19 +120,16 @@ public class AccountResponse {
 
     private static void processAccount(JsonNode dataNode, String accountType, String typeName,
                                    List<AccountVO> accountVOList, Long memberId, String connectedId, String bankCode) {
-        log.info(" {} 계좌 처리 중", typeName);
 
         JsonNode accountTypeNode = dataNode.path(accountType);
 
         // 데이터 필드가 없는 경우 예외
         if (accountTypeNode.isMissingNode() || accountTypeNode.isNull() || !accountTypeNode.isArray()) {
-            log.info("{} 데이터 없음 (정상)", typeName);
             return;
         }
 
         // 해당 유형의 계좌가 없는 경우
         if (accountTypeNode.size() == 0) {
-            log.info("{} 계좌 없음 (정상)", typeName);
             return;
         }
 
@@ -149,21 +143,11 @@ public class AccountResponse {
             accountDTO.setResAccountEndDate(node.get("resAccountEndDate").asText());
             accountDTO.setResAccountStartDate(node.get("resAccountStartDate").asText());
 
-            // 출력 (디버깅용)
-            log.info("계좌명: {}", accountDTO.getResAccountName());
-            log.info("계좌번호: {}", accountDTO.getResAccount());
-            log.info("표시용 번호: {}", accountDTO.getResAccountDisplay());
-            log.info("잔액: {}", accountDTO.getResAccountBalance());
-            log.info("예금구분: {}", accountDTO.getResAccountDeposit());
-            log.info("가입일: {}", accountDTO.getResAccountStartDate());
-            log.info("만기일: {}", accountDTO.getResAccountEndDate());
-            log.info("---");
 
             // DTO → VO 변환 (비즈니스 정보 추가)
             AccountVO vo = accountDTO.toVO(memberId, connectedId, bankCode);
             accountVOList.add(vo);
         }
 
-        log.info("{} 처리 완료 - {}개 계좌 추가됨", typeName, accountTypeNode.size());
     }
 }

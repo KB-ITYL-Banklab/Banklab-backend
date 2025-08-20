@@ -31,8 +31,6 @@ public class FetchAndInsertCreditLoanTasklet implements Tasklet {
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-        log.info("=== 신용대출 상품 Upsert 배치 시작 ===");
-        
         CreditLoanProductAndOptionListDto dto = creditLoanApiService.fetchProductsFromApi();
         
         int insertedProducts = 0;
@@ -55,13 +53,11 @@ public class FetchAndInsertCreditLoanTasklet implements Tasklet {
                 // 신규 상품 삽입
                 creditLoanProductMapper.insertCreditLoanProduct(newProduct);
                 insertedProducts++;
-                log.debug("신규 신용대출 상품 삽입: {}", newProduct.getFinPrdtNm());
             } else if (!existingProduct.getFinCoSubmDay().equals(newProduct.getFinCoSubmDay())) {
                 // fin_co_subm_day가 다르면 변경된 것으로 판단하여 업데이트
                 newProduct.setId(existingProduct.getId());
                 creditLoanProductMapper.updateCreditLoanProduct(newProduct);
                 updatedProducts++;
-                log.debug("신용대출 상품 업데이트: {}", newProduct.getFinPrdtNm());
             }
         }
 
@@ -82,13 +78,11 @@ public class FetchAndInsertCreditLoanTasklet implements Tasklet {
                 // 신규 옵션 삽입
                 creditLoanOptionMapper.insertCreditLoanOption(newOption);
                 insertedOptions++;
-                log.debug("신규 신용대출 옵션 삽입: {} - {}", newOption.getFinPrdtCd(), newOption.getCrdtLendRateTypeNm());
             } else if (isOptionChanged(existingOption, newOption)) {
                 // 금리 정보가 변경되었으면 업데이트
                 newOption.setId(existingOption.getId());
                 creditLoanOptionMapper.updateCreditLoanOption(newOption);
                 updatedOptions++;
-                log.debug("신용대출 옵션 업데이트: {} - {}", newOption.getFinPrdtCd(), newOption.getCrdtLendRateTypeNm());
             }
         }
         

@@ -1,7 +1,7 @@
 package com.banklab.stock.controller;
 
 import com.banklab.codef.service.RequestConnectedId;
-import com.banklab.common.redis.RedisService;
+import com.banklab.mission.event.AssetSyncedEvent;
 import com.banklab.security.util.LoginUserProvider;
 import com.banklab.stock.domain.StockVO;
 import com.banklab.stock.dto.StockManageRequestDTO;
@@ -12,6 +12,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +30,7 @@ public class StockApiController {
 
     private final StockService stockService;
     private final LoginUserProvider loginUserProvider;
-    private final RedisService redisService;
+    private final ApplicationEventPublisher publisher;
 
     /**
      * 로그인한 사용자 정보 추출 및 검증
@@ -88,9 +89,6 @@ public class StockApiController {
             Long memberId = (Long) authInfo.get("memberId");
             String email = (String) authInfo.get("email");
 
-            log.info("증권계좌 연동 시작 - email: {}, memberId: {}, stockCode: {}",
-                    email, memberId, stockRequest.getStockCode());
-
             String userConnectedId = null;
             List<StockVO> stockList = null;
 
@@ -139,6 +137,7 @@ public class StockApiController {
 
             // 3. DB에 보유종목 정보 저장
             stockService.saveStocks(stockList);
+            publisher.publishEvent(new AssetSyncedEvent(memberId));
 
             // 4. 저장된 보유종목 정보 조회하여 반환
             List<StockVO> userStocks = stockService.getUserStocks(memberId);
@@ -172,8 +171,6 @@ public class StockApiController {
             Long memberId = (Long) authInfo.get("memberId");
             String email = (String) authInfo.get("email");
 
-            log.info("보유종목 목록 조회 - email: {}, memberId: {}", email, memberId);
-
             List<StockVO> stockList = stockService.getUserStocks(memberId);
 
             Map<String, Object> response = new HashMap<>();
@@ -206,9 +203,6 @@ public class StockApiController {
             Map<String, Object> authInfo = extractAuthInfo();
             Long memberId = (Long) authInfo.get("memberId");
             String email = (String) authInfo.get("email");
-
-            log.info("보유종목 정보 새로고침 - email: {}, memberId: {}, stockCode: {}",
-                    email, memberId, request.getStockCode());
 
             // 보유종목 새로고침
             stockService.refreshUserStocks(
@@ -249,9 +243,6 @@ public class StockApiController {
             Map<String, Object> authInfo = extractAuthInfo();
             Long memberId = (Long) authInfo.get("memberId");
             String email = (String) authInfo.get("email");
-
-            log.info("증권계좌 연동 해제 - email: {}, memberId: {}, stockCode: {}, account: {}",
-                    email, memberId, request.getStockCode(), request.getAccount());
 
             // 연동 해제
             boolean deleted = RequestConnectedId.deleteConnectedId(
@@ -295,9 +286,6 @@ public class StockApiController {
             Map<String, Object> authInfo = extractAuthInfo();
             Long memberId = (Long) authInfo.get("memberId");
             String email = (String) authInfo.get("email");
-
-            log.info("보유종목 상세정보 조회 - email: {}, memberId: {}, stockId: {}",
-                    email, memberId, stockId);
 
             // 1. 보유종목 기본정보 조회
             StockVO stockInfo = stockService.getStockById(stockId, memberId);

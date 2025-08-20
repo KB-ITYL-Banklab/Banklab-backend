@@ -24,8 +24,6 @@ public class DepositDetailServiceImpl implements DepositDetailService {
     @Override
     public DepositWithOptionsDto getDepositWithOptions(String dclsMonth, String finCoNo, String finPrdtCd) {
         try {
-            log.info("예금 상품과 옵션 조회: dclsMonth={}, finCoNo={}, finPrdtCd={}", dclsMonth, finCoNo, finPrdtCd);
-
             // 1. 상품 조회
             DepositProduct product = depositProductMapper.findByProductKey(dclsMonth, finCoNo, finPrdtCd);
             if (product == null) {

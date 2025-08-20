@@ -119,12 +119,7 @@ public class ProductRateServiceImpl implements ProductRateService {
     }
 
     private void processLoanRates(List<ProductRiskRating> loans, Map<String, ProductRateInfo> rateMap) {
-        log.info("신용대출 상품 금리 처리 시작: {} 개", loans.size());
-
         for (ProductRiskRating rating : loans) {
-            log.info("신용대출 상품 정보 - ID: {}, dclsMonth: {}, finCoNo: {}, finPrdtCd: {}",
-                    rating.getProductId(), rating.getDclsMonth(), rating.getFinCoNo(), rating.getFinPrdtCd());
-
             // 신용대출의 경우 메타데이터가 없을 수 있으므로 기본값 사용
             if (rating.getDclsMonth() == null || rating.getFinCoNo() == null || rating.getFinPrdtCd() == null) {
                 log.warn("신용대출 상품의 메타데이터가 없어 기본 금리 사용. productId: {}", rating.getProductId());
@@ -134,14 +129,10 @@ public class ProductRateServiceImpl implements ProductRateService {
             }
 
             try {
-                log.info("신용대출 상품 조회 시도: dclsMonth={}, finCoNo={}, finPrdtCd={}",
-                        rating.getDclsMonth(), rating.getFinCoNo(), rating.getFinPrdtCd());
-
                 CreditLoanWithOptionsDto loanInfo = creditLoanDetailService.getCreditLoanWithOptions(
                         rating.getDclsMonth(), rating.getFinCoNo(), rating.getFinPrdtCd());
 
                 if (loanInfo != null && loanInfo.getMinRate() != null && loanInfo.getMaxRate() != null) {
-                    log.info("신용대출 상품 조회 성공: minRate={}, maxRate={}", loanInfo.getMinRate(), loanInfo.getMaxRate());
                     String key = getProductKey(rating);
                     rateMap.put(key, ProductRateInfo.builder()
                             .dclsMonth(rating.getDclsMonth())
@@ -166,11 +157,7 @@ public class ProductRateServiceImpl implements ProductRateService {
     }
 
     private void processAnnuityRates(List<ProductRiskRating> annuities, Map<String, ProductRateInfo> rateMap) {
-        log.info("연금저축 상품 금리 처리 시작: {} 개", annuities.size());
-
         for (ProductRiskRating rating : annuities) {
-            log.info("연금저축 상품 정보 - ID: {}, dclsMonth: {}, finCoNo: {}, finPrdtCd: {}",
-                    rating.getProductId(), rating.getDclsMonth(), rating.getFinCoNo(), rating.getFinPrdtCd());
 
             // 연금저축의 경우 메타데이터가 없을 수 있으므로 기본값 사용
             if (rating.getDclsMonth() == null || rating.getFinCoNo() == null || rating.getFinPrdtCd() == null) {
@@ -181,14 +168,11 @@ public class ProductRateServiceImpl implements ProductRateService {
             }
 
             try {
-                log.info("연금저축 상품 조회 시도: dclsMonth={}, finCoNo={}, finPrdtCd={}",
-                        rating.getDclsMonth(), rating.getFinCoNo(), rating.getFinPrdtCd());
 
                 AnnuityWithOptionsDto annuityInfo = annuityDetailService.getAnnuityProductsWithOptions(
                         rating.getDclsMonth(), rating.getFinCoNo(), rating.getFinPrdtCd());
 
                 if (annuityInfo != null && annuityInfo.getDclsRate() != null) {
-                    log.info("연금저축 상품 조회 성공: dclsRate={}", annuityInfo.getDclsRate());
                     String key = getProductKey(rating);
                     // 연금저축은 dclsRate를 min/max 모두에 사용
                     rateMap.put(key, ProductRateInfo.builder()
@@ -214,12 +198,7 @@ public class ProductRateServiceImpl implements ProductRateService {
     }
 
     private void processMortgageRates(List<ProductRiskRating> mortgages, Map<String, ProductRateInfo> rateMap) {
-        log.info("주택담보대출 상품 금리 처리 시작: {} 개", mortgages.size());
-
         for (ProductRiskRating rating : mortgages) {
-            log.info("주택담보대출 상품 정보 - ID: {}, dclsMonth: {}, finCoNo: {}, finPrdtCd: {}",
-                    rating.getProductId(), rating.getDclsMonth(), rating.getFinCoNo(), rating.getFinPrdtCd());
-
             // 주택담보대출의 경우 메타데이터가 없을 수 있으므로 기본값 사용
             if (rating.getDclsMonth() == null || rating.getFinCoNo() == null || rating.getFinPrdtCd() == null) {
                 log.warn("주택담보대출 상품의 메타데이터가 없어 기본 금리 사용. productId: {}", rating.getProductId());
@@ -229,14 +208,10 @@ public class ProductRateServiceImpl implements ProductRateService {
             }
 
             try {
-                log.info("주택담보대출 상품 조회 시도: dclsMonth={}, finCoNo={}, finPrdtCd={}",
-                        rating.getDclsMonth(), rating.getFinCoNo(), rating.getFinPrdtCd());
-
                 MortgageLoanWithOptionsDto mortgageInfo = mortgageLoanDetailService.getMortgageLoanWithOptions(
                         rating.getDclsMonth(), rating.getFinCoNo(), rating.getFinPrdtCd());
 
                 if (mortgageInfo != null && mortgageInfo.getMinRate() != null && mortgageInfo.getMaxRate() != null) {
-                    log.info("주택담보대출 상품 조회 성공: minRate={}, maxRate={}", mortgageInfo.getMinRate(), mortgageInfo.getMaxRate());
                     String key = getProductKey(rating);
                     rateMap.put(key, ProductRateInfo.builder()
                             .dclsMonth(rating.getDclsMonth())
@@ -261,12 +236,7 @@ public class ProductRateServiceImpl implements ProductRateService {
     }
 
     private void processRentHouseRates(List<ProductRiskRating> rentHouses, Map<String, ProductRateInfo> rateMap) {
-        log.info("전세자금대출 상품 금리 처리 시작: {} 개", rentHouses.size());
-
         for (ProductRiskRating rating : rentHouses) {
-            log.info("전세자금대출 상품 정보 - ID: {}, dclsMonth: {}, finCoNo: {}, finPrdtCd: {}",
-                    rating.getProductId(), rating.getDclsMonth(), rating.getFinCoNo(), rating.getFinPrdtCd());
-
             // 전세자금대출의 경우 메타데이터가 없을 수 있으므로 기본값 사용
             if (rating.getDclsMonth() == null || rating.getFinCoNo() == null || rating.getFinPrdtCd() == null) {
                 log.warn("전세자금대출 상품의 메타데이터가 없어 기본 금리 사용. productId: {}", rating.getProductId());
@@ -276,14 +246,11 @@ public class ProductRateServiceImpl implements ProductRateService {
             }
 
             try {
-                log.info("전세자금대출 상품 조회 시도: dclsMonth={}, finCoNo={}, finPrdtCd={}",
-                        rating.getDclsMonth(), rating.getFinCoNo(), rating.getFinPrdtCd());
 
                 RentHouseLoanWithOptionsDto rentHouseInfo = rentHouseLoanDetailService.getRentHouseLoanWithOptions(
                         rating.getDclsMonth(), rating.getFinCoNo(), rating.getFinPrdtCd());
 
                 if (rentHouseInfo != null && rentHouseInfo.getMinRate() != null && rentHouseInfo.getMaxRate() != null) {
-                    log.info("전세자금대출 상품 조회 성공: minRate={}, maxRate={}", rentHouseInfo.getMinRate(), rentHouseInfo.getMaxRate());
                     String key = getProductKey(rating);
                     rateMap.put(key, ProductRateInfo.builder()
                             .dclsMonth(rating.getDclsMonth())

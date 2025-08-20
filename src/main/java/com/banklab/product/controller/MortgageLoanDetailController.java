@@ -23,9 +23,6 @@ public class MortgageLoanDetailController {
             @PathVariable String finCoNo,
             @PathVariable String finPrdtCd) {
 
-        log.info("주택담보대출 상품 옵션 조회 요청: dclsMonth={}, finCoNo={}, finPrdtCd={}",
-                dclsMonth, finCoNo, finPrdtCd);
-
         try {
             MortgageLoanWithOptionsDto result = mortgageLoanDetailService.getMortgageLoanWithOptions(dclsMonth, finCoNo, finPrdtCd);
 
@@ -36,7 +33,6 @@ public class MortgageLoanDetailController {
                 return ResponseEntity.notFound().build();
             }
 
-            log.info("주택담보대출 상품 옵션 조회 성공: 상품명={}, 옵션수={}", result.getFinPrdtNm(), result.getOptionCount());
             return ResponseEntity.ok(result);
 
         } catch (Exception e) {

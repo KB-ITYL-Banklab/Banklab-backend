@@ -27,9 +27,6 @@ public class SavingsDetailController {
             @PathVariable String finCoNo,
             @PathVariable String finPrdtCd) {
 
-        System.out.println("dclsMonth: " + dclsMonth+"finCoNo: " + finCoNo+"finPrdtCd: " + finPrdtCd);
-        log.info("적금 상품 옵션 조회 요청: dclsMonth={}, finCoNo={}, finPrdtCd={}",
-                dclsMonth, finCoNo, finPrdtCd);
 
         try {
             SavingsWithOptionsDto result = savingsDetailService.getSavingsWithOptions(dclsMonth, finCoNo, finPrdtCd);
@@ -40,7 +37,6 @@ public class SavingsDetailController {
                 return ResponseEntity.notFound().build();
             }
 
-            log.info("적금 상품 옵션 조회 성공: 상품명={}, 옵션수={}", result.getFinPrdtNm(), result.getOptionCount());
             return ResponseEntity.ok(result);
 
         } catch (Exception e) {

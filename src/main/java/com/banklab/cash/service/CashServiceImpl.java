@@ -17,7 +17,6 @@ public class CashServiceImpl implements CashService {
 
     @Override
     public CashDTO getCashByMemberId(Long memberId) {
-        log.info("현금 정보 조회 - memberId: {}", memberId);
 
         CashVO cashVO = cashMapper.selectCashByMemberId(memberId);
 
@@ -34,7 +33,6 @@ public class CashServiceImpl implements CashService {
     @Override
     @Transactional
     public CashDTO setCashAmount(Long memberId, Long cashAmount) {
-        log.info("현금 금액 설정 - memberId: {}, amount: {}", memberId, cashAmount);
 
         if (cashAmount == null) {
             cashAmount = 0L;

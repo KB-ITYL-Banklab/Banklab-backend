@@ -43,29 +43,23 @@ public class ProductRecommendationServiceImpl implements ProductRecommendationSe
     @Override
     public List<RecommendedProductDTO> getRecommendedProducts(Long investmentTypeId) {
         try {
-            log.info("추천상품 조회 시작 - investmentTypeId: {}", investmentTypeId);
-
             // 투자성향을 RiskLevel로 매핑
             RiskLevel riskLevel = mapInvestmentTypeToRiskLevel(investmentTypeId);
-            log.info("매핑된 RiskLevel: {}", riskLevel);
 
             // 해당 위험도의 상품들 조회
             List<ProductRiskRating> riskRatings = productRiskRatingMapper.selectByRiskLevel(riskLevel);
-            log.info("조회된 상품 개수: {}", riskRatings.size());
 
             // 각 상품의 실제 정보를 조회해서 메타데이터 보완
             List<ProductRiskRating> enrichedRatings = enrichProductMetadata(riskRatings);
 
             // 배치로 모든 상품의 금리 정보 조회
             Map<String, ProductRateInfo> rateInfoMap = productRateService.getBatchProductRates(enrichedRatings);
-            log.info("금리 정보 조회 완료: {} 개", rateInfoMap.size());
 
             // ProductRiskRating을 RecommendedProductDTO로 변환
             List<RecommendedProductDTO> result = enrichedRatings.stream()
                     .map(rating -> convertToRecommendedProductDTO(rating, rateInfoMap))
                     .collect(Collectors.toList());
 
-            log.info("변환된 추천상품 개수: {}", result.size());
             return result;
 
         } catch (Exception e) {
@@ -92,7 +86,6 @@ public class ProductRecommendationServiceImpl implements ProductRecommendationSe
      * 위험도 평가 목록에 실제 상품 정보를 보완
      */
     private List<ProductRiskRating> enrichProductMetadata(List<ProductRiskRating> riskRatings) {
-        log.info("상품 메타데이터 보완 시작: {} 개", riskRatings.size());
 
         // 모든 상품을 미리 조회해서 map으로 만들어 놓는다.
         Map<Long, DepositProduct> depositMap = depositProductMapper.findAllDepositProducts().stream()
@@ -108,20 +101,12 @@ public class ProductRecommendationServiceImpl implements ProductRecommendationSe
         Map<Long, RentHouseLoanProduct> rentHouseMap = rentHouseLoanProductMapper.findAllRentHouseLoanProducts().stream()
                 .collect(Collectors.toMap(RentHouseLoanProduct::getId, p -> p));
 
-
-        log.info("상품 맵 생성 완료 - 예금: {}, 적금: {}, 신용대출: {}, 연금: {}, 주택담보대출: {}, 전세자금대출: {}",
-                depositMap.size(), savingsMap.size(), loanMap.size(), annuityMap.size(), mortgageMap.size(), rentHouseMap.size());
-
         for (ProductRiskRating rating : riskRatings) {
-            log.info("상품 메타데이터 보완 시도: productType={}, productId={}",
-                    rating.getProductType(), rating.getProductId());
-
             try {
                 switch (rating.getProductType()) {
                     case DEPOSIT -> {
                         DepositProduct product = depositMap.get(rating.getProductId());
                         if (product != null) {
-                            log.info("예금 상품 조회 성공: {}", product.getFinPrdtNm());
                             rating.setProductName(product.getFinPrdtNm());
                             rating.setCompanyName(product.getKorCoNm());
                             rating.setDclsMonth(product.getDclsMonth());
@@ -134,7 +119,6 @@ public class ProductRecommendationServiceImpl implements ProductRecommendationSe
                     case SAVINGS -> {
                         SavingsProduct product = savingsMap.get(rating.getProductId());
                         if (product != null) {
-                            log.info("적금 상품 조회 성공: {}", product.getFinPrdtNm());
                             rating.setProductName(product.getFinPrdtNm());
                             rating.setCompanyName(product.getKorCoNm());
                             rating.setDclsMonth(product.getDclsMonth());
@@ -147,7 +131,6 @@ public class ProductRecommendationServiceImpl implements ProductRecommendationSe
                     case CREDITLOAN -> {
                         CreditLoanProduct product = loanMap.get(rating.getProductId());
                         if (product != null) {
-                            log.info("신용대출 상품 조회 성공: {}", product.getFinPrdtNm());
                             rating.setProductName(product.getFinPrdtNm());
                             rating.setCompanyName(product.getKorCoNm());
                             rating.setDclsMonth(product.getDclsMonth());
@@ -155,13 +138,11 @@ public class ProductRecommendationServiceImpl implements ProductRecommendationSe
                             rating.setFinPrdtCd(product.getFinPrdtCd());
                         } else {
                             log.warn("신용대출 상품 조회 실패: productId={}", rating.getProductId());
-                            log.warn("신용대출 맵에 있는 ID들: {}", loanMap.keySet());
                         }
                     }
                     case ANNUITY -> {
                         AnnuityProduct product = annuityMap.get(rating.getProductId());
                         if (product != null) {
-                            log.info("연금 상품 조회 성공: {}", product.getFinPrdtNm());
                             rating.setProductName(product.getFinPrdtNm());
                             rating.setCompanyName(product.getKorCoNm());
                             rating.setDclsMonth(product.getDclsMonth());
@@ -174,7 +155,6 @@ public class ProductRecommendationServiceImpl implements ProductRecommendationSe
                     case MORTGAGE -> {
                         MortgageLoanProduct product = mortgageMap.get(rating.getProductId());
                         if (product != null) {
-                            log.info("주택담보대출 상품 조회 성공: {}", product.getFinPrdtNm());
                             rating.setProductName(product.getFinPrdtNm());
                             rating.setCompanyName(product.getKorCoNm());
                             rating.setDclsMonth(product.getDclsMonth());
@@ -187,7 +167,6 @@ public class ProductRecommendationServiceImpl implements ProductRecommendationSe
                     case RENTHOUSE -> {
                         RentHouseLoanProduct product = rentHouseMap.get(rating.getProductId());
                         if (product != null) {
-                            log.info("전세자금대출 상품 조회 성공: {}", product.getFinPrdtNm());
                             rating.setProductName(product.getFinPrdtNm());
                             rating.setCompanyName(product.getKorCoNm());
                             rating.setDclsMonth(product.getDclsMonth());
@@ -203,8 +182,6 @@ public class ProductRecommendationServiceImpl implements ProductRecommendationSe
                         rating.getProductType(), rating.getProductId(), e);
             }
         }
-
-        log.info("상품 메타데이터 보완 완료");
         return riskRatings;
     }
 

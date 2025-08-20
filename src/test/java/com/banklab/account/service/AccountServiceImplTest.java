@@ -43,11 +43,6 @@ class AccountServiceImplTest {
 
         List<AccountDTO> accountDTOList = accountService.getUserAccounts(memberId);
 
-        for(AccountDTO accountDTO : accountDTOList) {
-            log.info("보유 계좌: {}", accountDTO.getResAccountName());
-            log.info("계좌번호: {}", accountDTO.getResAccountDisplay());
-            log.info("잔액: {}",accountDTO.getResAccountBalance());
-        }
     }
 
     @Test
@@ -60,11 +55,6 @@ class AccountServiceImplTest {
 
         List<AccountDTO> accountDTOList = accountService.getUserAccounts(memberId);
 
-        for(AccountDTO accountDTO : accountDTOList) {
-            log.info("보유 계좌: {}", accountDTO.getResAccountName());
-            log.info("계좌번호: {}", accountDTO.getResAccountDisplay());
-            log.info("잔액: {}",accountDTO.getResAccountBalance());
-        }
     }
 
     @Test

@@ -28,8 +28,6 @@ public class MortgageLoanDetailServiceImpl implements MortgageLoanDetailService 
     @Override
     public MortgageLoanWithOptionsDto getMortgageLoanWithOptions(String dclsMonth, String finCoNo, String finPrdtCd) {
         try {
-            log.info("주택담보대출 상품과 옵션 조회: dclsMonth={}, finCoNo={}, finPrdtCd={}", dclsMonth, finCoNo, finPrdtCd);
-
             // 1. 상품 조회
             MortgageLoanProduct product = mortgageLoanProductMapper.findByProductKey(dclsMonth, finCoNo, finPrdtCd);
             if (product == null) {

@@ -99,7 +99,6 @@ public class AccountController {
             Long memberId = (Long) authInfo.get("memberId");
             String email = (String) authInfo.get("email");
 
-            log.info("계좌 연동 시작 - email: {}, memberId: {}, bankCode: {}", email, memberId, accountRequest.getBankCode());
 
             String userConnectedId = null;
             List<AccountVO> accountList = null;
@@ -188,7 +187,6 @@ public class AccountController {
             Long memberId = (Long) authInfo.get("memberId");
             String email = (String) authInfo.get("email");
 
-            log.info("계좌 목록 조회 - email: {}, memberId: {}", email, memberId);
 
             List<AccountDTO> accountList = accountService.getUserAccounts(memberId);
 
@@ -223,8 +221,6 @@ public class AccountController {
             Long memberId = (Long) authInfo.get("memberId");
             String email = (String) authInfo.get("email");
 
-            log.info("계좌 잔액 새로고침 - email: {}, memberId: {}, bankCode: {}",
-                    email, memberId, request.getBankCode());
 
             // 권한 검증
             if (!accountService.isConnectedIdOwner(memberId, request.getConnectedId())) {
@@ -274,8 +270,6 @@ public class AccountController {
             Long memberId = (Long) authInfo.get("memberId");
             String email = (String) authInfo.get("email");
 
-            log.info("계좌 연동 해제 - email: {}, memberId: {}, bankCode: {}",
-                    email, memberId, request.getBankCode());
 
             // 권한 검증
             if (!accountService.isConnectedIdOwner(memberId, request.getConnectedId())) {
