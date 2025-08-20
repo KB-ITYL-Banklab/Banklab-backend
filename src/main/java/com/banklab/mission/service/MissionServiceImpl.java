@@ -56,7 +56,8 @@ public class MissionServiceImpl implements MissionService {
     @Transactional
     @Override
     public void catchUpRewards(Long memberId) {
-        int level = characterService.lockAndGetLevel(memberId);
+        Integer level = characterService.lockAndGetLevel(memberId); // FOR UPDATE
+        if (level == null) throw new IllegalStateException("Level is null");
 
         List<MissionVO> missions = getCurrentLevelMissions(level);
         if (missions.isEmpty()) return;
