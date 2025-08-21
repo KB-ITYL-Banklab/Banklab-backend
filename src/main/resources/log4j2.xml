@@ -21,7 +21,19 @@
             <AppenderRef ref="console"/>
         </Logger>
 
-        <Logger name="jdbc" level="WARN" additivity="false">
+        <Logger name="jdbc" level="OFF" additivity="false">
+            <AppenderRef ref="console"/>
+        </Logger>
+        
+        <Logger name="jdbc.sqltiming" level="OFF" additivity="false">
+            <AppenderRef ref="console"/>
+        </Logger>
+        
+        <Logger name="jdbc.resultset" level="OFF" additivity="false">
+            <AppenderRef ref="console"/>
+        </Logger>
+        
+        <Logger name="jdbc.connection" level="OFF" additivity="false">
             <AppenderRef ref="console"/>
         </Logger>
 

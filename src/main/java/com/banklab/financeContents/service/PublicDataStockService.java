@@ -112,16 +112,16 @@ public class PublicDataStockService {
             // 요청 파라미터를 최대 허용치로 제한
             if (numOfRows > MAX_API_ROWS) {
                 numOfRows = MAX_API_ROWS;
-                log.warn("⚠️ 요청 데이터 개수가 최대치를 초과하여 {}개로 제한됩니다.", MAX_API_ROWS);
+                // log.warn("⚠️ 요청 데이터 개수가 최대치를 초과하여 {}개로 제한됩니다.", MAX_API_ROWS);
             }
 
             // === 2. 요청 정보 로깅 ===
-            log.info("📅 기준일자: {}, 종목코드: {}, 조회설정: {}개/페이지, {}페이지",
-                    baseDate, shortCode != null ? shortCode : "전체", numOfRows, pageNo);
+            // log.info("📅 기준일자: {}, 종목코드: {}, 조회설정: {}개/페이지, {}페이지",
+            //         baseDate, shortCode != null ? shortCode : "전체", numOfRows, pageNo);
 
             // === 3. API URL 구성 ===
             URI uri = buildApiUri(baseDate, shortCode, numOfRows, pageNo);
-            log.info("🌐 API 요청 URL: {}", uri.toString());
+            // log.info("🌐 API 요청 URL: {}", uri.toString());
 
             // === 4. HTTP 클라이언트 설정 및 요청 수행 ===
             // 타임아웃 및 프록시 설정이 포함된 HTTP 클라이언트 생성
@@ -147,16 +147,16 @@ public class PublicDataStockService {
                     String responseBody = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
 
                     int statusCode = response.getStatusLine().getStatusCode();
-                    log.debug("📥 API 응답 상태코드: {}", statusCode);
+                    // log.debug("📥 API 응답 상태코드: {}", statusCode);
 
                     if (statusCode == 200) {
                         // HTTP 200 OK - 응답 파싱 시도
-                        log.info("📄 API 응답 원시 데이터 (최대 1000자): {}",
-                                responseBody.length() > 1000 ? responseBody.substring(0, 1000) + "..." : responseBody);
+                        // log.info("📄 API 응답 원시 데이터 (최대 1000자): {}",
+                        //         responseBody.length() > 1000 ? responseBody.substring(0, 1000) + "..." : responseBody);
                         return parseApiResponse(responseBody);
                     } else {
                         // HTTP 오류 상태코드 처리
-                        log.error("❌ API 호출 실패. HTTP 상태코드: {}, 응답: {}", statusCode, responseBody);
+                        // log.error("❌ API 호출 실패. HTTP 상태코드: {}, 응답: {}", statusCode, responseBody);
                         throw new RuntimeException(String.format("API 호출 실패: HTTP %d - %s", statusCode, responseBody));
                     }
                 }
@@ -164,7 +164,7 @@ public class PublicDataStockService {
 
         } catch (Exception e) {
             // 모든 예외를 포착하여 로깅 후 RuntimeException으로 변환
-            log.error("❌ 주식 정보 조회 중 오류 발생: {}", e.getMessage(), e);
+            // log.error("❌ 주식 정보 조회 중 오류 발생: {}", e.getMessage(), e);
             throw new RuntimeException("주식 정보 조회 실패: " + e.getMessage(), e);
         }
     }
@@ -201,14 +201,14 @@ public class PublicDataStockService {
         }
 
         String targetCode = shortCode.trim();
-        log.info("🔍 종목 {} 검색 시작", targetCode);
+        // log.info("🔍 종목 {} 검색 시작", targetCode);
 
         // === 2. 최근 영업일 데이터 탐색 (최대 7일) ===
         LocalDate currentDate = LocalDate.now().minusDays(1); // 어제부터 시작
 
         for (int dayOffset = 0; dayOffset < MAX_SEARCH_DAYS; dayOffset++) {
             String dateStr = currentDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-            log.info("📅 {} 데이터에서 종목 {} 검색 중... ({}일 전)", dateStr, targetCode, dayOffset + 1);
+            // log.info("📅 {} 데이터에서 종목 {} 검색 중... ({}일 전)", dateStr, targetCode, dayOffset + 1);
 
             // === 3. 직접 조회 시도 (1차: 종목코드 매개변수 사용) ===
             try {
@@ -218,14 +218,14 @@ public class PublicDataStockService {
 
                     // 정확한 종목코드 매칭 확인 (API가 유사한 코드를 반환할 수 있음)
                     if (targetCode.equals(found.getShortCode())) {
-                        log.info("✅ 직접 조회로 종목 {} 찾음: {}", targetCode, found.getItemName());
+                        // log.info("✅ 직접 조회로 종목 {} 찾음: {}", targetCode, found.getItemName());
                         return found;
                     } else {
-                        log.warn("⚠️ 직접 조회 결과 종목코드 불일치: 요청={}, 응답={}", targetCode, found.getShortCode());
+                        // log.warn("⚠️ 직접 조회 결과 종목코드 불일치: 요청={}, 응답={}", targetCode, found.getShortCode());
                     }
                 }
             } catch (Exception e) {
-                log.warn("⚠️ 직접 조회 실패, 전체 조회로 재시도: {}", e.getMessage());
+                // log.warn("⚠️ 직접 조회 실패, 전체 조회로 재시도: {}", e.getMessage());
             }
 
             // === 4. 전체 조회에서 필터링 (2차: 전체 목록에서 검색) ===
@@ -234,7 +234,7 @@ public class PublicDataStockService {
                     List<StockSecurityInfoDto> pageResult = getStockPriceInfo(dateStr, null, 100, page);
 
                     if (pageResult == null || pageResult.isEmpty()) {
-                        log.debug("📄 {}페이지에 더 이상 데이터 없음", page);
+                        // log.debug("📄 {}페이지에 더 이상 데이터 없음", page);
                         break; // 더 이상 데이터 없음
                     }
 
@@ -245,25 +245,25 @@ public class PublicDataStockService {
                             .orElse(null);
 
                     if (exactMatch != null) {
-                        log.info("✅ 전체 조회에서 종목 {} 찾음: {} ({}페이지)",
-                                targetCode, exactMatch.getItemName(), page);
+                        // log.info("✅ 전체 조회에서 종목 {} 찾음: {} ({}페이지)",
+                        //         targetCode, exactMatch.getItemName(), page);
                         return exactMatch;
                     }
 
-                    log.debug("🔍 {}페이지에서 종목 {} 찾지 못함 ({}/{}개 검색)",
-                            page, targetCode, pageResult.size(), page * 100);
+                    // log.debug("🔍 {}페이지에서 종목 {} 찾지 못함 ({}/{}개 검색)",
+                    //         page, targetCode, pageResult.size(), page * 100);
                 }
             } catch (Exception e) {
-                log.warn("⚠️ {} 전체 조회 중 오류: {}", dateStr, e.getMessage());
+                // log.warn("⚠️ {} 전체 조회 중 오류: {}", dateStr, e.getMessage());
             }
 
             // === 5. 이전 날짜로 이동 ===
-            log.warn("⚠️ {} 데이터에서 종목 {} 찾을 수 없음, 이전 날짜 시도...", dateStr, targetCode);
+            // log.warn("⚠️ {} 데이터에서 종목 {} 찾을 수 없음, 이전 날짜 시도...", dateStr, targetCode);
             currentDate = currentDate.minusDays(1);
         }
 
         // === 6. 최종 실패 처리 ===
-        log.error("❌ 종목 {} - 최근 {}일간 데이터를 찾을 수 없습니다.", targetCode, MAX_SEARCH_DAYS);
+        // log.error("❌ 종목 {} - 최근 {}일간 데이터를 찾을 수 없습니다.", targetCode, MAX_SEARCH_DAYS);
         return null;
     }
 
@@ -289,39 +289,39 @@ public class PublicDataStockService {
      * @see #getStockPriceInfo(String, String, Integer, Integer) 기본 API 호출 메서드
      */
     public List<StockSecurityInfoDto> getTopStocks(int numOfRows) {
-        log.info("🏆 상위 {}개 종목 조회 요청", numOfRows);
+        // log.info("🏆 상위 {}개 종목 조회 요청", numOfRows);
 
         // === 1. 최근 영업일 데이터 탐색 ===
         LocalDate currentDate = LocalDate.now().minusDays(1); // 어제부터 시작
 
         for (int dayOffset = 0; dayOffset < MAX_SEARCH_DAYS; dayOffset++) {
             String dateStr = currentDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-            log.info("📅 {} 데이터 조회 시도 중... ({}일 전)", dateStr, dayOffset + 1);
+            // log.info("📅 {} 데이터 조회 시도 중... ({}일 전)", dateStr, dayOffset + 1);
 
             try {
                 List<StockSecurityInfoDto> result = getStockPriceInfo(dateStr, null, numOfRows, 1);
 
                 if (result != null && !result.isEmpty()) {
-                    log.info("✅ {} 데이터 {}개 조회 성공", dateStr, result.size());
+                    // log.info("✅ {} 데이터 {}개 조회 성공", dateStr, result.size());
 
                     // 상위 종목 정보 로깅 (처음 3개만)
                     for (int i = 0; i < Math.min(3, result.size()); i++) {
                         StockSecurityInfoDto stock = result.get(i);
-                        log.info("  {}위: {} ({})", i + 1, stock.getItemName(), stock.getShortCode());
+                        // log.info("  {}위: {} ({})", i + 1, stock.getItemName(), stock.getShortCode());
                     }
 
                     return result;
                 }
 
-                log.warn("⚠️ {} 데이터 없음, 이전 날짜 시도...", dateStr);
+                // log.warn("⚠️ {} 데이터 없음, 이전 날짜 시도...", dateStr);
             } catch (Exception e) {
-                log.warn("⚠️ {} 데이터 조회 중 오류: {}", dateStr, e.getMessage());
+                // log.warn("⚠️ {} 데이터 조회 중 오류: {}", dateStr, e.getMessage());
             }
 
             currentDate = currentDate.minusDays(1);
         }
 
-        log.error("❌ 최근 {}일간 상위 종목 데이터를 찾을 수 없습니다.", MAX_SEARCH_DAYS);
+        // log.error("❌ 최근 {}일간 상위 종목 데이터를 찾을 수 없습니다.", MAX_SEARCH_DAYS);
         return null;
     }
 
@@ -365,7 +365,7 @@ public class PublicDataStockService {
             return uri;
 
         } catch (Exception e) {
-            log.error("❌ URI 구성 중 오류 발생: {}", e.getMessage(), e);
+            // log.error("❌ URI 구성 중 오류 발생: {}", e.getMessage(), e);
             throw new URISyntaxException(API_URL, "URI 구성 실패: " + e.getMessage());
         }
     }
@@ -391,7 +391,7 @@ public class PublicDataStockService {
 
         // === 1. XML 오류 응답 체크 ===
         if (responseBody.startsWith("<")) {
-            log.error("❌ API에서 XML 오류 응답 수신: {}", responseBody);
+            // log.error("❌ API에서 XML 오류 응답 수신: {}", responseBody);
 
             // 일반적인 API 오류 메시지들 체크
             if (responseBody.contains("SERVICE_KEY_IS_NOT_REGISTERED_ERROR")) {
@@ -410,13 +410,13 @@ public class PublicDataStockService {
         }
 
         // === 2. JSON 응답 파싱 ===
-        log.debug("📋 JSON 응답 파싱 시도");
+        // log.debug("📋 JSON 응답 파싱 시도");
         try {
             StockApiResponseDto apiResponse = objectMapper.readValue(responseBody, StockApiResponseDto.class);
             return extractStockData(apiResponse);
         } catch (Exception e) {
-            log.error("❌ JSON 파싱 실패: {}", e.getMessage());
-            log.error("📄 응답 내용: {}", responseBody);
+            // log.error("❌ JSON 파싱 실패: {}", e.getMessage());
+            // log.error("📄 응답 내용: {}", responseBody);
             throw new RuntimeException("JSON 응답 파싱 중 오류 발생: " + e.getMessage());
         }
     }
@@ -434,22 +434,22 @@ public class PublicDataStockService {
     private List<StockSecurityInfoDto> extractStockData(StockApiResponseDto apiResponse) {
         // === 1. 응답 구조 검증 ===
         if (apiResponse.getResponse() == null) {
-            log.warn("⚠️ API 응답에서 response가 null입니다.");
+            // log.warn("⚠️ API 응답에서 response가 null입니다.");
             return null;
         }
 
         // === 2. 헤더 정보 확인 (결과 코드) ===
         StockApiResponseDto.ResponseBody.Header header = apiResponse.getResponse().getHeader();
         if (header != null && !"00".equals(header.getResultCode())) {
-            log.warn("⚠️ API 호출 결과 오류. 코드: {}, 메시지: {}",
-                    header.getResultCode(), header.getResultMsg());
+            // log.warn("⚠️ API 호출 결과 오류. 코드: {}, 메시지: {}",
+            //         header.getResultCode(), header.getResultMsg());
             throw new RuntimeException("API 오류: " + header.getResultMsg());
         }
 
         // === 3. 본문 데이터 추출 ===
         StockApiResponseDto.ResponseBody.Body body = apiResponse.getResponse().getBody();
         if (body == null || body.getItems() == null) {
-            log.warn("⚠️ API 응답에서 데이터가 없습니다.");
+            // log.warn("⚠️ API 응답에서 데이터가 없습니다.");
             return null;
         }
 
@@ -457,9 +457,9 @@ public class PublicDataStockService {
 
         // === 4. 추출 결과 로깅 ===
         if (stockList != null && !stockList.isEmpty()) {
-            log.info("📊 {}개의 주식 데이터 추출 완료", stockList.size());
+            // log.info("📊 {}개의 주식 데이터 추출 완료", stockList.size());
         } else {
-            log.info("📭 추출된 주식 데이터가 없습니다.");
+            // log.info("📭 추출된 주식 데이터가 없습니다.");
         }
 
         return stockList;

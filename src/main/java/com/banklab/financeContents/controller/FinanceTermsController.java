@@ -50,7 +50,7 @@ public class FinanceTermsController {
         Map<String, Object> response = new HashMap<>();
         
         try {
-            log.info("🔍 DB 금융용어 검색 요청: {} (page={}, size={})", term, page, size);
+            // log.info("🔍 DB 금융용어 검색 요청: {} (page={}, size={})", term, page, size);
             
             // 검색어가 비어있는 경우 처리
             if (term == null || term.trim().isEmpty()) {
@@ -75,8 +75,8 @@ public class FinanceTermsController {
                 ? searchResults.subList(startIndex, endIndex) 
                 : List.of();
             
-            log.info("✅ DB 금융용어 검색 완료: {}개 결과 (전체 {}개, {}페이지 중 {}페이지)", 
-                    pagedResults.size(), totalCount, totalPages, page);
+            // log.info("✅ DB 금융용어 검색 완료: {}개 결과 (전체 {}개, {}페이지 중 {}페이지)", 
+            //         pagedResults.size(), totalCount, totalPages, page);
             
             response.put("success", true);
             response.put("message", "검색이 완료되었습니다.");
@@ -94,7 +94,7 @@ public class FinanceTermsController {
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
-            log.error("❌ DB 금융용어 검색 중 오류 발생: {}", e.getMessage(), e);
+            // log.error("❌ DB 금융용어 검색 중 오류 발생: {}", e.getMessage(), e);
             response.put("success", false);
             response.put("message", "검색 중 오류가 발생했습니다.");
             response.put("error", e.getMessage());
@@ -117,7 +117,7 @@ public class FinanceTermsController {
         Map<String, Object> response = new HashMap<>();
         
         try {
-            log.info("🎯 금융용어 상세 조회 요청: {}", term);
+            // log.info("🎯 금융용어 상세 조회 요청: {}", term);
             
             if (term == null || term.trim().isEmpty()) {
                 response.put("success", false);
@@ -128,12 +128,12 @@ public class FinanceTermsController {
             FinanceTermVO termDetail = financeTermCsvService.getTermByExactMatch(term.trim());
             
             if (termDetail != null) {
-                log.info("✅ 금융용어 상세 조회 성공: {}", term);
+                // log.info("✅ 금융용어 상세 조회 성공: {}", term);
                 response.put("success", true);
                 response.put("message", "용어 조회가 완료되었습니다.");
                 response.put("data", termDetail);
             } else {
-                log.info("⚠️ 금융용어 상세 조회 실패: {} - 용어를 찾을 수 없음", term);
+                // log.info("⚠️ 금융용어 상세 조회 실패: {} - 용어를 찾을 수 없음", term);
                 response.put("success", false);
                 response.put("message", "해당 용어를 찾을 수 없습니다.");
                 response.put("searchTerm", term.trim());
@@ -142,7 +142,7 @@ public class FinanceTermsController {
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
-            log.error("❌ 금융용어 상세 조회 중 오류 발생: {}", e.getMessage(), e);
+            // log.error("❌ 금융용어 상세 조회 중 오류 발생: {}", e.getMessage(), e);
             response.put("success", false);
             response.put("message", "조회 중 오류가 발생했습니다.");
             response.put("error", e.getMessage());
@@ -165,7 +165,7 @@ public class FinanceTermsController {
         Map<String, Object> response = new HashMap<>();
         
         try {
-            log.info("🔑 키워드로 금융용어 조회 요청: {}", keyword);
+            // log.info("🔑 키워드로 금융용어 조회 요청: {}", keyword);
             
             if (keyword == null || keyword.trim().isEmpty()) {
                 response.put("success", false);
@@ -176,12 +176,12 @@ public class FinanceTermsController {
             FinanceTermVO termDetail = financeTermCsvService.getTermByKeyword(keyword.trim());
             
             if (termDetail != null) {
-                log.info("✅ 키워드로 금융용어 조회 성공: {}", keyword);
+                // log.info("✅ 키워드로 금융용어 조회 성공: {}", keyword);
                 response.put("success", true);
                 response.put("message", "키워드 조회가 완료되었습니다.");
                 response.put("data", termDetail);
             } else {
-                log.info("⚠️ 키워드로 금융용어 조회 실패: {} - 키워드를 찾을 수 없음", keyword);
+                // log.info("⚠️ 키워드로 금융용어 조회 실패: {} - 키워드를 찾을 수 없음", keyword);
                 response.put("success", false);
                 response.put("message", "해당 키워드를 찾을 수 없습니다.");
                 response.put("searchKeyword", keyword.trim());
@@ -190,7 +190,7 @@ public class FinanceTermsController {
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
-            log.error("❌ 키워드로 금융용어 조회 중 오류 발생: {}", e.getMessage(), e);
+            // log.error("❌ 키워드로 금융용어 조회 중 오류 발생: {}", e.getMessage(), e);
             response.put("success", false);
             response.put("message", "조회 중 오류가 발생했습니다.");
             response.put("error", e.getMessage());
@@ -210,12 +210,12 @@ public class FinanceTermsController {
         Map<String, Object> response = new HashMap<>();
         
         try {
-            log.info("📋 저장된 금융용어 조회 요청");
+            // log.info("📋 저장된 금융용어 조회 요청");
             
             List<FinanceTermVO> storedTerms = financeTermCsvService.getAllTerms();
             int totalCount = financeTermCsvService.getTermsCount();
             
-            log.info("✅ 저장된 금융용어 조회 성공: {}개", totalCount);
+            // log.info("✅ 저장된 금융용어 조회 성공: {}개", totalCount);
             
             response.put("success", true);
             response.put("message", "저장된 금융용어 조회가 완료되었습니다.");
@@ -225,7 +225,7 @@ public class FinanceTermsController {
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
-            log.error("❌ 저장된 금융용어 조회 중 오류 발생: {}", e.getMessage(), e);
+            // log.error("❌ 저장된 금융용어 조회 중 오류 발생: {}", e.getMessage(), e);
             response.put("success", false);
             response.put("message", "서버 오류가 발생했습니다.");
             response.put("error", e.getMessage());
@@ -254,7 +254,7 @@ public class FinanceTermsController {
         Map<String, Object> response = new HashMap<>();
         
         try {
-            log.info("📄 페이징된 금융용어 목록 조회 요청: page={}, size={}, subject={}", page, size, subject);
+            // log.info("📄 페이징된 금융용어 목록 조회 요청: page={}, size={}, subject={}", page, size, subject);
             
             // 페이지 파라미터 검증
             if (page < 1) page = 1;
@@ -283,8 +283,8 @@ public class FinanceTermsController {
             
             int totalPages = (int) Math.ceil((double) totalCount / size);
             
-            log.info("✅ 페이징된 금융용어 목록 조회 완료: {}개 결과 (전체 {}개, {}페이지 중 {}페이지)", 
-                    terms.size(), totalCount, totalPages, page);
+            // log.info("✅ 페이징된 금융용어 목록 조회 완료: {}개 결과 (전체 {}개, {}페이지 중 {}페이지)", 
+            //         terms.size(), totalCount, totalPages, page);
             
             response.put("success", true);
             response.put("message", "목록 조회가 완료되었습니다.");
@@ -304,7 +304,7 @@ public class FinanceTermsController {
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
-            log.error("❌ 페이징된 금융용어 목록 조회 중 오류 발생: {}", e.getMessage(), e);
+            // log.error("❌ 페이징된 금융용어 목록 조회 중 오류 발생: {}", e.getMessage(), e);
             response.put("success", false);
             response.put("message", "조회 중 오류가 발생했습니다.");
             response.put("error", e.getMessage());
@@ -326,7 +326,7 @@ public class FinanceTermsController {
         Map<String, Object> response = new HashMap<>();
         
         try {
-            log.info("🎲 랜덤 금융용어 조회 요청: {}개", count);
+            // log.info("🎲 랜덤 금융용어 조회 요청: {}개", count);
             
             // 개수 제한
             if (count < 1) count = 1;
@@ -352,7 +352,7 @@ public class FinanceTermsController {
                 randomTerms = financeTermCsvService.getTermsWithPaging(randomOffset, count);
             }
             
-            log.info("✅ 랜덤 금융용어 조회 완료: {}개", randomTerms.size());
+            // log.info("✅ 랜덤 금융용어 조회 완료: {}개", randomTerms.size());
             
             response.put("success", true);
             response.put("message", "랜덤 용어 조회가 완료되었습니다.");
@@ -363,7 +363,7 @@ public class FinanceTermsController {
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
-            log.error("❌ 랜덤 금융용어 조회 중 오류 발생: {}", e.getMessage(), e);
+            // log.error("❌ 랜덤 금융용어 조회 중 오류 발생: {}", e.getMessage(), e);
             response.put("success", false);
             response.put("message", "조회 중 오류가 발생했습니다.");
             response.put("error", e.getMessage());

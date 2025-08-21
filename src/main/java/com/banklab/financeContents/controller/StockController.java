@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 @Api(tags = "주식 정보 API", description = "실제 주식 정보를 저장하고 불러옴")
 public class StockController {
     
-    private static final Logger log = LoggerFactory.getLogger(StockController.class);
+    // private static final Logger log = LoggerFactory.getLogger(StockController.class);
     
     @Autowired
     private PublicDataStockService publicDataStockService;
@@ -44,10 +44,10 @@ public class StockController {
     @ApiOperation(value = "어제 날짜 기준으로 상위 200개 종목의 주식 정보를 DB에 저장")
     public ResponseEntity<Map<String, Object>> saveStockDataToday() {
         try {
-            log.info("🔵 [POST] /save/today 요청 시작");
+            // log.info("🔵 [POST] /save/today 요청 시작");
             
             LocalDate yesterday = LocalDate.now().minusDays(1); // 전일 데이터
-            log.info("📅 저장 대상 날짜: {} (어제)", yesterday);
+            // log.info("📅 저장 대상 날짜: {} (어제)", yesterday);
             
             int savedCount = financeStockService.saveTopStockDataFromApi(yesterday, 1000);
             
@@ -56,11 +56,11 @@ public class StockController {
             result.put("savedCount", savedCount);
             result.put("topCount", 200);
             
-            log.info("✅ [POST] /save/today 완료: {}건 저장", savedCount);
+            // log.info("✅ [POST] /save/today 완료: {}건 저장", savedCount);
             return ResponseEntity.ok(result);
             
         } catch (Exception e) {
-            log.error("❌ [POST] /save/today 실패: {}", e.getMessage(), e);
+            // log.error("❌ [POST] /save/today 실패: {}", e.getMessage(), e);
             return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, 
                 "오늘자 주식 데이터 저장 실패", e.getMessage());
         }
@@ -70,11 +70,11 @@ public class StockController {
     @ApiOperation(value = "최근 30일간 상위 200개 종목 데이터를 배치로 저장 (30일 이전 데이터 삭제)")
     public ResponseEntity<Map<String, Object>> saveRecentStockData() {
         try {
-            log.info("🔵 [POST] /save/recent 요청 시작 - 최근 30일간 데이터 저장");
+            // log.info("🔵 [POST] /save/recent 요청 시작 - 최근 30일간 데이터 저장");
             
             // 오래된 데이터 먼저 삭제
             int deletedCount = financeStockService.deleteOldData();
-            log.info("🗑️ 30일 이전 오래된 데이터 {}건 삭제", deletedCount);
+            // log.info("🗑️ 30일 이전 오래된 데이터 {}건 삭제", deletedCount);
             
             // 최근 30일 데이터 저장
             int savedCount = financeStockService.saveRecentStockData(30, 1000);
@@ -85,11 +85,11 @@ public class StockController {
             result.put("period", "30일");
             result.put("topCount", 200);
             
-            log.info("✅ [POST] /save/recent 완료: 저장 {}건, 삭제 {}건", savedCount, deletedCount);
+            // log.info("✅ [POST] /save/recent 완료: 저장 {}건, 삭제 {}건", savedCount, deletedCount);
             return ResponseEntity.ok(result);
             
         } catch (Exception e) {
-            log.error("❌ [POST] /save/recent 실패: {}", e.getMessage(), e);
+            // log.error("❌ [POST] /save/recent 실패: {}", e.getMessage(), e);
             return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, 
                 "최근 데이터 저장 실패", e.getMessage());
         }
@@ -108,7 +108,7 @@ public class StockController {
             }
             
             String trimmedCode = stockCode.trim();
-            log.info("🔵 [POST] /save/code/{} 요청 시작 - 종목별 30일간 데이터 저장", trimmedCode);
+            // log.info("🔵 [POST] /save/code/{} 요청 시작 - 종목별 30일간 데이터 저장", trimmedCode);
             
             // 최근 30일간 해당 종목 데이터 저장
             int savedCount = financeStockService.saveRecentStockDataByCode(trimmedCode, 30);
@@ -118,93 +118,19 @@ public class StockController {
             result.put("savedCount", savedCount);
             result.put("period", "30일");
             
-            log.info("✅ [POST] /save/code/{} 완료: {}건 저장", trimmedCode, savedCount);
+            // log.info("✅ [POST] /save/code/{} 완료: {}건 저장", trimmedCode, savedCount);
             return ResponseEntity.ok(result);
             
         } catch (IllegalArgumentException e) {
-            log.warn("⚠️ 잘못된 종목코드 저장 요청: {}", e.getMessage());
+            // log.warn("⚠️ 잘못된 종목코드 저장 요청: {}", e.getMessage());
             return createErrorResponse(HttpStatus.BAD_REQUEST, 
                 "잘못된 요청", e.getMessage());
         } catch (Exception e) {
-            log.error("❌ [POST] /save/code/{} 실패: {}", stockCode, e.getMessage(), e);
+            // log.error("❌ [POST] /save/code/{} 실패: {}", stockCode, e.getMessage(), e);
             return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, 
                 "종목별 데이터 저장 실패", e.getMessage());
         }
     }
-
-    // ===== 데이터베이스 조회 =====
-
-    @GetMapping("/db/count")
-    @ApiOperation(value = "데이터베이스 총 데이터 수 조회")
-    public ResponseEntity<Map<String, Object>> getStockDataCount() {
-        try {
-            log.info("📊 데이터베이스 총 데이터 수 조회");
-            
-            // 간단한 카운트 조회 (JSON 직렬화 문제 우회)
-            List<FinanceStockVO> stocks = financeStockService.getTopStocks(1);
-            int totalCount = stocks.size() > 0 ? 1 : 0;
-            
-            Map<String, Object> result = new HashMap<>();
-            result.put("success", true);
-            result.put("message", "데이터 수 조회 성공");
-            result.put("totalCount", totalCount);
-            result.put("hasData", totalCount > 0);
-            
-            if (totalCount > 0) {
-                FinanceStockVO sample = stocks.get(0);
-                result.put("sampleStock", sample.getItmsNm());
-                result.put("sampleDate", sample.getBasDt().toString());
-            }
-            
-            log.info("✅ 데이터 수 조회 완료: {}건", totalCount);
-            return ResponseEntity.ok(result);
-            
-        } catch (Exception e) {
-            log.error("❌ 데이터 수 조회 실패: {}", e.getMessage(), e);
-            return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, 
-                "데이터 수 조회 실패", e.getMessage());
-        }
-    }
-
-    @GetMapping("/db/top/{limit}")
-    @ApiOperation(value = "데이터베이스에서 인기 종목 조회")
-    public ResponseEntity<Map<String, Object>> getTopStocksFromDB(
-            @ApiParam(value = "조회할 개수", example = "10") 
-            @PathVariable int limit) {
-        try {
-            log.info("🏆 데이터베이스에서 인기 종목 {}개 조회", limit);
-            
-            List<FinanceStockVO> stocks = financeStockService.getTopStocks(limit);
-            
-            // JSON 직렬화 문제 해결을 위해 안전한 형태로 변환
-            List<Map<String, Object>> safeStocks = new ArrayList<>();
-            for (FinanceStockVO stock : stocks) {
-                Map<String, Object> safeStock = new HashMap<>();
-                safeStock.put("id", stock.getId());
-                safeStock.put("srtnCd", stock.getSrtnCd());
-                safeStock.put("stockCode", stock.getSrtnCd());
-                safeStock.put("stockName", safeJsonString(stock.getItmsNm()));
-                safeStock.put("closingPrice", stock.getClpr());
-                safeStock.put("baseDate", stock.getBasDt() != null ? stock.getBasDt().toString() : null);
-                safeStock.put("versus", stock.getVs());
-                safeStock.put("mkp", stock.getMkp());
-                safeStocks.add(safeStock);
-            }
-            
-            Map<String, Object> result = createSuccessResponseMap("인기 종목 조회 성공", safeStocks);
-            result.put("limit", limit);
-            result.put("count", safeStocks.size());
-            
-            log.info("✅ 인기 종목 조회 완료: {}건", stocks.size());
-            return ResponseEntity.ok(result);
-            
-        } catch (Exception e) {
-            log.error("❌ 인기 종목 조회 실패: {}", e.getMessage(), e);
-            return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, 
-                "인기 종목 조회 실패", e.getMessage());
-        }
-    }
-
 
     // ===== 주식 시계열 데이터 조회 =====
     
@@ -214,7 +140,7 @@ public class StockController {
             @ApiParam(value = "정렬 기준 (amount:거래대금, volume:거래량, change:등락률)", example = "amount") 
             @RequestParam String type) {
         try {
-            log.info("🏆 상위 종목 조회: {} 기준", type);
+            // log.info("🏆 상위 종목 조회: {} 기준", type);
             
             List<FinanceStockVO> allStocks = financeStockService.getLatestStocksByDate();
             
@@ -286,11 +212,11 @@ public class StockController {
             response.put("type", type);
             response.put("count", result.size());
             
-            log.info("✅ {} 기준 상위 종목 조회 완료: {}건", type, result.size());
+            // log.info("✅ {} 기준 상위 종목 조회 완료: {}건", type, result.size());
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
-            log.error("❌ 상위 종목 조회 실패: {}", e.getMessage(), e);
+            // log.error("❌ 상위 종목 조회 실패: {}", e.getMessage(), e);
             return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, 
                 "상위 종목 조회 실패", e.getMessage());
         }
@@ -313,7 +239,7 @@ public class StockController {
             }
             final String decodedName = tempName;
             
-            log.info("📈 시계열 데이터 조회: '{}' (최대 {}개)", decodedName, limit);
+            // log.info("📈 시계열 데이터 조회: '{}' (최대 {}개)", decodedName, limit);
             
             List<FinanceStockVO> stocks = financeStockService.searchStocksByName(decodedName);
             
@@ -360,16 +286,16 @@ public class StockController {
             result.put("totalFound", stocks.size());
             result.put("limit", limit);
             
-            log.info("✅ '{}' 시계열 데이터 조회 완료: {}건 반환 (전체 {}건)", 
-                decodedName, timeSeriesData.size(), stocks.size());
+            // log.info("✅ '{}' 시계열 데이터 조회 완료: {}건 반환 (전체 {}건)", 
+            //     decodedName, timeSeriesData.size(), stocks.size());
             return ResponseEntity.ok(result);
             
         } catch (IllegalArgumentException e) {
-            log.warn("⚠️ 잘못된 시계열 조회 요청: {}", e.getMessage());
+            // log.warn("⚠️ 잘못된 시계열 조회 요청: {}", e.getMessage());
             return createErrorResponse(HttpStatus.BAD_REQUEST, 
                 "잘못된 요청", e.getMessage());
         } catch (Exception e) {
-            log.error("❌ 시계열 데이터 조회 실패: {}", e.getMessage(), e);
+            // log.error("❌ 시계열 데이터 조회 실패: {}", e.getMessage(), e);
             return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, 
                 "시계열 데이터 조회 실패", e.getMessage());
         }
@@ -392,7 +318,7 @@ public class StockController {
             }
             final String decodedName = tempName;
             
-            log.info("🎯 정확한 시계열 데이터 조회: '{}' (최대 {}개)", decodedName, limit);
+            // log.info("🎯 정확한 시계열 데이터 조회: '{}' (최대 {}개)", decodedName, limit);
             
             List<FinanceStockVO> stocks = financeStockService.searchStocksByExactName(decodedName);
             
@@ -439,16 +365,16 @@ public class StockController {
             result.put("totalFound", stocks.size());
             result.put("limit", limit);
             
-            log.info("✅ '{}' 정확한 시계열 데이터 조회 완료: {}건 반환 (전체 {}건)", 
-                decodedName, timeSeriesData.size(), stocks.size());
+            // log.info("✅ '{}' 정확한 시계열 데이터 조회 완료: {}건 반환 (전체 {}건)", 
+            //     decodedName, timeSeriesData.size(), stocks.size());
             return ResponseEntity.ok(result);
             
         } catch (IllegalArgumentException e) {
-            log.warn("⚠️ 잘못된 정확한 시계열 조회 요청: {}", e.getMessage());
+            // log.warn("⚠️ 잘못된 정확한 시계열 조회 요청: {}", e.getMessage());
             return createErrorResponse(HttpStatus.BAD_REQUEST, 
                 "잘못된 요청", e.getMessage());
         } catch (Exception e) {
-            log.error("❌ 정확한 시계열 데이터 조회 실패: {}", e.getMessage(), e);
+            // log.error("❌ 정확한 시계열 데이터 조회 실패: {}", e.getMessage(), e);
             return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, 
                 "정확한 시계열 데이터 조회 실패", e.getMessage());
         }
@@ -469,7 +395,7 @@ public class StockController {
                     "잘못된 종목코드", "종목코드는 6자리여야 합니다");
             }
             
-            log.info("📈 종목코드 시계열 데이터 조회 (Query): '{}' (최대 {}개)", searchCode, limit);
+            // log.info("📈 종목코드 시계열 데이터 조회 (Query): '{}' (최대 {}개)", searchCode, limit);
             
             List<FinanceStockVO> stocks = financeStockService.searchStocksByCode(searchCode);
             
@@ -510,22 +436,23 @@ public class StockController {
             result.put("totalFound", stocks.size());
             result.put("limit", limit);
             
-            log.info("✅ '{}' 종목코드 시계열 데이터 조회 완료: {}건 반환 (전체 {}건)", 
-                searchCode, timeSeriesData.size(), stocks.size());
+            // log.info("✅ '{}' 종목코드 시계열 데이터 조회 완료: {}건 반환 (전체 {}건)", 
+            //     searchCode, timeSeriesData.size(), stocks.size());
             return ResponseEntity.ok(result);
             
         } catch (IllegalArgumentException e) {
-            log.warn("⚠️ 잘못된 종목코드 시계열 조회 요청: {}", e.getMessage());
+            // log.warn("⚠️ 잘못된 종목코드 시계열 조회 요청: {}", e.getMessage());
             return createErrorResponse(HttpStatus.BAD_REQUEST, 
                 "잘못된 요청", e.getMessage());
         } catch (Exception e) {
-            log.error("❌ 종목코드 시계열 데이터 조회 실패: {}", e.getMessage(), e);
+            // log.error("❌ 종목코드 시계열 데이터 조회 실패: {}", e.getMessage(), e);
             return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, 
                 "종목코드 시계열 데이터 조회 실패", e.getMessage());
         }
     }
 
     @GetMapping("/timeseries/{code}")
+
     @ApiOperation(value = "종목코드로 시계열 데이터 조회 (Path Variable 방식)")
     public ResponseEntity<Map<String, Object>> getStockTimeSeriesByCode(
             @ApiParam(value = "검색할 종목코드 (6자리)", example = "005930") 
@@ -540,7 +467,7 @@ public class StockController {
                     "잘못된 종목코드", "종목코드는 6자리여야 합니다");
             }
             
-            log.info("📈 종목코드 시계열 데이터 조회: '{}' (최대 {}개)", searchCode, limit);
+            // log.info("📈 종목코드 시계열 데이터 조회: '{}' (최대 {}개)", searchCode, limit);
             
             List<FinanceStockVO> stocks = financeStockService.searchStocksByCode(searchCode);
             
@@ -581,16 +508,16 @@ public class StockController {
             result.put("totalFound", stocks.size());
             result.put("limit", limit);
             
-            log.info("✅ '{}' 종목코드 시계열 데이터 조회 완료: {}건 반환 (전체 {}건)", 
-                searchCode, timeSeriesData.size(), stocks.size());
+            // log.info("✅ '{}' 종목코드 시계열 데이터 조회 완료: {}건 반환 (전체 {}건)", 
+            //     searchCode, timeSeriesData.size(), stocks.size());
             return ResponseEntity.ok(result);
             
         } catch (IllegalArgumentException e) {
-            log.warn("⚠️ 잘못된 종목코드 시계열 조회 요청: {}", e.getMessage());
+            // log.warn("⚠️ 잘못된 종목코드 시계열 조회 요청: {}", e.getMessage());
             return createErrorResponse(HttpStatus.BAD_REQUEST, 
                 "잘못된 요청", e.getMessage());
         } catch (Exception e) {
-            log.error("❌ 종목코드 시계열 데이터 조회 실패: {}", e.getMessage(), e);
+            // log.error("❌ 종목코드 시계열 데이터 조회 실패: {}", e.getMessage(), e);
             return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, 
                 "종목코드 시계열 데이터 조회 실패", e.getMessage());
         }

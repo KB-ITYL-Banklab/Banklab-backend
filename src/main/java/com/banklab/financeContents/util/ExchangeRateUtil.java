@@ -75,7 +75,7 @@ public class ExchangeRateUtil {
             BigDecimal rate = new BigDecimal(dealBasRate);
             return krwAmount.divide(rate, 2, RoundingMode.HALF_UP);
         } catch (Exception e) {
-            log.error("원화 -> 외화 환전 계산 오류", e);
+            // log.error("원화 -> 외화 환전 계산 오류", e);
             return BigDecimal.ZERO;
         }
     }
@@ -92,7 +92,7 @@ public class ExchangeRateUtil {
             BigDecimal rate = new BigDecimal(dealBasRate);
             return foreignAmount.multiply(rate).setScale(0, RoundingMode.HALF_UP);
         } catch (Exception e) {
-            log.error("외화 -> 원화 환전 계산 오류", e);
+            // log.error("외화 -> 원화 환전 계산 오류", e);
             return BigDecimal.ZERO;
         }
     }
@@ -111,7 +111,7 @@ public class ExchangeRateUtil {
             BigDecimal rate = new BigDecimal(ttbRate);
             return foreignAmount.multiply(rate).setScale(0, RoundingMode.HALF_UP);
         } catch (Exception e) {
-            log.error("송금 받을 금액 계산 오류", e);
+            // log.error("송금 받을 금액 계산 오류", e);
             return BigDecimal.ZERO;
         }
     }
@@ -130,7 +130,7 @@ public class ExchangeRateUtil {
             BigDecimal rate = new BigDecimal(ttsRate);
             return foreignAmount.multiply(rate).setScale(0, RoundingMode.HALF_UP);
         } catch (Exception e) {
-            log.error("송금 필요 금액 계산 오류", e);
+            // log.error("송금 필요 금액 계산 오류", e);
             return BigDecimal.ZERO;
         }
     }

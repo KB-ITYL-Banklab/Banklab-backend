@@ -37,7 +37,7 @@ public class UpbitController {
             upbitDataScheduler.manualCollectUpbitData();
             return ResponseEntity.ok(ApiResponse.success("업비트 데이터 수집이 완료되었습니다."));
         } catch (Exception e) {
-            log.error("업비트 데이터 수집 실패", e);
+            // log.error("업비트 데이터 수집 실패", e);
             return ResponseEntity.internalServerError()
                 .body(ApiResponse.error("업비트 데이터 수집에 실패했습니다: " + e.getMessage()));
         }
@@ -58,7 +58,7 @@ public class UpbitController {
                 return ResponseEntity.ok(ApiResponse.success(null, "해당 마켓의 데이터가 없습니다."));
             }
         } catch (Exception e) {
-            log.error("업비트 데이터 조회 실패: {}", market, e);
+            // log.error("업비트 데이터 조회 실패: {}", market, e);
             return ResponseEntity.internalServerError()
                 .body(ApiResponse.error("데이터 조회에 실패했습니다: " + e.getMessage()));
         }
@@ -74,7 +74,7 @@ public class UpbitController {
             List<FinanceUpbit> dataList = upbitDataService.getAllLatestData();
             return ResponseEntity.ok(ApiResponse.success(dataList));
         } catch (Exception e) {
-            log.error("모든 업비트 데이터 조회 실패", e);
+            // log.error("모든 업비트 데이터 조회 실패", e);
             return ResponseEntity.internalServerError()
                 .body(ApiResponse.error("데이터 조회에 실패했습니다: " + e.getMessage()));
         }
@@ -96,7 +96,7 @@ public class UpbitController {
             
             return ResponseEntity.ok(ApiResponse.success(topCoinData, "주요 코인 데이터"));
         } catch (Exception e) {
-            log.error("주요 코인 데이터 조회 실패", e);
+            // log.error("주요 코인 데이터 조회 실패", e);
             return ResponseEntity.internalServerError()
                 .body(ApiResponse.error("주요 코인 데이터 조회에 실패했습니다: " + e.getMessage()));
         }
@@ -110,7 +110,7 @@ public class UpbitController {
     public ResponseEntity<ApiResponse<List<FinanceUpbit>>> getTopCoinsByType(
             @RequestParam String type) {
         try {
-            log.info("🏆 상위 코인 조회: {} 기준", type);
+            // log.info("🏆 상위 코인 조회: {} 기준", type);
             
             List<FinanceUpbit> allData = upbitDataService.getAllLatestData();
             
@@ -158,11 +158,11 @@ public class UpbitController {
                 type.equals("amount") ? "거래대금" : 
                 type.equals("volume") ? "거래량" : "등락률");
             
-            log.info("✅ {} 기준 상위 코인 조회 완료: {}개", type, top5Coins.size());
+            // log.info("✅ {} 기준 상위 코인 조회 완료: {}개", type, top5Coins.size());
             return ResponseEntity.ok(ApiResponse.success(top5Coins, message));
             
         } catch (Exception e) {
-            log.error("❌ 상위 코인 조회 실패: {}", e.getMessage(), e);
+            // log.error("❌ 상위 코인 조회 실패: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError()
                 .body(ApiResponse.error("상위 코인 조회에 실패했습니다: " + e.getMessage()));
         }
@@ -176,11 +176,11 @@ public class UpbitController {
     @ApiOperation(value = "최근 한달치 실제 과거 데이터 삽입", notes = "업비트 일봉 캔들 데이터를 사용하여 최근 한달치 데이터를 수집하고 저장.")
     public ResponseEntity<ApiResponse<String>> insertMonthlyData() {
         try {
-            log.info("최근 한달치 실제 데이터 삽입 요청");
+            // log.info("최근 한달치 실제 데이터 삽입 요청");
             upbitDataService.insertMonthlyData();
             return ResponseEntity.ok(ApiResponse.success("최근 한달치 실제 데이터 삽입이 완료되었습니다."));
         } catch (Exception e) {
-            log.error("최근 한달치 데이터 삽입 실패", e);
+            // log.error("최근 한달치 데이터 삽입 실패", e);
             return ResponseEntity.internalServerError()
                 .body(ApiResponse.error("최근 한달치 데이터 삽입에 실패했습니다: " + e.getMessage()));
         }
@@ -193,7 +193,7 @@ public class UpbitController {
     @ApiOperation(value = "종목명으로 데이터 검색", notes = "마켓 코드로 해당 종목의 모든 데이터를 DB에서 조회.")
     public ResponseEntity<ApiResponse<List<FinanceUpbit>>> searchByMarket(@PathVariable String market) {
         try {
-            log.info("종목 검색 요청: {}", market);
+            // log.info("종목 검색 요청: {}", market);
             
             // 마켓코드 형식 검증 (선택사항)
             if (market == null || market.trim().isEmpty()) {
@@ -215,7 +215,7 @@ public class UpbitController {
                 "종목 " + upperMarket + "의 데이터 " + dataList.size() + "건을 조회했습니다."));
                 
         } catch (Exception e) {
-            log.error("종목 검색 실패: {}", market, e);
+            // log.error("종목 검색 실패: {}", market, e);
             return ResponseEntity.internalServerError()
                 .body(ApiResponse.error("종목 검색에 실패했습니다: " + e.getMessage()));
         }
@@ -231,7 +231,7 @@ public class UpbitController {
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate) {
         try {
-            log.info("종목 기간별 검색 요청: {}, {} ~ {}", market, startDate, endDate);
+            // log.info("종목 기간별 검색 요청: {}, {} ~ {}", market, startDate, endDate);
             
             // 마켓코드 형식 검증
             if (market == null || market.trim().isEmpty()) {
@@ -265,7 +265,7 @@ public class UpbitController {
             return ResponseEntity.ok(ApiResponse.success(dataList, message));
                 
         } catch (Exception e) {
-            log.error("종목 기간별 검색 실패: {}", market, e);
+            // log.error("종목 기간별 검색 실패: {}", market, e);
             return ResponseEntity.internalServerError()
                 .body(ApiResponse.error("종목 기간별 검색에 실패했습니다: " + e.getMessage()));
         }
@@ -279,7 +279,7 @@ public class UpbitController {
     @ApiOperation(value = "실시간 1분봉 데이터 조회", notes = "업비트 API에서 직접 가져오는 실시간 1분봉 데이터.")
     public ResponseEntity<ApiResponse<com.banklab.financeContents.dto.RealtimeDataDto>> getRealtimeData(@PathVariable String market) {
         try {
-            log.info("실시간 데이터 조회 요청: {}", market);
+            // log.info("실시간 데이터 조회 요청: {}", market);
             
             // 마켓코드 형식 검증
             if (market == null || market.trim().isEmpty()) {
@@ -306,7 +306,7 @@ public class UpbitController {
             return ResponseEntity.ok(ApiResponse.success(responseDto, message));
                 
         } catch (Exception e) {
-            log.error("실시간 데이터 조회 실패: {}", market, e);
+            // log.error("실시간 데이터 조회 실패: {}", market, e);
             return ResponseEntity.internalServerError()
                 .body(ApiResponse.error("실시간 데이터 조회에 실패했습니다: " + e.getMessage()));
         }
@@ -320,7 +320,7 @@ public class UpbitController {
     @ApiOperation(value = "모든 KRW 마켓의 실시간 1분봉 데이터 조회", notes = "모든 KRW 마켓의 실시간 1분봉 데이터를 업비트 API에서 직접 조회.")
     public ResponseEntity<ApiResponse<List<com.banklab.financeContents.dto.RealtimeDataDto>>> getAllRealtimeData() {
         try {
-            log.info("모든 마켓 실시간 데이터 조회 요청");
+            // log.info("모든 마켓 실시간 데이터 조회 요청");
             
             List<FinanceUpbit> realtimeDataList = upbitDataService.getAllRealtimeCandles();
             
@@ -340,7 +340,7 @@ public class UpbitController {
             return ResponseEntity.ok(ApiResponse.success(responseDtoList, message));
                 
         } catch (Exception e) {
-            log.error("모든 마켓 실시간 데이터 조회 실패", e);
+            // log.error("모든 마켓 실시간 데이터 조회 실패", e);
             return ResponseEntity.internalServerError()
                 .body(ApiResponse.error("실시간 데이터 조회에 실패했습니다: " + e.getMessage()));
         }
